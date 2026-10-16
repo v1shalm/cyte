@@ -63,13 +63,27 @@ struct XParserTests {
         #expect(tweets[2].media.isEmpty)
     }
 
-    @Test func `picks the highest bitrate mp4 for a video`() throws {
+    @Test func `picks the best mp4 within 720p for a video`() throws {
         let tweets = XParser.tweets(in: try timeline([entry("2", text: "", media: [video])]))
         let media = try #require(tweets.first?.media.first)
         #expect(media.isVideo)
         #expect(media.videoURL?.absoluteString == "https://video.twimg.com/vid/720x1280/high.mp4")
         #expect(abs(media.aspect - 0.5625) < 0.0001)
         #expect(tweets[0].mediaURL(0).path().hasSuffix("/status/2/video/1"))
+    }
+
+    @Test func `skips versions above 720p and falls back to the smallest`() {
+        let url = { (s: String) in URL(string: "https://video.twimg.com/vid/\(s)/clip.mp4")! }
+        let picked = XParser.pickVariant([
+            (632_000, url("480x852")),
+            (2_176_000, url("720x1280")),
+            (10_368_000, url("1080x1920")),
+        ])
+        #expect(picked == url("720x1280"))
+        #expect(XParser.pickVariant([(10_368_000, url("1080x1920")), (25_000_000, url("2160x3840"))]) == url("1080x1920"))
+        let unsized = URL(string: "https://video.twimg.com/tweet_video/gif.mp4")!
+        #expect(XParser.pickVariant([(0, unsized)]) == unsized)
+        #expect(XParser.pickVariant([]) == nil)
     }
 
     @Test func `photos carry no video url`() throws {

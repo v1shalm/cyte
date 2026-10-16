@@ -91,6 +91,9 @@ nonisolated enum XParser {
         return XTweet(id: id, handle: handle, name: name, text: text, media: media)
     }
 
+    static let maxVideoSide = 1280
+    static let maxVideoBitrate = 2_500_000
+
     private static func bestVideoURL(in item: [String: Any]) -> URL? {
         guard let variants = dig(item, "video_info", "variants") as? [[String: Any]] else { return nil }
         let mp4s = variants.compactMap { variant -> (bitrate: Int, url: URL)? in
@@ -101,7 +104,23 @@ nonisolated enum XParser {
             let bitrate = (variant["bitrate"] as? Int) ?? (variant["bitrate"] as? NSNumber)?.intValue ?? 0
             return (bitrate, url)
         }
-        return mp4s.max(by: { $0.bitrate < $1.bitrate })?.url
+        return pickVariant(mp4s)
+    }
+
+    static func pickVariant(_ variants: [(bitrate: Int, url: URL)]) -> URL? {
+        func side(_ url: URL) -> Int? {
+            for part in url.pathComponents {
+                let dims = part.split(separator: "x")
+                if dims.count == 2, let w = Int(dims[0]), let h = Int(dims[1]) { return max(w, h) }
+            }
+            return nil
+        }
+        let fits = variants.filter { variant in
+            if let side = side(variant.url) { return side <= maxVideoSide }
+            return variant.bitrate <= maxVideoBitrate
+        }
+        if let best = fits.max(by: { $0.bitrate < $1.bitrate }) { return best.url }
+        return variants.min(by: { (side($0.url) ?? $0.bitrate) < (side($1.url) ?? $1.bitrate) })?.url
     }
 
     private static func dig(_ node: Any?, _ keys: String...) -> Any? {
