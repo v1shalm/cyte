@@ -122,7 +122,7 @@ private struct LinkHero: View {
                         NSWorkspace.shared.open(url)
                     } label: {
                         HStack(spacing: 6) {
-                            HugeIcon("arrow.up.right", size: IconSize.sm)
+                            Icon("arrow.up.right", size: IconSize.sm)
                             Text(L.Detail.openLink)
                         }
                     }
@@ -432,7 +432,7 @@ private struct TagChip: View {
             .buttonStyle(.plain)
             if let remove, hovering {
                 Button(action: remove) {
-                    HugeIcon("xmark", size: IconSize.xs)
+                    Icon("xmark", size: IconSize.xs)
                         .foregroundStyle(Theme.tertiary)
                 }
                 .buttonStyle(.plain)
@@ -462,7 +462,7 @@ private struct ActionButton: View {
 
     var body: some View {
         Button(action: action) {
-            HugeIcon(symbol, size: IconSize.sm)
+            Icon(symbol, size: IconSize.sm)
                 .foregroundStyle(Theme.actionIcon)
                 .frame(width: 34, height: 34)
                 .background(Circle().fill(Theme.action))
@@ -485,7 +485,7 @@ private struct NavArrow: View {
         let enabled = index.map { forward ? $0 < ids.count - 1 : $0 > 0 } ?? false
         if enabled {
             Button { model.select(offset: forward ? 1 : -1) } label: {
-                HugeIcon(forward ? "chevron.right" : "chevron.left", size: IconSize.sm)
+                Icon(forward ? "chevron.right" : "chevron.left", size: IconSize.sm)
                     .foregroundStyle(Theme.ink)
                     .frame(width: 38, height: 38)
                     .background(Circle().fill(.white))

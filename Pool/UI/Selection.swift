@@ -145,7 +145,7 @@ struct SelectDot: View {
             Circle().fill(on ? Theme.ink : Color.white.opacity(hovering ? 1 : 0.92))
             Circle().strokeBorder(on ? Theme.ink : Color.black.opacity(0.18), lineWidth: 1)
             if on {
-                HugeIcon("checkmark", size: IconSize.xs)
+                Icon("checkmark", size: IconSize.xs)
                     .foregroundStyle(.white)
                     .transition(.scale(scale: 0.5).combined(with: .opacity))
             }
@@ -178,7 +178,7 @@ struct SelectionBar: View {
             }
             HStack(spacing: 6) {
                 Button { model.clearSelection() } label: {
-                    HugeIcon("xmark", size: IconSize.xs)
+                    Icon("xmark", size: IconSize.xs)
                         .foregroundStyle(.white)
                         .frame(width: 32, height: 32)
                         .background(Circle().fill(.white.opacity(0.14)))
@@ -221,7 +221,7 @@ private struct BarButton: View {
     var body: some View {
         Button(action: action) {
             HStack(spacing: 6) {
-                HugeIcon(symbol, size: IconSize.sm)
+                Icon(symbol, size: IconSize.sm)
                 Text(title).font(Theme.ui(13, weight: .medium))
             }
             .foregroundStyle(active ? Theme.ink : .white)
@@ -261,7 +261,7 @@ private struct PickerRow: View {
     var body: some View {
         Button(action: action) {
             HStack(spacing: 10) {
-                HugeIcon(symbol, size: IconSize.sm)
+                Icon(symbol, size: IconSize.sm)
                     .foregroundStyle(Theme.secondary)
                     .frame(width: 18)
                 Text(title)
@@ -318,7 +318,7 @@ private struct TagPicker: View {
         PickerCard {
             VStack(spacing: 6) {
                 HStack(spacing: 8) {
-                    HugeIcon("number", size: IconSize.sm).foregroundStyle(Theme.tertiary)
+                    Icon("number", size: IconSize.sm).foregroundStyle(Theme.tertiary)
                     TextField(L.Select.tagPlaceholder, text: $text)
                         .textFieldStyle(.plain)
                         .font(Theme.ui(13.5))

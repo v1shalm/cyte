@@ -139,20 +139,33 @@
   box-shadow: 0 1px 3px rgba(31, 31, 66, 0.14);
 }
 
-.sort {
+.controls {
   position: absolute;
   right: 0;
   top: -3px;
+  display: inline-flex;
+  gap: 2px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #fff;
+}
+
+.controls span {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   height: 34px;
   padding: 0 14px;
-  border-radius: 999px;
-  background: var(--ink);
-  color: #fff;
-  font-size: 12px;
-  font-weight: 500;
+  background: var(--split);
+  box-shadow: 0 2px 6px rgba(17, 19, 25, 0.07);
+}
+
+.controls span:first-child {
+  border-radius: 17px 5px 5px 17px;
+}
+
+.controls span:last-child {
+  border-radius: 5px 17px 17px 5px;
 }
 
 .grid {
@@ -276,7 +289,7 @@
   .column[data-c="3"] {
     display: none;
   }
-  .sort {
+  .controls {
     display: none;
   }
 }

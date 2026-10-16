@@ -3,11 +3,13 @@ import SwiftUI
 
 enum Theme {
     static let pill = Color(red: 0.16, green: 0.17, blue: 0.20)
+    static let splitFill = Color(red: 0.294, green: 0.303, blue: 0.328)
+    static let splitHover = Color(red: 0.378, green: 0.385, blue: 0.405)
     static let softCanvas = Color.white
-    static let softFill = Color(red: 235 / 255, green: 234 / 255, blue: 239 / 255)
-    static let softFillStrong = Color(red: 229 / 255, green: 228 / 255, blue: 234 / 255)
-    static let softHover = Color(red: 239 / 255, green: 238 / 255, blue: 243 / 255)
-    static let softTarget = Color(red: 224 / 255, green: 223 / 255, blue: 230 / 255)
+    static let softFill = Color(red: 234 / 255, green: 235 / 255, blue: 239 / 255)
+    static let softFillStrong = Color(red: 228 / 255, green: 229 / 255, blue: 234 / 255)
+    static let softHover = Color(red: 240 / 255, green: 241 / 255, blue: 245 / 255)
+    static let softTarget = Color(red: 223 / 255, green: 224 / 255, blue: 230 / 255)
 
     static let ink = Color(red: 0.066, green: 0.074, blue: 0.095)
     static let surface = Color.white

@@ -28,7 +28,7 @@ struct CommandPalette: View {
         let items = sections.flatMap(\.items)
         VStack(spacing: 0) {
             HStack(spacing: 14) {
-                HugeIcon("magnifyingglass", size: IconSize.md)
+                Icon("magnifyingglass", size: IconSize.md)
                     .foregroundStyle(Theme.tertiary)
                 TextField(L.Palette.placeholder, text: $query)
                     .textFieldStyle(.plain)
@@ -253,16 +253,16 @@ private struct PaletteRow: View {
             }
             Spacer()
             if selected {
-                HugeIcon("return", size: IconSize.xs)
+                Icon("return", size: IconSize.xs)
                     .foregroundStyle(Theme.tertiary)
             }
         }
         .padding(.horizontal, 12)
         .frame(height: 50)
         .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .fill(selected ? Theme.rowSelection : .clear)
-                .lifted(RoundedRectangle(cornerRadius: 12, style: .continuous), active: selected, shadow: 0.06)
+                .lifted(RoundedRectangle(cornerRadius: 14, style: .continuous), active: selected, shadow: 0.06)
         )
         .contentShape(Rectangle())
     }
@@ -271,14 +271,14 @@ private struct PaletteRow: View {
         if case .save(let save) = item.kind, let thumb = model.store.url(for: save, file: save.thumbnail) {
             Thumb(url: thumb, maxPixel: 120)
                 .frame(width: 34, height: 34)
-                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).strokeBorder(Theme.hairline))
+                .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 6, style: .continuous).strokeBorder(Theme.hairline))
         } else {
-            HugeIcon(item.symbol, size: IconSize.md)
+            Icon(item.symbol, size: IconSize.md)
                 .foregroundStyle(Theme.secondary)
                 .frame(width: 34, height: 34)
-                .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(.white))
-                .lifted(RoundedRectangle(cornerRadius: 8, style: .continuous), shadow: 0)
+                .background(RoundedRectangle(cornerRadius: 6, style: .continuous).fill(.white))
+                .lifted(RoundedRectangle(cornerRadius: 6, style: .continuous), shadow: 0)
         }
     }
 }

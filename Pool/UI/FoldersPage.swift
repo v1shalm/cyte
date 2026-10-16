@@ -13,7 +13,7 @@ struct FolderCrumb: View {
                     withAnimation(Theme.settle) { model.foldersPage = true }
                 } label: {
                     HStack(spacing: 6) {
-                        HugeIcon("chevron.left", size: IconSize.xs)
+                        Icon("chevron.left", size: IconSize.xs)
                         Text(L.Folders.allFolders).font(Theme.ui(13, weight: .medium))
                     }
                     .foregroundStyle(hovering ? Theme.ink : Theme.secondary)
@@ -85,9 +85,11 @@ private struct FolderCard: View {
     var body: some View {
         let editing = model.editingFolderID == folder.id
         VStack(alignment: .leading, spacing: 0) {
-            mosaic
+            Color.clear
+                .frame(maxWidth: .infinity)
                 .frame(height: 170)
-                .clipShape(RoundedRectangle(cornerRadius: 11, style: .continuous))
+                .overlay { mosaic }
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                 .padding(8)
             VStack(alignment: .leading, spacing: 3) {
                 if editing {
@@ -148,7 +150,7 @@ private struct FolderCard: View {
         if items.isEmpty {
             ZStack {
                 Theme.softFill
-                HugeIcon("folder", size: IconSize.xl)
+                Icon("folder", size: IconSize.xl)
                     .foregroundStyle(Theme.tertiary)
             }
         } else if items.count == 1 {
@@ -191,7 +193,7 @@ private struct NewFolderCard: View {
             withAnimation(Theme.settle) { model.newFolder() }
         } label: {
             VStack(spacing: 10) {
-                HugeIcon("plus", size: IconSize.lg)
+                Icon("plus", size: IconSize.lg)
                 Text(L.Folders.new)
                     .font(Theme.ui(13, weight: .medium))
             }

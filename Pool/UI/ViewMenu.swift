@@ -1,7 +1,58 @@
 import SwiftUI
 
+struct ViewControls: View {
+    var body: some View {
+        HStack(spacing: 2) {
+            FilterButton(segment: .first)
+            ViewButton(segment: .last)
+        }
+        .fixedSize()
+    }
+}
+
+struct FilterButton: View {
+    @Environment(AppModel.self) private var model
+    var segment: Segment = .alone
+    @State private var hovering = false
+
+    var body: some View {
+        let count = model.filterCount
+        Button {
+            withAnimation(.spring(duration: 0.4, bounce: 0.15)) {
+                model.viewOpen = false
+                model.filterOpen.toggle()
+            }
+        } label: {
+            HStack(spacing: 6) {
+                Icon("line.3.horizontal.decrease", size: IconSize.xs)
+                Text(L.Filter.title)
+                    .font(Theme.ui(12, weight: .medium))
+                if count > 0 {
+                    Text("\(count)")
+                        .font(Theme.ui(10, weight: .semibold))
+                        .foregroundStyle(Theme.ink)
+                        .frame(minWidth: 16, minHeight: 16)
+                        .background(Circle().fill(.white))
+                        .transition(.scale.combined(with: .opacity))
+                }
+            }
+            .foregroundStyle(.white)
+            .padding(.horizontal, 14)
+            .frame(height: 34)
+            .background(segment.shape(17).fill(hovering || model.filterOpen ? Theme.splitHover : Theme.splitFill).shadow(color: .black.opacity(Theme.controlShadow), radius: 6, y: 2))
+            .contentShape(segment.shape(17))
+        }
+        .buttonStyle(PressStyle(scale: 0.96))
+        .onHover { hovering = $0 }
+        .animation(Theme.hover, value: hovering)
+        .animation(Theme.settle, value: count)
+        .fixedSize()
+    }
+}
+
 struct ViewButton: View {
     @Environment(AppModel.self) private var model
+    var segment: Segment = .alone
     @State private var hovering = false
 
     var body: some View {
@@ -12,18 +63,18 @@ struct ViewButton: View {
             }
         } label: {
             HStack(spacing: 6) {
-                HugeIcon(symbol, size: IconSize.xs)
+                Icon(symbol, size: IconSize.xs)
                 Text(title)
                     .font(Theme.ui(12, weight: .medium))
-                HugeIcon("chevron.down", size: IconSize.xs)
+                Icon("chevron.down", size: IconSize.xs)
                     .opacity(0.6)
                     .rotationEffect(.degrees(model.viewOpen ? 180 : 0))
             }
             .foregroundStyle(.white)
             .padding(.horizontal, 14)
             .frame(height: 34)
-            .background(Capsule().fill(Theme.ink.opacity(hovering ? 0.88 : 1)).shadow(color: .black.opacity(Theme.controlShadow), radius: 6, y: 2))
-            .contentShape(Capsule())
+            .background(segment.shape(17).fill(hovering || model.viewOpen ? Theme.splitHover : Theme.splitFill).shadow(color: .black.opacity(Theme.controlShadow), radius: 6, y: 2))
+            .contentShape(segment.shape(17))
         }
         .buttonStyle(PressStyle(scale: 0.96))
         .onHover { hovering = $0 }
@@ -68,9 +119,9 @@ struct ViewOverlay: View {
                             .monospacedDigit()
                     }
                     HStack(spacing: 12) {
-                        HugeIcon("square.grid.3x3", size: IconSize.sm).foregroundStyle(Theme.tertiary)
+                        Icon("square.grid.3x3", size: IconSize.sm).foregroundStyle(Theme.tertiary)
                         SoftSlider(value: Bindable(model).columnWidth, range: 150...420)
-                        HugeIcon("square.grid.2x2", size: IconSize.sm).foregroundStyle(Theme.tertiary)
+                        Icon("square.grid.2x2", size: IconSize.sm).foregroundStyle(Theme.tertiary)
                     }
                 }
             }
@@ -98,10 +149,10 @@ private struct SortRow: View {
         let on = model.sort == order
         Button { model.sort = order } label: {
             HStack(spacing: 10) {
-                HugeIcon(symbol, size: IconSize.sm).frame(width: 18).foregroundStyle(Theme.secondary)
+                Icon(symbol, size: IconSize.sm).frame(width: 18).foregroundStyle(Theme.secondary)
                 Text(title).font(Theme.ui(13.5, weight: on ? .medium : .regular)).foregroundStyle(Theme.ink)
                 Spacer()
-                if on { HugeIcon("checkmark", size: IconSize.xs).foregroundStyle(Theme.ink) }
+                if on { Icon("checkmark", size: IconSize.xs).foregroundStyle(Theme.ink) }
             }
             .padding(.horizontal, 10)
             .frame(height: 34)

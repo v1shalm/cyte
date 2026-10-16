@@ -163,7 +163,7 @@ private struct TileActionFace: View {
     let symbol: String
 
     var body: some View {
-        HugeIcon(symbol, size: IconSize.xs)
+        Icon(symbol, size: IconSize.xs)
             .foregroundStyle(Theme.ink)
             .frame(width: 28, height: 28)
             .contentShape(Circle())
@@ -177,7 +177,7 @@ enum FolderMenu {
         for folder in model.store.folders {
             let item = NSMenuItem(title: folder.name, action: #selector(MenuTarget.fire(_:)), keyEquivalent: "")
             item.target = target
-            item.image = HugeIcon.nsImage("folder", size: IconSize.sm)
+            item.image = Icon.nsImage("folder", size: IconSize.sm)
             item.state = save.folders.contains(folder.id) ? .on : .off
             target.actions[item] = {
                 if save.folders.contains(folder.id) {
@@ -192,7 +192,7 @@ enum FolderMenu {
         if !model.store.folders.isEmpty { menu.addItem(.separator()) }
         let create = NSMenuItem(title: L.Folders.new, action: #selector(MenuTarget.fire(_:)), keyEquivalent: "")
         create.target = target
-        create.image = HugeIcon.nsImage("folder.badge.plus", size: IconSize.sm)
+        create.image = Icon.nsImage("folder.badge.plus", size: IconSize.sm)
         target.actions[create] = { model.newFolder(adding: [save.id]) }
         menu.addItem(create)
         objc_setAssociatedObject(menu, &MenuTarget.key, target, .OBJC_ASSOCIATION_RETAIN)
@@ -322,7 +322,7 @@ struct Favicon: View {
             if let url {
                 Thumb(url: url, maxPixel: 64, contentMode: .fit)
             } else {
-                HugeIcon("link", size: IconSize.xs)
+                Icon("link", size: IconSize.xs)
                     .foregroundStyle(Theme.tertiary)
             }
         }

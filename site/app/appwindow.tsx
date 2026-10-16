@@ -38,16 +38,16 @@ export function AppWindow() {
       <div className={styles.rail}>
         <Image src="/pool-icon.png" alt="" width={34} height={34} className={styles.mark} />
         <span className={`${styles.railIcon} ${styles.railOn}`}>
-          <Icon name="grid" size={20} />
+          <Icon name="grid" size={20} weight="fill" />
         </span>
         <span className={styles.railIcon}>
-          <Icon name="bookmark" size={20} />
+          <Icon name="bookmark" size={20} weight="fill" />
         </span>
         <span className={styles.railIcon}>
-          <Icon name="folder" size={20} />
+          <Icon name="folder" size={20} weight="fill" />
         </span>
         <span className={`${styles.railIcon} ${styles.railGear}`}>
-          <Icon name="gear" size={20} />
+          <Icon name="gear" size={20} weight="fill" />
         </span>
       </div>
       <div className={styles.main}>
@@ -55,7 +55,6 @@ export function AppWindow() {
           <Icon name="search" size={14} />
           <span>Search Cyte</span>
           <span className={styles.searchEnd}>
-            <Icon name="filter" size={14} />
             <kbd>⌘K</kbd>
           </span>
         </div>
@@ -72,8 +71,13 @@ export function AppWindow() {
             </span>
             <span>Notes</span>
           </div>
-          <span className={styles.sort}>
-            <Icon name="sort" size={12} /> Newest <Icon name="chevronDown" size={10} />
+          <span className={styles.controls}>
+            <span>
+              <Icon name="filter" size={12} /> Filter
+            </span>
+            <span>
+              <Icon name="sort" size={12} /> Newest <Icon name="chevronDown" size={10} />
+            </span>
           </span>
         </div>
         <div className={styles.grid}>

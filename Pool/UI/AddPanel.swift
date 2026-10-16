@@ -18,7 +18,7 @@ struct AddPanel: View {
                     .foregroundStyle(Theme.ink)
             }
             HStack(spacing: 8) {
-                HugeIcon("link", size: IconSize.sm)
+                Icon("link", size: IconSize.sm)
                     .foregroundStyle(Theme.tertiary)
                 TextField(L.Add.linkPlaceholder, text: $link)
                     .textFieldStyle(.plain)
@@ -27,7 +27,7 @@ struct AddPanel: View {
                     .onSubmit(saveLink)
                 if Ingestor.webURL(in: link.trimmingCharacters(in: .whitespaces)) != nil {
                     Button(action: saveLink) {
-                        HugeIcon("arrow.right", size: IconSize.xs)
+                        Icon("arrow.right", size: IconSize.xs)
                             .foregroundStyle(.white)
                             .frame(width: 24, height: 24)
                             .background(Circle().fill(Theme.ink))
@@ -96,7 +96,7 @@ private struct AddAction: View {
     var body: some View {
         Button(action: action) {
             VStack(spacing: 8) {
-                HugeIcon(symbol, size: IconSize.md)
+                Icon(symbol, size: IconSize.md)
                     .foregroundStyle(Theme.ink)
                 Text(title)
                     .font(Theme.ui(12, weight: .medium))

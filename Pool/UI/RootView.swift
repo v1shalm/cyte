@@ -196,7 +196,7 @@ private struct LinkEntry: View {
         ZStack(alignment: .topTrailing) {
             VStack(alignment: .leading, spacing: 8) {
                 HStack(spacing: 12) {
-                    HugeIcon("link", size: IconSize.md)
+                    Icon("link", size: IconSize.md)
                         .foregroundStyle(Theme.tertiary)
                     TextField(L.Add.linkPlaceholder, text: $text)
                         .textFieldStyle(.plain)
@@ -204,7 +204,7 @@ private struct LinkEntry: View {
                         .foregroundStyle(Theme.ink)
                         .focused($focused)
                         .onSubmit(save)
-                    HugeIcon("return", size: IconSize.xs)
+                    Icon("return", size: IconSize.xs)
                         .foregroundStyle(link == nil ? Theme.tertiary : .white)
                         .frame(width: 26, height: 26)
                         .background(Circle().fill(link == nil ? Theme.chip : Theme.ink))
@@ -311,7 +311,7 @@ struct TopBar: View {
                     HStack(spacing: 18) {
                         FolderCrumb()
                         Spacer()
-                        ViewButton()
+                        ViewControls()
                             .opacity(model.addingFocus ? 0 : 1)
                             .animation(.easeOut(duration: 0.15), value: model.addingFocus)
                     }
@@ -355,47 +355,13 @@ struct TopBar: View {
     }
 }
 
-struct SearchFilterButton: View {
-    @Environment(AppModel.self) private var model
-    @State private var hovering = false
-
-    var body: some View {
-        let count = model.filterCount
-        Button {
-            withAnimation(.spring(duration: 0.4, bounce: 0.15)) { model.viewOpen = false; model.filterOpen.toggle() }
-        } label: {
-            HStack(spacing: 5) {
-                HugeIcon("line.3.horizontal.decrease", size: IconSize.sm)
-                if count > 0 {
-                    Text("\(count)")
-                        .font(Theme.ui(10.5, weight: .semibold))
-                        .foregroundStyle(.white)
-                        .frame(minWidth: 17, minHeight: 17)
-                        .background(Circle().fill(Theme.ink))
-                        .transition(.scale.combined(with: .opacity))
-                }
-            }
-            .foregroundStyle(count > 0 || model.filterOpen ? Theme.ink : Theme.controlMuted)
-            .padding(.horizontal, 8)
-            .frame(height: 26)
-            .background(Capsule().fill(model.filterOpen || hovering ? Theme.softFillStrong : .clear))
-            .contentShape(Capsule())
-        }
-        .buttonStyle(PressStyle(scale: 0.94))
-        .onHover { hovering = $0 }
-        .animation(Theme.hover, value: hovering)
-        .animation(Theme.settle, value: count)
-        .help(L.Filter.title)
-    }
-}
-
 struct SearchTrigger: View {
     @Environment(AppModel.self) private var model
     @State private var hovering = false
 
     var body: some View {
         HStack(spacing: 10) {
-            HugeIcon("magnifyingglass", size: IconSize.sm)
+            Icon("magnifyingglass", size: IconSize.sm)
                 .foregroundStyle(Theme.controlMuted)
             if model.query.isEmpty {
                 Text(L.Search.placeholder)
@@ -408,7 +374,6 @@ struct SearchTrigger: View {
                     .lineLimit(1)
             }
             Spacer(minLength: 8)
-            SearchFilterButton()
             if model.query.isEmpty {
                 Text("⌘K")
                     .font(Theme.ui(11, weight: .medium))
@@ -420,7 +385,7 @@ struct SearchTrigger: View {
                 Button {
                     model.query = ""
                 } label: {
-                    HugeIcon("xmark.circle.fill", size: IconSize.sm)
+                    Icon("xmark.circle.fill", size: IconSize.sm)
                         .foregroundStyle(Theme.controlMuted)
                 }
                 .buttonStyle(.plain)
@@ -493,7 +458,7 @@ struct DropOverlay: View {
                 .strokeBorder(Theme.dropDash, style: StrokeStyle(lineWidth: 1.5, dash: [6, 6]))
                 .padding(18)
             VStack(spacing: 12) {
-                HugeIcon("arrow.down", size: IconSize.lg)
+                Icon("arrow.down", size: IconSize.lg)
                     .foregroundStyle(Theme.actionIcon)
                     .frame(width: 56, height: 56)
                     .background(Circle().fill(Theme.surface))

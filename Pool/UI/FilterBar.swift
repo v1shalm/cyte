@@ -116,7 +116,7 @@ private struct ActiveChip: View {
                 }
                 Text(filter.title)
                     .font(Theme.ui(12.5, weight: .medium))
-                HugeIcon("xmark", size: IconSize.xs)
+                Icon("xmark", size: IconSize.xs)
                     .opacity(0.7)
             }
             .foregroundStyle(.white)
@@ -133,7 +133,7 @@ struct FilterOverlay: View {
     @Environment(AppModel.self) private var model
 
     var body: some View {
-        ZStack(alignment: .top) {
+        ZStack(alignment: .topTrailing) {
             Color.clear
                 .contentShape(Rectangle())
                 .onTapGesture { withAnimation(.spring(duration: 0.35, bounce: 0)) { model.filterOpen = false } }
@@ -147,9 +147,9 @@ struct FilterOverlay: View {
             .background(RoundedRectangle(cornerRadius: 20, style: .continuous).fill(Color.white))
             .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).strokeBorder(Theme.hairline))
             .shadow(color: .black.opacity(0.1), radius: 30, y: 12)
-            .padding(.top, 58)
-            .padding(.leading, model.contentLeading)
-            .transition(.scale(scale: 0.96, anchor: .top).combined(with: .opacity))
+            .padding(.top, 118)
+            .padding(.trailing, Theme.sideInset)
+            .transition(.scale(scale: 0.96, anchor: .topTrailing).combined(with: .opacity))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -216,14 +216,14 @@ struct FilterPanel: View {
                                         .foregroundStyle(Theme.ink)
                                     Spacer()
                                     if selected {
-                                        HugeIcon("checkmark", size: IconSize.xs)
+                                        Icon("checkmark", size: IconSize.xs)
                                     } else {
                                         Text("\(item.count)").font(Theme.ui(12)).foregroundStyle(Theme.tertiary)
                                     }
                                 }
                                 .padding(.horizontal, 12)
                                 .frame(height: 34)
-                                .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(selected ? Theme.softFillStrong : .clear))
+                                .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(selected ? Theme.softFillStrong : .clear))
                                 .contentShape(Rectangle())
                             }
                             .buttonStyle(PressStyle(scale: 0.98))
@@ -255,7 +255,7 @@ struct FilterPanel: View {
                     withAnimation(Theme.settle) { model.saveSmartFolder() }
                 } label: {
                     HStack(spacing: 6) {
-                        HugeIcon("sparkles", size: IconSize.sm)
+                        Icon("sparkles", size: IconSize.sm)
                         Text(L.Similar.save)
                     }
                 }

@@ -12,8 +12,8 @@ const features: { icon: IconName; title: string; body: string; demo: "text" | "f
   },
   {
     icon: "filter",
-    title: "Filters live in the search bar",
-    body: "Pick a colour, a site, a tag or a date range without leaving the grid.",
+    title: "Filter beside Newest",
+    body: "Pick a colour, a site, a tag or a date range from the Filter button and stay on the grid.",
     demo: "filter",
   },
   {
@@ -189,7 +189,7 @@ export default function Home() {
               GitHub
             </a>
           </div>
-          <p className={styles.meta}>Free · macOS 26 or later · Apple silicon · 4.3 MB</p>
+          <p className={styles.meta}>Free · macOS 26 or later · Apple silicon · 4.5 MB</p>
         </section>
 
         <div className={styles.stage}>
@@ -228,7 +228,7 @@ export default function Home() {
             <span>for the slowest search across them</span>
           </div>
           <div>
-            <b>4.3 MB</b>
+            <b>4.5 MB</b>
             <span>to download</span>
           </div>
           <div>
@@ -274,7 +274,7 @@ export default function Home() {
               GitHub
             </a>
           </div>
-          <p className={styles.meta}>Free · macOS 26 or later · Apple silicon · 4.3 MB</p>
+          <p className={styles.meta}>Free · macOS 26 or later · Apple silicon · 4.5 MB</p>
           <p className={styles.note}>
             On first launch, open System Settings → Privacy &amp; Security and choose Open Anyway.
           </p>

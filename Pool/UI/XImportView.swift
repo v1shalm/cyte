@@ -16,7 +16,7 @@ struct XImportView: View {
     private var card: some View {
         let importer = model.xImport
         return VStack(alignment: .leading, spacing: 0) {
-            HugeIcon(symbol, size: IconSize.md)
+            Icon(symbol, size: IconSize.md)
                 .foregroundStyle(.white)
                 .frame(width: 44, height: 44)
                 .background(Circle().fill(Theme.ink))
