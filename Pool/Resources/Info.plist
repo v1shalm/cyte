@@ -37,7 +37,7 @@
 				<string>public.data</string>
 			</array>
 			<key>UTTypeDescription</key>
-			<string>Pool save</string>
+			<string>Cyte save</string>
 			<key>UTTypeIdentifier</key>
 			<string>in.tistmedia.pool.save</string>
 		</dict>

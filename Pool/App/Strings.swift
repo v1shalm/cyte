@@ -8,14 +8,14 @@ enum L {
         static let welcomeSecondary = "Start empty"
 
         static let libraryTitle = "Where should it live?"
-        static let libraryBody = "Pool keeps your saves as plain files in one folder. In iCloud Drive, your iPhone sees them too."
+        static let libraryBody = "Cyte keeps your saves as plain files in one folder. In iCloud Drive, your iPhone sees them too."
         static let libraryPrimary = "Use iCloud Drive"
         static let librarySecondary = "Choose a folder"
-        static let libraryNoICloud = "iCloud Drive is off on this Mac. Pool will make a Pool folder in your home folder, and you can move it later."
+        static let libraryNoICloud = "iCloud Drive is off on this Mac. Cyte will make a Pool folder in your home folder, and you can move it later."
 
-        static let doneTitle = "Your pool is ready."
+        static let doneTitle = "Cyte is ready."
         static let doneBody = "Drop anything on the window, paste with ⌘V, or press ⌥⌘P from any app."
-        static let doneButton = "Open Pool"
+        static let doneButton = "Open Cyte"
 
         static let sound = "Sound"
         static let skipHint = "esc to skip"
@@ -29,9 +29,9 @@ enum L {
     }
 
     enum Search {
-        static let placeholder = "Search your pool"
+        static let placeholder = "Search Cyte"
         static func emptyTitle(_ query: String) -> String { "No saves match “\(query)”" }
-        static let emptyBody = "Pool looked through titles, tags, notes and the text inside images."
+        static let emptyBody = "Cyte looked through titles, tags, notes and the text inside images."
         static let emptyPrimary = "Clear search"
         static let related = "Close in meaning"
     }
@@ -85,12 +85,12 @@ enum L {
 
     enum Menu {
         static let saveClipboard = "Save clipboard"
-        static let open = "Open Pool"
+        static let open = "Open Cyte"
         static let newNote = "New note"
         static let replayOnboarding = "Replay onboarding"
         static let copyBookmarklet = "Copy browser bookmarklet"
         static let sound = "Sound effects"
-        static let quit = "Quit Pool"
+        static let quit = "Quit Cyte"
     }
 
     enum Note {
@@ -104,7 +104,7 @@ enum L {
 
     enum Palette {
         static let title = "Search"
-        static let placeholder = "Search your pool or type a command"
+        static let placeholder = "Search Cyte or type a command"
         static let recent = "Recent"
         static let saves = "Saves"
         static let actions = "Actions"
@@ -118,7 +118,7 @@ enum L {
 
     enum Voice {
         static let listening = "Listening…"
-        static let denied = "Pool needs microphone and speech access. Turn them on in System Settings → Privacy & Security."
+        static let denied = "Cyte needs microphone and speech access. Turn them on in System Settings → Privacy & Security."
         static let failed = "Speech recognition isn't available right now."
         static let save = "Save note"
         static let discard = "Discard"
@@ -164,7 +164,7 @@ enum L {
     enum Add {
         static let button = "Add"
         static let link = "Save a link"
-        static let title = "Add to your pool"
+        static let title = "Add to Cyte"
         static let linkPlaceholder = "Paste a link and press return"
         static let linkInvalid = "Links look like site.com or https://site.com"
         static func saveHost(_ host: String) -> String { "Save \(host)" }
@@ -183,9 +183,9 @@ enum L {
         static let syncNow = "Import new bookmarks"
         static let introTitle = "Bring in your X bookmarks"
         static func introBody(_ browser: String?) -> String {
-            "Pool uses the X login you already have in \(browser ?? "your browser"). It brings in bookmarked posts that have images or videos and skips text-only posts."
+            "Cyte uses the X login you already have in \(browser ?? "your browser"). It brings in bookmarked posts that have images or videos and skips text-only posts."
         }
-        static let introPrivacy = "macOS asks once to let Pool read that login. Choose Always Allow so later imports run on their own."
+        static let introPrivacy = "macOS asks once to let Cyte read that login. Choose Always Allow so later imports run on their own."
         static let start = "Import bookmarks"
         static let cancel = "Cancel"
         static let loading = "Opening your bookmarks"
@@ -193,7 +193,7 @@ enum L {
         static func progress(found: Int, added: Int) -> String {
             found == 0 ? "Waiting for X to send the first page" : "\(added) with images or videos out of \(found) checked"
         }
-        static let keepOpen = "Keep this window open until Pool finishes."
+        static let keepOpen = "Keep this window open until Cyte finishes."
         static let stop = "Stop"
         static func doneTitle(_ n: Int) -> String {
             switch n {
@@ -202,12 +202,12 @@ enum L {
             default: "\(n) bookmarks imported"
             }
         }
-        static let doneBody = "Pool brought in posts with images or videos. Search from:x.com any time to see them."
+        static let doneBody = "Cyte brought in posts with images or videos. Search from:x.com any time to see them."
         static let showThem = "Show them"
         static let done = "Done"
         static let failedTitle = "X didn't send your bookmarks"
-        static let noLoginTitle = "Pool can't find your X login"
-        static let noLogin = "Sign in at x.com in Dia, Chrome or Arc, then try again. Pool borrows that login, so you never sign in here."
+        static let noLoginTitle = "Cyte can't find your X login"
+        static let noLogin = "Sign in at x.com in Dia, Chrome or Arc, then try again. Cyte borrows that login, so you never sign in here."
         static let failedLimited = "X slows down accounts that load many bookmarks at once. Wait about 15 minutes, then try again."
         static let failedNoPage = "Your bookmarks page didn't load in time. Try again, and sign in once more if X asks."
         static let tryAgain = "Try again"
@@ -216,7 +216,7 @@ enum L {
 
     enum Appearance {
         static let title = "Appearance"
-        static let body = "Pick a theme for Pool. It changes every screen at once."
+        static let body = "Pick a theme for Cyte. It changes every screen at once."
         static let menu = "Theme"
         static func description(_ kind: ThemeKind) -> String {
             switch kind {

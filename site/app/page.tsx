@@ -19,9 +19,9 @@ export default function Home() {
           height={104}
           priority
         />
-        <h1 className={styles.title}>Your saves, in one pool.</h1>
+        <h1 className={styles.title}>Your saves, in one place.</h1>
         <p className={styles.lede}>
-          Pool keeps the images, links, notes and X bookmarks you collect on your Mac. It reads
+          Cyte keeps the images, links, notes and X bookmarks you collect on your Mac. It reads
           each one on the device, so search finds a poster by the words printed on it.
         </p>
         <a className={styles.download} href="/downloads/Pool.dmg" download>

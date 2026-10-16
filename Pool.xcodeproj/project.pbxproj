@@ -399,21 +399,21 @@
 				ENABLE_APP_SANDBOX = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Pool/Resources/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Pool;
+				INFOPLIST_KEY_CFBundleDisplayName = Cyte;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
-				INFOPLIST_KEY_NSAppleEventsUsageDescription = "Pool reads the address of the page open in your browser so it can save it.";
-				INFOPLIST_KEY_NSDesktopFolderUsageDescription = "Pool adds new screenshots to your library as you take them.";
-				INFOPLIST_KEY_NSDocumentsFolderUsageDescription = "Pool reads the folder you chose for your library.";
-				INFOPLIST_KEY_NSDownloadsFolderUsageDescription = "Pool saves images you drag in from Downloads.";
+				INFOPLIST_KEY_NSAppleEventsUsageDescription = "Cyte reads the address of the page open in your browser so it can save it.";
+				INFOPLIST_KEY_NSDesktopFolderUsageDescription = "Cyte adds new screenshots to your library as you take them.";
+				INFOPLIST_KEY_NSDocumentsFolderUsageDescription = "Cyte reads the folder you chose for your library.";
+				INFOPLIST_KEY_NSDownloadsFolderUsageDescription = "Cyte saves images you drag in from Downloads.";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Pool listens while you speak a note or search by voice.";
-				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Pool turns what you say into text on this Mac.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Cyte listens while you speak a note or search by voice.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Cyte turns what you say into text on this Mac.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = in.tistmedia.pool;
-				PRODUCT_NAME = Pool;
+				PRODUCT_NAME = Cyte;
 				SDKROOT = macosx;
 			};
 			name = Release;
@@ -563,21 +563,21 @@
 				ENABLE_APP_SANDBOX = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Pool/Resources/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Pool;
+				INFOPLIST_KEY_CFBundleDisplayName = Cyte;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
-				INFOPLIST_KEY_NSAppleEventsUsageDescription = "Pool reads the address of the page open in your browser so it can save it.";
-				INFOPLIST_KEY_NSDesktopFolderUsageDescription = "Pool adds new screenshots to your library as you take them.";
-				INFOPLIST_KEY_NSDocumentsFolderUsageDescription = "Pool reads the folder you chose for your library.";
-				INFOPLIST_KEY_NSDownloadsFolderUsageDescription = "Pool saves images you drag in from Downloads.";
+				INFOPLIST_KEY_NSAppleEventsUsageDescription = "Cyte reads the address of the page open in your browser so it can save it.";
+				INFOPLIST_KEY_NSDesktopFolderUsageDescription = "Cyte adds new screenshots to your library as you take them.";
+				INFOPLIST_KEY_NSDocumentsFolderUsageDescription = "Cyte reads the folder you chose for your library.";
+				INFOPLIST_KEY_NSDownloadsFolderUsageDescription = "Cyte saves images you drag in from Downloads.";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Pool listens while you speak a note or search by voice.";
-				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Pool turns what you say into text on this Mac.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Cyte listens while you speak a note or search by voice.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Cyte turns what you say into text on this Mac.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = in.tistmedia.pool;
-				PRODUCT_NAME = Pool;
+				PRODUCT_NAME = Cyte;
 				SDKROOT = macosx;
 			};
 			name = Debug;
