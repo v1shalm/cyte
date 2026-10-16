@@ -15,7 +15,7 @@ struct PoolApp: App {
         .windowStyle(.hiddenTitleBar)
         .windowToolbarStyle(.unified(showsTitle: false))
         .defaultSize(width: 1320, height: 860)
-        .defaultLaunchBehavior(.presented)
+        .defaultLaunchBehavior(Identity.isTesting ? .suppressed : .presented)
         .restorationBehavior(.disabled)
         .commands { PoolCommands(model: model) }
 
@@ -24,7 +24,7 @@ struct PoolApp: App {
                 .environment(model)
         }
 
-        MenuBarExtra {
+        MenuBarExtra(isInserted: .constant(!Identity.isTesting)) {
             MenuBarContent(model: model)
         } label: {
             Image("MenuBarMark")
@@ -106,6 +106,10 @@ struct MenuBarContent: View {
 }
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
+    func applicationWillFinishLaunching(_ notification: Notification) {
+        if Identity.isTesting { NSApp.setActivationPolicy(.prohibited) }
+    }
+
     func applicationDidFinishLaunching(_ notification: Notification) {
         guard !Identity.isTesting else { return }
         let model = AppModel.shared

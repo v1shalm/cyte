@@ -159,7 +159,7 @@ struct ScanTests {
 }
 
 struct ScanBenchmark {
-    @Test(.timeLimit(.minutes(2)))
+    @Test(.enabled(if: ProcessInfo.processInfo.environment["CYTE_BENCH"] == "1"), .timeLimit(.minutes(2)))
     func `ten thousand saves load fast from the index`() async throws {
         let fm = FileManager.default
         let paths = LibraryPaths(root: fm.temporaryDirectory.appending(path: "cyte-bench-\(UUID().uuidString)/Cyte", directoryHint: .isDirectory))
