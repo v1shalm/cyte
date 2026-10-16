@@ -11,36 +11,13 @@ nonisolated enum LibraryDisk {
         return encoder
     }
 
-    private static var decoder: JSONDecoder {
+    static func makeDecoder() -> JSONDecoder {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
         return decoder
     }
 
-    @concurrent
-    static func loadAll(paths: LibraryPaths) async -> [Save] {
-        let fm = FileManager.default
-        guard let months = try? fm.contentsOfDirectory(at: paths.saves, includingPropertiesForKeys: nil,
-                                                        options: [.skipsHiddenFiles]) else { return [] }
-        var result: [Save] = []
-        result.reserveCapacity(1024)
-        let decoder = decoder
-        for month in months {
-            guard let folders = try? fm.contentsOfDirectory(at: month, includingPropertiesForKeys: nil,
-                                                             options: [.skipsHiddenFiles]) else { continue }
-            for folder in folders {
-                let file = folder.appending(path: "save.json", directoryHint: .notDirectory)
-                guard let data = try? Data(contentsOf: file) else { continue }
-                do {
-                    result.append(try decoder.decode(Save.self, from: data))
-                } catch {
-                    log.error("Skipped unreadable save at \(file.path(percentEncoded: false), privacy: .public)")
-                }
-            }
-        }
-        result.sort { $0.createdAt > $1.createdAt }
-        return result
-    }
+    static let trashDays = 30
 
     @concurrent
     static func write(_ save: Save, paths: LibraryPaths) async throws {
@@ -56,6 +33,7 @@ nonisolated enum LibraryDisk {
         let target = paths.trash.appending(path: save.id, directoryHint: .isDirectory)
         try? FileManager.default.removeItem(at: target)
         try FileManager.default.moveItem(at: folder, to: target)
+        try? FileManager.default.setAttributes([.modificationDate: Date()], ofItemAtPath: target.path(percentEncoded: false))
         return target
     }
 
@@ -68,12 +46,41 @@ nonisolated enum LibraryDisk {
 
     @concurrent
     static func loadFolders(paths: LibraryPaths) async -> [Folder] {
-        let files = (try? FileManager.default.contentsOfDirectory(at: paths.folders, includingPropertiesForKeys: nil,
-                                                                  options: [.skipsHiddenFiles])) ?? []
-        let decoder = decoder
-        return files.filter { $0.pathExtension == "json" }
-            .compactMap { try? decoder.decode(Folder.self, from: Data(contentsOf: $0)) }
-            .sorted { $0.position < $1.position }
+        let fm = FileManager.default
+        let files = (try? fm.contentsOfDirectory(at: paths.folders, includingPropertiesForKeys: nil,
+                                                 options: [.skipsHiddenFiles])) ?? []
+        let decoder = makeDecoder()
+        var byID: [String: (folder: Folder, canonical: Bool, url: URL)] = [:]
+        for url in files where url.pathExtension == "json" {
+            guard let data = try? Data(contentsOf: url), let folder = try? decoder.decode(Folder.self, from: data) else { continue }
+            let canonical = url.deletingPathExtension().lastPathComponent == folder.id
+            if let existing = byID[folder.id] {
+                let keep = canonical && !existing.canonical
+                try? fm.removeItem(at: keep ? existing.url : url)
+                if !keep { continue }
+            }
+            byID[folder.id] = (folder, canonical, url)
+        }
+        for (id, item) in byID where !item.canonical {
+            let target = paths.folders.appending(path: "\(id).json")
+            if (try? fm.moveItem(at: item.url, to: target)) == nil { continue }
+        }
+        return byID.values.map(\.folder).sorted { $0.position < $1.position }
+    }
+
+    @concurrent
+    static func purgeTrash(paths: LibraryPaths, now: Date = Date(), days: Int = trashDays) async -> Int {
+        let fm = FileManager.default
+        let cutoff = now.addingTimeInterval(-Double(days) * 86_400)
+        let items = (try? fm.contentsOfDirectory(at: paths.trash, includingPropertiesForKeys: [.contentModificationDateKey],
+                                                 options: [.skipsHiddenFiles])) ?? []
+        var removed = 0
+        for item in items {
+            guard let date = try? item.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate,
+                  date < cutoff else { continue }
+            if (try? fm.removeItem(at: item)) != nil { removed += 1 }
+        }
+        return removed
     }
 
     @concurrent

@@ -14,23 +14,50 @@ final class LibraryStore {
     @ObservationIgnored private var watcher: FolderWatcher?
     @ObservationIgnored private var recentWrites: [String: Date] = [:]
     @ObservationIgnored private var reloadTask: Task<Void, Never>?
+    @ObservationIgnored private var entries: [String: IndexEntry] = [:]
+    @ObservationIgnored private var pendingKeys: Set<String>? = []
+    @ObservationIgnored private var pendingFolders = false
+    @ObservationIgnored private let index: LibraryIndex
     @ObservationIgnored var onInboxChange: (() -> Void)?
 
     private let log = Logger(subsystem: Identity.subsystem, category: "library")
 
-    init(root: URL = LibraryLocation.current) {
+    init(root: URL = LibraryLocation.current, index: LibraryIndex = .shared) {
         paths = LibraryPaths(root: root)
+        self.index = index
     }
 
     func open(root: URL? = nil) async {
         if let root { paths = LibraryPaths(root: root) }
+        pendingKeys = []
+        pendingFolders = false
         do { try paths.ensureExists() } catch {
             log.error("Could not create library folders: \(error.localizedDescription, privacy: .public)")
         }
-        saves = await LibraryDisk.loadAll(paths: paths)
+        let paths = paths
+        entries = [:]
+        if let cached = await index.read(root: paths.root) {
+            entries = cached
+            saves = cached.values.map(\.save).sorted { $0.createdAt > $1.createdAt }
+            isLoaded = true
+        }
         folders = await LibraryDisk.loadFolders(paths: paths)
+        await rescan(markFresh: !entries.isEmpty)
         isLoaded = true
         startWatching()
+        Task { _ = await LibraryDisk.purgeTrash(paths: paths) }
+    }
+
+    private func rescan(markFresh: Bool = true, only: Set<String>? = nil) async {
+        let paths = paths
+        let before = entries.count
+        let result = await LibraryScan.run(paths: paths, previous: entries, only: only)
+        guard paths.root == self.paths.root else { return }
+        entries = result.entries
+        merge(result.saves, markFresh: markFresh)
+        if result.decoded > 0 || result.duplicatesSetAside > 0 || result.entries.count != before {
+            await index.write(root: paths.root, entries: result.entries)
+        }
     }
 
     @discardableResult
@@ -195,23 +222,29 @@ final class LibraryStore {
             return !recentWrites.keys.contains { path.contains("/\($0)") }
         }
         guard external else { return }
+        let touched = LibraryScan.folderKeys(for: changed.filter { $0.hasPrefix(savesPath) }, in: paths)
+        if let touched, let pending = pendingKeys { pendingKeys = pending.union(touched) } else { pendingKeys = nil }
+        if changed.contains(where: { $0.hasPrefix(foldersPath) }) { pendingFolders = true }
         reloadTask?.cancel()
         reloadTask = Task { [paths] in
             try? await Task.sleep(for: .milliseconds(400))
             guard !Task.isCancelled else { return }
-            let fresh = await LibraryDisk.loadAll(paths: paths)
-            let folders = await LibraryDisk.loadFolders(paths: paths)
-            guard !Task.isCancelled else { return }
-            merge(fresh)
-            self.folders = folders
+            if pendingFolders {
+                pendingFolders = false
+                self.folders = await LibraryDisk.loadFolders(paths: paths)
+            }
+            let only = pendingKeys
+            pendingKeys = []
+            if only?.isEmpty != true { await rescan(only: only) }
         }
     }
 
-    private func merge(_ disk: [Save]) {
+    private func merge(_ disk: [Save], markFresh: Bool = true) {
         let diskIDs = Set(disk.map(\.id))
+        let known = Set(saves.map(\.id))
         let localOnly = saves.filter { !diskIDs.contains($0.id) && recentWrites[$0.id] != nil }
-        let newcomers = disk.filter { save in !saves.contains { $0.id == save.id } }
-        freshIDs.formUnion(newcomers.map(\.id))
-        saves = (disk + localOnly).sorted { $0.createdAt > $1.createdAt }
+        if markFresh { freshIDs.formUnion(disk.lazy.map(\.id).filter { !known.contains($0) }) }
+        let next = (disk + localOnly).sorted { $0.createdAt > $1.createdAt }
+        if next != saves { saves = next }
     }
 }

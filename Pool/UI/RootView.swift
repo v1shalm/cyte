@@ -292,7 +292,8 @@ struct TopBar: View {
                     if model.enricher.activeID != nil {
                         ProgressView()
                             .controlSize(.mini)
-                            .padding(.trailing, 6)
+                            .padding(.trailing, Theme.sideInset - 18 + AddMenu.closedWidth + 12)
+                            .opacity(model.addMenuOpen ? 0 : 1)
                             .transition(.opacity)
                     }
                 }
