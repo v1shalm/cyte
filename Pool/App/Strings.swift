@@ -10,8 +10,10 @@ enum L {
         static let libraryTitle = "Where should it live?"
         static let libraryBody = "Cyte keeps your saves as plain files in one folder. In iCloud Drive, your iPhone sees them too."
         static let libraryPrimary = "Use iCloud Drive"
+        static let libraryGoogleDrive = "Use Google Drive"
+        static let libraryLocal = "Keep it on this Mac"
         static let librarySecondary = "Choose a folder"
-        static let libraryNoICloud = "iCloud Drive is off on this Mac. Cyte will make a Pool folder in your home folder, and you can move it later."
+        static let libraryNoICloud = "iCloud Drive is off on this Mac. Pick Google Drive or a folder on this Mac."
 
         static let doneTitle = "Cyte is ready."
         static let doneBody = "Drop anything on the window, paste with ⌘V, or press ⌥⌘P from any app."
@@ -47,6 +49,17 @@ enum L {
         static let duplicate = "You already saved this link"
         static let noSimilar = "Nothing in your library looks like this yet"
         static let duplicateImage = "You already saved this image"
+        static func xVideos(_ count: Int) -> String { count == 1 ? "1 X bookmark now plays as video" : "\(count) X bookmarks now play as video" }
+        static func librarySwitched(_ place: String) -> String { "Opened your library in \(place)" }
+        static func libraryMoved(_ count: Int, to place: String) -> String { count == 1 ? "Moved 1 save to \(place)" : "Moved \(count) saves to \(place)" }
+    }
+
+    enum Video {
+        static let play = "Play"
+        static let pause = "Pause"
+        static let mute = "Mute"
+        static let unmute = "Unmute"
+        static let position = "Playback position"
     }
 
     enum Select {
@@ -83,8 +96,20 @@ enum L {
     enum Settings {
         static let title = "Settings"
         static let library = "Library"
-        static let libraryBody = "Everything you save lives in this folder. Put it in iCloud Drive to reach it from other devices."
-        static let change = "Change"
+        static let libraryBody = "Everything you save lives in this folder. Pick a new place and Cyte moves your saves there."
+        static func moveTitle(_ place: String) -> String { "Move your library to \(place)?" }
+        static func moveBody(_ count: Int, from: String, to: String) -> String {
+            let saves = count == 1 ? "1 save" : "\(count) saves"
+            return "Cyte moves \(saves) from \(from) to \(to)."
+        }
+        static let moveLeavesICloud = "Your iPhone only sees saves in iCloud Drive."
+        static func moveConfirm(_ count: Int) -> String { count == 1 ? "Move 1 save" : "Move \(count) saves" }
+        static let cancel = "Cancel"
+        static let iCloudDrive = "iCloud Drive"
+        static let googleDrive = "Google Drive"
+        static let localFolder = "This Mac"
+        static let customFolder = "Other folder"
+        static let change = "Choose folder…"
         static let show = "Show in Finder"
         static let general = "General"
         static let login = "Open Cyte at login"
@@ -232,12 +257,13 @@ enum L {
 
     enum Add {
         static let button = "Add"
+        static let close = "Close add menu"
         static let link = "Save a link"
         static let title = "Add to Cyte"
         static let linkPlaceholder = "Paste a link and press return"
         static let linkInvalid = "Links look like site.com or https://site.com"
         static func saveHost(_ host: String) -> String { "Save \(host)" }
-        static let images = "Choose images"
+        static let images = "Choose images or videos"
         static let note = "Write a note"
         static let paste = "Paste clipboard"
         static let hint = "You can also drag anything onto the window."

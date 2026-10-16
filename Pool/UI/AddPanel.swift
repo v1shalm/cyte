@@ -80,7 +80,7 @@ struct AddPanel: View {
         let panel = NSOpenPanel()
         panel.allowsMultipleSelection = true
         panel.canChooseDirectories = false
-        panel.allowedContentTypes = [.image]
+        panel.allowedContentTypes = [.image, .movie, .video, .gif]
         onDone()
         guard panel.runModal() == .OK else { return }
         model.ingestor.ingest(fileURLs: panel.urls)

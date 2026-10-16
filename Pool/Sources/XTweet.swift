@@ -3,6 +3,7 @@ import Foundation
 nonisolated struct XTweet: Sendable, Hashable {
     struct Media: Sendable, Hashable {
         let url: URL
+        let videoURL: URL?
         let aspect: Double
         let isVideo: Bool
     }
@@ -82,10 +83,25 @@ nonisolated enum XParser {
             let width = dig(item, "original_info", "width") as? Double ?? 0
             let height = dig(item, "original_info", "height") as? Double ?? 0
             let type = item["type"] as? String ?? "photo"
-            return XTweet.Media(url: url, aspect: height > 0 ? width / height : 0, isVideo: type != "photo")
+            let isVideo = type != "photo"
+            let videoURL = isVideo ? bestVideoURL(in: item) : nil
+            return XTweet.Media(url: url, videoURL: videoURL, aspect: height > 0 ? width / height : 0, isVideo: isVideo)
         }
 
         return XTweet(id: id, handle: handle, name: name, text: text, media: media)
+    }
+
+    private static func bestVideoURL(in item: [String: Any]) -> URL? {
+        guard let variants = dig(item, "video_info", "variants") as? [[String: Any]] else { return nil }
+        let mp4s = variants.compactMap { variant -> (bitrate: Int, url: URL)? in
+            let contentType = (variant["content_type"] as? String)?.lowercased() ?? ""
+            guard contentType == "video/mp4" || (variant["url"] as? String)?.contains(".mp4") == true,
+                  let raw = variant["url"] as? String,
+                  let url = URL(string: raw) else { return nil }
+            let bitrate = (variant["bitrate"] as? Int) ?? (variant["bitrate"] as? NSNumber)?.intValue ?? 0
+            return (bitrate, url)
+        }
+        return mp4s.max(by: { $0.bitrate < $1.bitrate })?.url
     }
 
     private static func dig(_ node: Any?, _ keys: String...) -> Any? {

@@ -22,6 +22,27 @@ struct SettingsView: View {
                             .font(Theme.ui(12.5))
                             .foregroundStyle(Theme.secondary)
                             .fixedSize(horizontal: false, vertical: true)
+                        HStack(spacing: 6) {
+                            storagePill(L.Settings.iCloudDrive, backend: .iCloud, enabled: LibraryLocation.iCloudDefault != nil) {
+                                guard let target = LibraryLocation.iCloudDefault else { return }
+                                switchTo(target)
+                            }
+                            storagePill(L.Settings.googleDrive, backend: .googleDrive, enabled: true) {
+                                if let target = LibraryLocation.googleDriveDefault {
+                                    switchTo(target)
+                                } else {
+                                    chooseLibrary()
+                                }
+                            }
+                            storagePill(L.Settings.localFolder, backend: .local, enabled: true) {
+                                switchTo(LibraryLocation.homeDefault)
+                            }
+                            if activeBackend == .custom {
+                                storagePill(L.Settings.customFolder, backend: .custom, enabled: true) {
+                                    chooseLibrary()
+                                }
+                            }
+                        }
                         Text(tildePath)
                             .font(Theme.ui(12.5, weight: .medium))
                             .foregroundStyle(Theme.ink)
@@ -122,6 +143,31 @@ struct SettingsView: View {
         libraryPath.replacingOccurrences(of: NSHomeDirectory(), with: "~")
     }
 
+    private var activeBackend: LibraryBackend {
+        LibraryLocation.backend(for: URL(filePath: libraryPath, directoryHint: .isDirectory))
+    }
+
+    private func switchTo(_ target: URL) {
+        let resolved = LibraryLocation.resolveRoot(for: target)
+        let current = LibraryLocation.current
+        guard resolved.standardizedFileURL != current.standardizedFileURL else { return }
+        let count = model.store.saves.count
+        if count > 0 {
+            let from = LibraryLocation.placeName(for: current)
+            let to = LibraryLocation.placeName(for: resolved)
+            let alert = NSAlert()
+            alert.messageText = L.Settings.moveTitle(to)
+            var body = L.Settings.moveBody(count, from: from, to: to)
+            if LibraryLocation.backend(for: current) == .iCloud { body += " " + L.Settings.moveLeavesICloud }
+            alert.informativeText = body
+            alert.addButton(withTitle: L.Settings.moveConfirm(count))
+            alert.addButton(withTitle: L.Settings.cancel)
+            guard alert.runModal() == .alertFirstButtonReturn else { return }
+        }
+        libraryPath = resolved.path(percentEncoded: false)
+        Task { await model.reopenLibrary(at: resolved, moving: true) }
+    }
+
     private func chooseLibrary() {
         let panel = NSOpenPanel()
         panel.canChooseDirectories = true
@@ -129,9 +175,29 @@ struct SettingsView: View {
         panel.canCreateDirectories = true
         panel.prompt = L.Settings.change
         guard panel.runModal() == .OK, let url = panel.url else { return }
-        let root = url.lastPathComponent == "Pool" ? url : url.appending(path: "Pool", directoryHint: .isDirectory)
-        libraryPath = root.path(percentEncoded: false)
-        Task { await model.reopenLibrary(at: root) }
+        switchTo(url)
+    }
+
+    private func storagePill(_ title: String, backend: LibraryBackend, enabled: Bool, action: @escaping () -> Void) -> some View {
+        let selected = activeBackend == backend
+        return Button(action: action) {
+            HStack(spacing: 6) {
+                if selected {
+                    Icon("checkmark", size: IconSize.xs)
+                }
+                Text(title)
+                    .font(Theme.ui(12, weight: selected ? .medium : .regular))
+            }
+            .foregroundStyle(selected ? .white : Theme.ink)
+            .padding(.horizontal, 12)
+            .frame(height: 30)
+            .background(Capsule().fill(selected ? Theme.ink : .white))
+            .overlay(Capsule().strokeBorder(selected ? Color.clear : Theme.hairline))
+            .contentShape(Capsule())
+        }
+        .buttonStyle(PressStyle(scale: 0.96))
+        .disabled(!enabled)
+        .opacity(enabled ? 1 : 0.45)
     }
 
     private func group<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {

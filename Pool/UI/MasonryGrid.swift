@@ -118,12 +118,17 @@ struct MasonryGrid: View {
     @State private var probe = ScrollProbe()
     @State private var position = ScrollPosition(edge: .top)
     @State private var pinchStart: Double?
+    @State private var playBand = 0
+
+    static let band: CGFloat = 60
+    static let maxPlaying = 10
 
     var body: some View {
         let (layout, lookup) = probe.resolve(saves: model.results, related: model.related, width: width, target: model.columnWidth, leading: model.contentLeading, top: model.topInset)
         let _ = { if layout.columnWidth > 0 { model.tileWidth = layout.columnWidth } }()
         let window = CGRect(x: -10_000, y: CGFloat(bucket) * Self.step - 900, width: 100_000, height: max(viewport, 1600) + 1800 + Self.step)
         let visibleIDs = layout.order.filter { layout.frames[$0]?.intersects(window) ?? false }
+        let playing = playingIDs(visibleIDs, layout: layout, lookup: lookup)
 
         ScrollView {
             ZStack(alignment: .topLeading) {
@@ -142,7 +147,7 @@ struct MasonryGrid: View {
 
                 ForEach(visibleIDs, id: \.self) { id in
                     if let save = lookup[id], let frame = layout.frames[id] {
-                        Tile(save: save, namespace: namespace, fresh: model.store.freshIDs.contains(id))
+                        Tile(save: save, namespace: namespace, fresh: model.store.freshIDs.contains(id), playing: playing.contains(id))
                             .frame(width: frame.width, height: frame.height)
                             .position(x: frame.midX, y: frame.midY)
                             .transition(.asymmetric(
@@ -159,6 +164,7 @@ struct MasonryGrid: View {
         .scrollIndicators(.automatic)
         .onScrollGeometryChange(for: Int.self, of: { Int(floor($0.visibleRect.minY / MasonryGrid.step)) }, action: { _, next in bucket = next })
         .onScrollGeometryChange(for: CGFloat.self, of: { $0.visibleRect.minY }, action: { _, y in probe.minY = y })
+        .onScrollGeometryChange(for: Int.self, of: { Int(($0.visibleRect.minY / MasonryGrid.band).rounded()) }, action: { _, next in playBand = next })
         .onScrollGeometryChange(for: CGFloat.self, of: { $0.visibleRect.height }, action: { _, h in viewport = h; probe.viewport = h })
         .onAppear {
             model.tileFrames = { [probe] in probe.frames() }
@@ -190,6 +196,18 @@ struct MasonryGrid: View {
             model.feedback.focusID = nil
         }
         .onChange(of: model.query) { _, _ in position.scrollTo(edge: .top) }
+    }
+
+    private func playingIDs(_ ids: [String], layout: MasonryLayout, lookup: [String: Save]) -> Set<String> {
+        guard model.selectedID == nil, viewport > 0 else { return [] }
+        let top = CGFloat(playBand) * Self.band
+        let visible = CGRect(x: -10_000, y: top + 24, width: 100_000, height: max(0, viewport - 48))
+        let center = visible.midY
+        let candidates = ids.compactMap { id -> (String, CGFloat)? in
+            guard lookup[id]?.motion != nil, let frame = layout.frames[id], frame.intersects(visible) else { return nil }
+            return (id, abs(frame.midY - center))
+        }
+        return Set(candidates.sorted { $0.1 < $1.1 }.prefix(Self.maxPlaying).map(\.0))
     }
 
     private var reflowKey: String {

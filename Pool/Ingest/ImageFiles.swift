@@ -1,3 +1,4 @@
+import AVFoundation
 import CoreGraphics
 import Foundation
 import ImageIO
@@ -60,14 +61,54 @@ nonisolated enum ImageFiles {
     }
 
     static func fileExtension(for data: Data) -> String {
+        if let videoExt = videoExtension(for: data) { return videoExt }
         guard let source = CGImageSourceCreateWithData(data as CFData, nil),
               let type = CGImageSourceGetType(source) as String?,
               let ext = UTType(type)?.preferredFilenameExtension else { return "png" }
         return ext
     }
 
+    static func videoExtension(for data: Data) -> String? {
+        guard data.count >= 12 else { return nil }
+        let header = [UInt8](data.prefix(12))
+        if header[4] == 0x66, header[5] == 0x74, header[6] == 0x79, header[7] == 0x70 {
+            let brand = String(bytes: header[8..<12], encoding: .ascii) ?? ""
+            return brand == "qt  " ? "mov" : "mp4"
+        }
+        return nil
+    }
+
     static func isImage(_ url: URL) -> Bool {
         guard let type = UTType(filenameExtension: url.pathExtension.lowercased()) else { return false }
         return type.conforms(to: .image)
+    }
+
+    static let videoExtensions: Set<String> = ["mp4", "mov", "m4v"]
+
+    static func isVideo(_ url: URL) -> Bool {
+        let ext = url.pathExtension.lowercased()
+        if videoExtensions.contains(ext) { return true }
+        guard let type = UTType(filenameExtension: ext) else { return false }
+        return type.conforms(to: .movie) || type.conforms(to: .video)
+    }
+
+    static func isMedia(_ url: URL) -> Bool {
+        isImage(url) || isVideo(url)
+    }
+
+    @concurrent
+    static func extractVideoPoster(at url: URL, maxPixel: Int = 1400) async -> (info: Info, image: CGImage)? {
+        let asset = AVURLAsset(url: url)
+        let generator = AVAssetImageGenerator(asset: asset)
+        generator.appliesPreferredTrackTransform = true
+        generator.maximumSize = CGSize(width: maxPixel, height: maxPixel)
+        generator.requestedTimeToleranceBefore = .zero
+        generator.requestedTimeToleranceAfter = CMTime(seconds: 0.1, preferredTimescale: 600)
+        for time in [CMTime.zero, CMTime(seconds: 0.1, preferredTimescale: 600)] {
+            if let (image, _) = try? await generator.image(at: time) {
+                return (Info(width: max(1, image.width), height: max(1, image.height)), image)
+            }
+        }
+        return nil
     }
 }

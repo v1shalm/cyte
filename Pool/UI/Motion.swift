@@ -64,63 +64,62 @@ struct GooeyTabs<Value: Hashable>: View {
     var counts: [Value: Int] = [:]
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    @State private var frames: [Int: CGRect] = [:]
-    @State private var lead: CGRect = .zero
-    @State private var trail: CGRect = .zero
-
     var body: some View {
+        let selected = items.firstIndex { $0.value == selection }
         HStack(spacing: 2) {
-                ForEach(Array(items.enumerated()), id: \.offset) { index, item in
-                    Button {
-                        selection = item.value
-                    } label: {
-                        HStack(spacing: 5) {
-                            Text(item.title)
-                                .font(Theme.ui(12, weight: .medium))
-                                .foregroundStyle(selection == item.value ? Theme.ink : Theme.tabIdle)
-                            if let count = counts[item.value], count > 0 {
-                                Text(count.formatted())
-                                    .font(Theme.ui(10.5, weight: .medium))
-                                    .foregroundStyle(Theme.tertiary)
-                                    .monospacedDigit()
-                            }
+            ForEach(Array(items.enumerated()), id: \.offset) { index, item in
+                Button {
+                    selection = item.value
+                } label: {
+                    HStack(spacing: 5) {
+                        Text(item.title)
+                            .font(Theme.ui(12, weight: .medium))
+                            .foregroundStyle(selection == item.value ? Theme.ink : Theme.tabIdle)
+                        if let count = counts[item.value], count > 0 {
+                            Text(count.formatted())
+                                .font(Theme.ui(10.5, weight: .medium))
+                                .foregroundStyle(Theme.tertiary)
+                                .monospacedDigit()
                         }
-                            .padding(.horizontal, 12)
-                            .frame(height: 26)
-                            .contentShape(Capsule())
                     }
-                    .buttonStyle(.plain)
-                    .onGeometryChange(for: CGRect.self, of: { $0.frame(in: .named("tabs")) }) { frame in
-                        frames[index] = frame
-                        if item.value == selection, lead == .zero || lead.minX == frame.minX || lead.width != frame.width, lead.height == frame.height || lead == .zero { lead = frame; trail = frame }
-                    }
+                    .padding(.horizontal, 12)
+                    .frame(height: 26)
+                    .contentShape(Capsule())
                 }
-        }
-        .background(alignment: .topLeading) {
-            LiquidLayer(blur: 4.5, fill: Theme.tabPill, shadow: false) {
-                ZStack(alignment: .topLeading) {
-                    Capsule()
-                        .frame(width: lead.width, height: lead.height)
-                        .offset(x: lead.minX, y: lead.minY)
-                        .animation(reduceMotion ? nil : .spring(duration: 0.32, bounce: 0.18), value: lead)
-                    Capsule()
-                        .frame(width: trail.width, height: trail.height)
-                        .offset(x: trail.minX, y: trail.minY)
-                        .animation(reduceMotion ? nil : .spring(duration: 0.6, bounce: 0.14), value: trail)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .buttonStyle(.plain)
+                .anchorPreference(key: TabBounds.self, value: .bounds) { [index: $0] }
             }
-            .shadow(color: .black.opacity(Theme.tabPillShadow), radius: 3, y: 1)
         }
-        .coordinateSpace(.named("tabs"))
+        .backgroundPreferenceValue(TabBounds.self) { anchors in
+            GeometryReader { proxy in
+                let rect = selected.flatMap { anchors[$0] }.map { proxy[$0] } ?? .zero
+                LiquidLayer(blur: 4.5, fill: Theme.tabPill, shadow: false) {
+                    ZStack(alignment: .topLeading) {
+                        Capsule()
+                            .frame(width: rect.width, height: rect.height)
+                            .offset(x: rect.minX, y: rect.minY)
+                            .animation(reduceMotion ? nil : .spring(duration: 0.32, bounce: 0.18), value: selected)
+                        Capsule()
+                            .frame(width: rect.width, height: rect.height)
+                            .offset(x: rect.minX, y: rect.minY)
+                            .animation(reduceMotion ? nil : .spring(duration: 0.6, bounce: 0.14), value: selected)
+                    }
+                    .frame(width: proxy.size.width, height: proxy.size.height, alignment: .topLeading)
+                }
+                .shadow(color: .black.opacity(Theme.tabPillShadow), radius: 3, y: 1)
+                .opacity(rect == .zero ? 0 : 1)
+            }
+        }
         .padding(3)
         .background(Capsule().fill(Theme.softFillStrong))
         .overlay(Capsule().strokeBorder(Theme.hairline))
-        .onChange(of: selection) { _, value in
-            guard let index = items.firstIndex(where: { $0.value == value }), let frame = frames[index] else { return }
-            lead = frame
-            trail = frame
-        }
     }
 }
 
+private struct TabBounds: PreferenceKey {
+    static let defaultValue: [Int: Anchor<CGRect>] = [:]
+
+    static func reduce(value: inout [Int: Anchor<CGRect>], nextValue: () -> [Int: Anchor<CGRect>]) {
+        value.merge(nextValue()) { $1 }
+    }
+}

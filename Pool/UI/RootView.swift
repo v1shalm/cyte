@@ -42,13 +42,6 @@ struct RootView: View {
                     ViewOverlay()
                         .zIndex(1.5)
                 }
-                RadialAdd()
-                    .padding(.leading, model.contentLeading)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
-                    .opacity(model.selecting || model.selectedID != nil ? 0 : 1)
-                    .allowsHitTesting(!model.selecting && model.selectedID == nil)
-                    .animation(Theme.settle, value: model.selecting)
-                    .zIndex(2)
                 if model.selecting {
                     SelectionBar()
                         .padding(.leading, model.contentLeading)
@@ -58,6 +51,12 @@ struct RootView: View {
                 }
                 TopBar()
                     .padding(.leading, model.contentLeading)
+                AddMenu()
+                    .padding(.top, (Chrome.barHeight - AddMenu.height) / 2)
+                    .padding(.trailing, Theme.sideInset)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                    .opacity(model.selectedID != nil ? 0 : 1)
+                    .allowsHitTesting(model.selectedID == nil)
                 if model.linkEntryShown {
                     LinkEntry()
                         .transition(.asymmetric(
@@ -152,8 +151,8 @@ struct RootView: View {
         .preferredColorScheme(.light)
         .background(WindowChrome())
         .background(KeyboardNav(model: model))
-        .onDrop(of: [.fileURL, .url, .image, .plainText], delegate: LibraryDrop(model: model))
-        .onPasteCommand(of: [.fileURL, .url, .image, .png, .tiff, .plainText]) { _ in
+        .onDrop(of: [.fileURL, .url, .movie, .video, .gif, .image, .plainText], delegate: LibraryDrop(model: model))
+        .onPasteCommand(of: [.fileURL, .url, .movie, .video, .gif, .image, .png, .tiff, .plainText]) { _ in
             model.ingestor.pasteFromClipboard()
         }
         .onChange(of: model.store.saves) { _, _ in model.refresh() }
@@ -227,7 +226,7 @@ private struct LinkEntry: View {
                 }
             }
             .padding(.top, Chrome.barHeight)
-            .padding(.trailing, 18)
+            .padding(.trailing, Theme.sideInset)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
         }
         .task {
@@ -405,9 +404,11 @@ struct SearchTrigger: View {
 struct LibraryDrop: DropDelegate {
     let model: AppModel
 
+    private static let dropTypes: [UTType] = [.fileURL, .url, .movie, .video, .gif, .image, .plainText]
+
     private func external(_ info: DropInfo) -> Bool {
         !info.hasItemsConforming(to: [UTType(exportedAs: AppModel.saveType)])
-            && info.hasItemsConforming(to: [.fileURL, .url, .image, .plainText])
+            && info.hasItemsConforming(to: Self.dropTypes)
     }
 
     func validateDrop(info: DropInfo) -> Bool { external(info) }
@@ -423,7 +424,7 @@ struct LibraryDrop: DropDelegate {
     func performDrop(info: DropInfo) -> Bool {
         model.dropTargeted = false
         guard external(info) else { return false }
-        model.ingestor.ingest(providers: info.itemProviders(for: [.fileURL, .url, .image, .plainText]))
+        model.ingestor.ingest(providers: info.itemProviders(for: Self.dropTypes))
         return true
     }
 }

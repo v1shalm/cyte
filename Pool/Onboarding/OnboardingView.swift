@@ -102,6 +102,10 @@ struct OnboardingView: View {
                 TextLink(title: L.Onboarding.welcomeSecondary) { go(to: .library) }
             case .library:
                 BigButton(title: L.Onboarding.libraryPrimary, busy: busy) { Task { await useICloud() } }
+                if LibraryLocation.googleDriveDefault != nil {
+                    TextLink(title: L.Onboarding.libraryGoogleDrive) { Task { await useGoogleDrive() } }
+                }
+                TextLink(title: L.Onboarding.libraryLocal) { Task { await useLocal() } }
                 TextLink(title: L.Onboarding.librarySecondary) { Task { await pickFolder() } }
             case .done:
                 BigButton(title: L.Onboarding.doneButton, busy: false) { leave() }
@@ -173,6 +177,21 @@ struct OnboardingView: View {
             await model.reopenLibrary(at: LibraryLocation.homeDefault)
             go(to: .done)
         }
+    }
+
+    private func useGoogleDrive() async {
+        busy = true
+        defer { busy = false }
+        guard let target = LibraryLocation.googleDriveDefault else { return }
+        await model.reopenLibrary(at: target)
+        go(to: .done)
+    }
+
+    private func useLocal() async {
+        busy = true
+        defer { busy = false }
+        await model.reopenLibrary(at: LibraryLocation.homeDefault)
+        go(to: .done)
     }
 
     private func pickFolder() async {

@@ -48,6 +48,18 @@ enum LinkPreview {
               ImageFiles.info(data: data) != nil else { return nil }
         return data
     }
+
+    static func downloadMedia(_ url: URL) async -> Data? {
+        var request = URLRequest(url: url, timeoutInterval: 45)
+        request.setValue(PageMeta.userAgent, forHTTPHeaderField: "User-Agent")
+        guard let (data, response) = try? await URLSession.shared.data(for: request),
+              (response as? HTTPURLResponse)?.statusCode ?? 200 < 400,
+              !data.isEmpty else { return nil }
+        if ImageFiles.videoExtension(for: data) != nil || ImageFiles.info(data: data) != nil {
+            return data
+        }
+        return nil
+    }
 }
 
 nonisolated struct PageMeta: Sendable {

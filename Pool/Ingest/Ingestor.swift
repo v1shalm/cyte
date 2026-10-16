@@ -48,6 +48,11 @@ final class Ingestor {
             ingest(fileURLs: urls, source: "clipboard")
             return true
         }
+        let gifType = NSPasteboard.PasteboardType(UTType.gif.identifier)
+        if let data = board.data(forType: gifType) {
+            Task { if await ingestImage(data: data, source: "clipboard") != nil { announce(1) } }
+            return true
+        }
         for type in [NSPasteboard.PasteboardType.png, .tiff, NSPasteboard.PasteboardType("public.jpeg")] {
             if let data = board.data(forType: type) {
                 Task { if await ingestImage(data: data, source: "clipboard") != nil { announce(1) } }
@@ -102,7 +107,7 @@ final class Ingestor {
                 case "txt", "url", "webloc", "text":
                     ok = await ingest(text: Self.readLinkFile(file) ?? "", source: "iphone")
                 default:
-                    ok = ImageFiles.isImage(file) ? await ingestFile(file, source: "iphone") != nil : false
+                    ok = ImageFiles.isMedia(file) ? await ingestFile(file, source: "iphone") != nil : false
                 }
                 if ok { count += 1 }
                 try? fm.removeItem(at: file)
@@ -117,6 +122,14 @@ final class Ingestor {
            let data = await provider.data(for: .fileURL),
            let url = URL(dataRepresentation: data, relativeTo: nil) {
             return await ingestFile(url, source: nil) != nil
+        }
+        if provider.hasItemConformingToTypeIdentifier(UTType.movie.identifier),
+           let data = await provider.data(for: .movie) {
+            return await ingestVideo(data: data, source: nil) != nil
+        }
+        if provider.hasItemConformingToTypeIdentifier(UTType.gif.identifier),
+           let data = await provider.data(for: .gif) {
+            return await ingestImage(data: data, source: nil) != nil
         }
         if provider.hasItemConformingToTypeIdentifier(UTType.url.identifier),
            let data = await provider.data(for: .url),
@@ -147,6 +160,13 @@ final class Ingestor {
     }
 
     private func ingestFile(_ url: URL, source: String?) async -> Save? {
+        if ImageFiles.isVideo(url) {
+            let save = Save(kind: .image, title: url.deletingPathExtension().lastPathComponent, source: source ?? "file")
+            let folder = store.folder(for: save)
+            guard let prepared = await Self.prepareVideo(copying: url, into: folder) else { return nil }
+            if reportDuplicate(prepared, folder: folder) { return nil }
+            return commit(save, prepared: prepared)
+        }
         if ImageFiles.isImage(url) {
             let save = Save(kind: .image, title: url.deletingPathExtension().lastPathComponent, source: source ?? "file")
             let folder = store.folder(for: save)
@@ -165,6 +185,14 @@ final class Ingestor {
         let save = Save(kind: .image, url: url, source: source ?? url?.host())
         let folder = store.folder(for: save)
         guard let prepared = await Self.prepareImage(data: data, into: folder) else { return nil }
+        if reportDuplicate(prepared, folder: folder) { return nil }
+        return commit(save, prepared: prepared)
+    }
+
+    private func ingestVideo(data: Data, source: String?, url: URL? = nil) async -> Save? {
+        let save = Save(kind: .image, url: url, source: source ?? url?.host())
+        let folder = store.folder(for: save)
+        guard let prepared = await Self.prepareVideo(data: data, into: folder) else { return nil }
         if reportDuplicate(prepared, folder: folder) { return nil }
         return commit(save, prepared: prepared)
     }
@@ -194,6 +222,9 @@ final class Ingestor {
             feedback.toast(L.Toast.duplicate)
             feedback.focus(existing.id)
             return nil
+        }
+        if Self.looksLikeVideo(url), let data = await LinkPreview.downloadMedia(url) {
+            return await ingestVideo(data: data, source: source, url: url)
         }
         if Self.looksLikeImage(url), let data = await LinkPreview.download(url) {
             return await ingestImage(data: data, source: source, url: url)
@@ -227,15 +258,47 @@ final class Ingestor {
         let text = tweet.text.isEmpty ? nil : tweet.text
         var made = 0
         for index in tweet.media.indices {
-            guard let data = await LinkPreview.download(tweet.media[index].url) else { continue }
-            var save = Save(kind: .image, title: tweet.name, url: tweet.mediaURL(index), text: text, source: "x")
+            let item = tweet.media[index]
+            let target = tweet.mediaURL(index)
+            if let existing = store.saves.first(where: { $0.source == "x" && $0.url == target }) {
+                if existing.motion == nil, let videoURL = item.videoURL, await upgrade(existing, video: videoURL, aspect: item.aspect) {
+                    made += 1
+                }
+                continue
+            }
+            var save = Save(kind: .image, title: tweet.name, url: target, text: text, source: "x")
             save.createdAt = date.addingTimeInterval(-Double(index) / 1000)
             save.updatedAt = save.createdAt
-            guard let prepared = await Self.prepareImage(data: data, into: store.folder(for: save)) else { continue }
+            let folder = store.folder(for: save)
+            var prepared: PreparedImage?
+            if let videoURL = item.videoURL, let data = await LinkPreview.downloadMedia(videoURL) {
+                prepared = await Self.prepareVideo(data: data, into: folder)
+            }
+            if prepared == nil, let data = await LinkPreview.download(item.url) {
+                prepared = await Self.prepareImage(data: data, into: folder)
+            }
+            guard var prepared else { continue }
+            if item.aspect > 0 { prepared.aspect = item.aspect }
             commit(save, prepared: prepared, fresh: false)
             made += 1
         }
         return made
+    }
+
+    private func upgrade(_ save: Save, video: URL, aspect: Double) async -> Bool {
+        guard let data = await LinkPreview.downloadMedia(video) else { return false }
+        let folder = store.folder(for: save)
+        guard let prepared = await Self.prepareVideo(data: data, into: folder) else { return false }
+        if let old = save.original, old != prepared.original {
+            try? FileManager.default.removeItem(at: folder.appending(path: old))
+        }
+        store.modify(save.id) { save in
+            save.original = prepared.original
+            save.thumbnail = prepared.thumbnail
+            save.aspect = aspect > 0 ? aspect : prepared.aspect
+            save.contentHash = prepared.hash
+        }
+        return true
     }
 
     private func announce(_ count: Int) {
@@ -247,7 +310,7 @@ final class Ingestor {
     nonisolated struct PreparedImage: Sendable {
         let original: String
         let thumbnail: String
-        let aspect: Double
+        var aspect: Double
         let hash: String
     }
 
@@ -258,7 +321,9 @@ final class Ingestor {
             try fm.createDirectory(at: folder, withIntermediateDirectories: true)
             let ext = source.pathExtension.isEmpty ? "png" : source.pathExtension.lowercased()
             let original = "original.\(ext)"
-            try fm.copyItem(at: source, to: folder.appending(path: original))
+            let dest = folder.appending(path: original)
+            try? fm.removeItem(at: dest)
+            try fm.copyItem(at: source, to: dest)
             return finish(folder: folder, original: original)
         } catch {
             return nil
@@ -278,6 +343,35 @@ final class Ingestor {
         }
     }
 
+    @concurrent
+    private static func prepareVideo(copying source: URL, into folder: URL) async -> PreparedImage? {
+        let fm = FileManager.default
+        do {
+            try fm.createDirectory(at: folder, withIntermediateDirectories: true)
+            let ext = source.pathExtension.isEmpty ? "mp4" : source.pathExtension.lowercased()
+            let original = "original.\(ext)"
+            let dest = folder.appending(path: original)
+            try? fm.removeItem(at: dest)
+            try fm.copyItem(at: source, to: dest)
+            return await finishVideo(folder: folder, original: original)
+        } catch {
+            return nil
+        }
+    }
+
+    @concurrent
+    private static func prepareVideo(data: Data, into folder: URL) async -> PreparedImage? {
+        let ext = ImageFiles.videoExtension(for: data) ?? "mp4"
+        do {
+            try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+            let original = "original.\(ext)"
+            try data.write(to: folder.appending(path: original), options: .atomic)
+            return await finishVideo(folder: folder, original: original)
+        } catch {
+            return nil
+        }
+    }
+
     nonisolated private static func finish(folder: URL, original: String) -> PreparedImage? {
         let originalURL = folder.appending(path: original)
         guard let info = ImageFiles.info(at: originalURL),
@@ -285,6 +379,14 @@ final class Ingestor {
         ImageFiles.writeThumbnail(from: thumb, to: folder.appending(path: "thumb.jpg"))
         let hash = (try? Data(contentsOf: originalURL, options: .mappedIfSafe)).map { SHA256.hash(data: $0).map { String(format: "%02x", $0) }.joined() } ?? UUID().uuidString
         return PreparedImage(original: original, thumbnail: "thumb.jpg", aspect: info.aspect, hash: hash)
+    }
+
+    private static func finishVideo(folder: URL, original: String) async -> PreparedImage? {
+        let originalURL = folder.appending(path: original)
+        guard let poster = await ImageFiles.extractVideoPoster(at: originalURL, maxPixel: 1400) else { return nil }
+        ImageFiles.writeThumbnail(from: poster.image, to: folder.appending(path: "thumb.jpg"))
+        let hash = (try? Data(contentsOf: originalURL, options: .mappedIfSafe)).map { SHA256.hash(data: $0).map { String(format: "%02x", $0) }.joined() } ?? UUID().uuidString
+        return PreparedImage(original: original, thumbnail: "thumb.jpg", aspect: poster.info.aspect, hash: hash)
     }
 
     nonisolated struct PreviewFiles: Sendable {
@@ -320,6 +422,10 @@ final class Ingestor {
 
     nonisolated static func looksLikeImage(_ url: URL) -> Bool {
         ["jpg", "jpeg", "png", "gif", "webp", "heic", "avif", "tiff"].contains(url.pathExtension.lowercased())
+    }
+
+    nonisolated static func looksLikeVideo(_ url: URL) -> Bool {
+        ImageFiles.videoExtensions.contains(url.pathExtension.lowercased())
     }
 
     nonisolated static func readLinkFile(_ url: URL) -> String? {

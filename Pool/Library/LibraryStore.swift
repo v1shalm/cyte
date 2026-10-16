@@ -33,6 +33,22 @@ final class LibraryStore {
         startWatching()
     }
 
+    @discardableResult
+    func moveAndOpen(to newRoot: URL) async -> Int {
+        let oldPaths = paths
+        let targetPaths = LibraryPaths(root: newRoot)
+        guard oldPaths.root.standardizedFileURL != targetPaths.root.standardizedFileURL else {
+            await open(root: newRoot)
+            return 0
+        }
+        watcher?.stop()
+        watcher = nil
+        reloadTask?.cancel()
+        let moved = await LibraryDisk.migrate(from: oldPaths, to: targetPaths)
+        await open(root: newRoot)
+        return moved
+    }
+
 
     func save(id: String) -> Save? { saves.first { $0.id == id } }
 

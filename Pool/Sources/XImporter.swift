@@ -1,6 +1,7 @@
 import AppKit
 import Foundation
 import Observation
+import OSLog
 import WebKit
 
 @Observable
@@ -22,7 +23,8 @@ final class XImporter: NSObject, WKNavigationDelegate {
         didSet { UserDefaults.standard.set(lastSync, forKey: "pool.x.lastSync") }
     }
 
-    var isShown: Bool { phase != .idle }
+    var quiet = false
+    var isShown: Bool { phase != .idle && !quiet }
     var isBusy: Bool { phase == .loading || phase == .importing }
 
     private(set) var webView: WKWebView?
@@ -31,6 +33,12 @@ final class XImporter: NSObject, WKNavigationDelegate {
     @ObservationIgnored private var known: Set<String> = []
     @ObservationIgnored private var seen: Set<String> = Set(UserDefaults.standard.stringArray(forKey: "pool.x.seen") ?? [])
     @ObservationIgnored private var incremental = false
+    @ObservationIgnored private var upgrading = false
+    @ObservationIgnored private var crawledToEnd = false
+    @ObservationIgnored private var videosBefore = 0
+    @ObservationIgnored var onQuietDone: ((Int) -> Void)?
+    private static let motionPassKey = "pool.x.motionPass"
+    private static let log = Logger(subsystem: "in.tistmedia.pool", category: "x")
     @ObservationIgnored private var queue: [Data] = []
     @ObservationIgnored private var draining = false
     @ObservationIgnored private var pageFinished = false
@@ -53,7 +61,29 @@ final class XImporter: NSObject, WKNavigationDelegate {
 
     var importedCount: Int { store.saves.reduce(0) { $0 + ($1.source == "x" ? 1 : 0) } }
 
+    var needsMotionPass: Bool {
+        !UserDefaults.standard.bool(forKey: Self.motionPassKey) && store.saves.contains {
+            $0.source == "x" && $0.motion == nil && $0.url?.path().contains("/video/") == true
+        }
+    }
+
+    private var videoCount: Int { store.saves.reduce(0) { $0 + ($1.source == "x" && $1.motion == .video ? 1 : 0) } }
+
+    func upgradeVideosQuietly() async {
+        await refreshConnection()
+        let xSaves = store.saves.filter { $0.source == "x" }
+        let stills = xSaves.filter { $0.motion == nil && $0.url?.path().contains("/video/") == true }.count
+        Self.log.notice("Video pass check: connected \(self.connected), x saves \(xSaves.count), video stills \(stills), done before \(UserDefaults.standard.bool(forKey: Self.motionPassKey))")
+        guard connected, needsMotionPass, !isBusy, phase == .idle else { return }
+        quiet = true
+        begin()
+    }
+
     func open() {
+        if quiet, isBusy {
+            quiet = false
+            return
+        }
         guard !isShown else { return }
         if connected {
             begin()
@@ -100,8 +130,16 @@ final class XImporter: NSObject, WKNavigationDelegate {
         triedScroll = false
         running = false
         runStart = Date()
+        crawledToEnd = false
+        videosBefore = videoCount
+        let stills = Set(store.saves.compactMap { save -> String? in
+            guard save.source == "x", save.motion == nil, save.url?.path().contains("/video/") == true else { return nil }
+            return XTweet.id(in: save.url)
+        })
+        upgrading = !stills.isEmpty && !UserDefaults.standard.bool(forKey: Self.motionPassKey)
         known = seen.union(store.saves.compactMap { $0.source == "x" ? XTweet.id(in: $0.url) : nil })
-        incremental = !known.isEmpty
+        if upgrading { known.subtract(stills) }
+        incremental = !known.isEmpty && !upgrading
         phase = .loading
         load(Self.bookmarks)
         armWatchdog()
@@ -222,6 +260,7 @@ final class XImporter: NSObject, WKNavigationDelegate {
                     fail(.noPage)
                 }
             default:
+                if reason == "end" { crawledToEnd = true }
                 pageFinished = true
                 drainOrFinish()
             }
@@ -276,10 +315,17 @@ final class XImporter: NSObject, WKNavigationDelegate {
 
     private func finish() {
         guard isBusy else { return }
+        if upgrading, crawledToEnd { UserDefaults.standard.set(true, forKey: Self.motionPassKey) }
         remember()
         generation += 1
         lastSync = Date()
         teardown()
+        if quiet {
+            quiet = false
+            phase = .idle
+            onQuietDone?(videoCount - videosBefore)
+            return
+        }
         phase = .done(added)
         if added > 0 { SoundEngine.shared.play(.chime, volume: 0.7) }
     }
@@ -288,6 +334,11 @@ final class XImporter: NSObject, WKNavigationDelegate {
         remember()
         generation += 1
         teardown()
+        if quiet {
+            quiet = false
+            phase = .idle
+            return
+        }
         phase = .failed(failure)
     }
 

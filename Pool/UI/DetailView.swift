@@ -9,6 +9,7 @@ struct DetailView: View {
 
     @FocusState private var focused: Bool
     @State private var inspectorShown = false
+    @State private var playback = VideoPlayback()
 
     var body: some View {
         ZStack {
@@ -57,6 +58,16 @@ struct DetailView: View {
             model.select(offset: 1)
             return .handled
         }
+        .onKeyPress(.space) {
+            guard save.motion == .video else { return .ignored }
+            playback.paused.toggle()
+            return .handled
+        }
+        .environment(playback)
+        .onChange(of: save.id) { _, _ in
+            playback.paused = false
+            playback.progress = 0
+        }
         .onAppear {
             focused = true
             withAnimation(Theme.open.delay(0.06)) { inspectorShown = true }
@@ -66,8 +77,7 @@ struct DetailView: View {
     @ViewBuilder private var media: some View {
         switch save.kind {
         case .image:
-            let url = model.store.url(for: save, file: save.original) ?? model.store.url(for: save, file: save.thumbnail)
-            Thumb(url: url, maxPixel: 2800, contentMode: .fit)
+            MediaHero(save: save)
                 .aspectRatio(save.aspect > 0 ? save.aspect : 1, contentMode: .fit)
                 .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                 .matchedGeometryEffect(id: save.id, in: namespace, isSource: true)
@@ -91,6 +101,26 @@ struct DetailView: View {
             withAnimation(Theme.open) { model.selectedID = nil }
         } else {
             model.selectedID = nil
+        }
+    }
+}
+
+private struct MediaHero: View {
+    @Environment(VideoPlayback.self) private var playback
+    let save: Save
+    @State private var hovering = false
+
+    var body: some View {
+        if save.motion == .video {
+            SaveMedia(save: save, maxPixel: 2800, contentMode: .fit, playing: true, cornerRadius: 14, playback: playback)
+                .contentShape(Rectangle())
+                .onTapGesture { playback.paused.toggle() }
+                .overlay(alignment: .bottom) {
+                    VideoControls(playback: playback, visible: hovering || playback.paused || playback.scrubbing)
+                }
+                .onHover { hovering = $0 }
+        } else {
+            SaveMedia(save: save, maxPixel: 2800, contentMode: .fit, playing: true, cornerRadius: 14, posterFromOriginal: true)
         }
     }
 }

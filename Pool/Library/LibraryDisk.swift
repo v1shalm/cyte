@@ -87,4 +87,66 @@ nonisolated enum LibraryDisk {
     static func remove(_ folder: Folder, paths: LibraryPaths) async {
         try? FileManager.default.removeItem(at: paths.folders.appending(path: "\(folder.id).json"))
     }
+
+    @concurrent
+    static func migrate(from source: LibraryPaths, to destination: LibraryPaths) async -> Int {
+        let fm = FileManager.default
+        let srcRoot = source.root.standardizedFileURL
+        let dstRoot = destination.root.standardizedFileURL
+        guard srcRoot != dstRoot, fm.fileExists(atPath: srcRoot.path(percentEncoded: false)) else { return 0 }
+
+        do {
+            try destination.ensureExists()
+        } catch {
+            log.error("Failed to create destination library at \(dstRoot.path(percentEncoded: false), privacy: .public): \(error.localizedDescription, privacy: .public)")
+            return 0
+        }
+
+        var movedSaves = 0
+
+        if let months = try? fm.contentsOfDirectory(at: source.saves, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles]) {
+            for month in months {
+                let dstMonth = destination.saves.appending(path: month.lastPathComponent, directoryHint: .isDirectory)
+                try? fm.createDirectory(at: dstMonth, withIntermediateDirectories: true)
+                let items = (try? fm.contentsOfDirectory(at: month, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles])) ?? []
+                for item in items {
+                    let target = dstMonth.appending(path: item.lastPathComponent, directoryHint: .isDirectory)
+                    if fm.fileExists(atPath: target.path(percentEncoded: false)) {
+                        continue
+                    } else if (try? fm.moveItem(at: item, to: target)) != nil {
+                        movedSaves += 1
+                    } else if (try? fm.copyItem(at: item, to: target)) != nil {
+                        try? fm.removeItem(at: item)
+                        movedSaves += 1
+                    }
+                }
+                if ((try? fm.contentsOfDirectory(atPath: month.path(percentEncoded: false))) ?? []).isEmpty {
+                    try? fm.removeItem(at: month)
+                }
+            }
+        }
+
+        for (srcDir, dstDir) in [(source.folders, destination.folders), (source.inbox, destination.inbox), (source.trash, destination.trash)] {
+            guard let items = try? fm.contentsOfDirectory(at: srcDir, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles]) else { continue }
+            for item in items {
+                let target = dstDir.appending(path: item.lastPathComponent)
+                if fm.fileExists(atPath: target.path(percentEncoded: false)) {
+                    continue
+                } else if (try? fm.moveItem(at: item, to: target)) == nil {
+                    if (try? fm.copyItem(at: item, to: target)) != nil {
+                        try? fm.removeItem(at: item)
+                    }
+                }
+            }
+        }
+
+        for dir in [source.saves, source.folders, source.trash] {
+            let remaining = (try? fm.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles])) ?? []
+            if remaining.isEmpty {
+                try? fm.removeItem(at: dir)
+            }
+        }
+
+        return movedSaves
+    }
 }

@@ -82,6 +82,10 @@ struct Icon: View {
         "doc.on.doc": "copy",
         "speaker.wave.2.fill": "volume-high",
         "speaker.slash.fill": "volume-off",
+        "media.sound": "speaker-high-fill",
+        "media.muted": "speaker-slash-fill",
+        "play.fill": "play-fill",
+        "pause.fill": "pause-fill",
     ]
 
     private static let fillSlugs: [String: String] = [

@@ -1,5 +1,14 @@
 import Foundation
 
+enum LibraryBackend: String, CaseIterable, Identifiable {
+    case iCloud
+    case googleDrive
+    case local
+    case custom
+
+    var id: String { rawValue }
+}
+
 enum LibraryLocation {
     private static let key = "pool.libraryPath"
 
@@ -10,6 +19,34 @@ enum LibraryLocation {
     }
 
     static var iCloudDefault: URL? { iCloudDrive?.appending(path: "Pool", directoryHint: .isDirectory) }
+
+    static var googleDriveBase: URL? {
+        let fm = FileManager.default
+        let home = fm.homeDirectoryForCurrentUser
+        let cloudStorage = home.appending(path: "Library/CloudStorage", directoryHint: .isDirectory)
+        if let entries = try? fm.contentsOfDirectory(at: cloudStorage, includingPropertiesForKeys: [.isDirectoryKey], options: [.skipsHiddenFiles]) {
+            let candidates = entries
+                .filter { $0.lastPathComponent.hasPrefix("GoogleDrive") }
+                .sorted { $0.lastPathComponent < $1.lastPathComponent }
+            if let first = candidates.first {
+                let myDrive = first.appending(path: "My Drive", directoryHint: .isDirectory)
+                if fm.fileExists(atPath: myDrive.path(percentEncoded: false)) {
+                    return myDrive
+                }
+                return first
+            }
+        }
+        let legacy = home.appending(path: "Google Drive", directoryHint: .isDirectory)
+        if fm.fileExists(atPath: legacy.path(percentEncoded: false)) {
+            let myDrive = legacy.appending(path: "My Drive", directoryHint: .isDirectory)
+            return fm.fileExists(atPath: myDrive.path(percentEncoded: false)) ? myDrive : legacy
+        }
+        return nil
+    }
+
+    static var googleDriveDefault: URL? {
+        googleDriveBase?.appending(path: "Pool", directoryHint: .isDirectory)
+    }
 
     static var homeDefault: URL {
         FileManager.default.homeDirectoryForCurrentUser.appending(path: "Pool", directoryHint: .isDirectory)
@@ -26,6 +63,46 @@ enum LibraryLocation {
     }
 
     static var isChosen: Bool { UserDefaults.standard.string(forKey: key) != nil }
+
+    static func backend(for url: URL = current) -> LibraryBackend {
+        let path = url.standardizedFileURL.path(percentEncoded: false)
+        if let iCloud = iCloudDefault?.standardizedFileURL.path(percentEncoded: false), path == iCloud {
+            return .iCloud
+        }
+        if let gDrive = googleDriveDefault?.standardizedFileURL.path(percentEncoded: false), path == gDrive {
+            return .googleDrive
+        }
+        if path.contains("/Library/CloudStorage/GoogleDrive") || path.contains("/Google Drive/") {
+            return .googleDrive
+        }
+        if path == homeDefault.standardizedFileURL.path(percentEncoded: false) {
+            return .local
+        }
+        return .custom
+    }
+
+    static func placeName(for url: URL) -> String {
+        switch backend(for: url) {
+        case .iCloud: L.Settings.iCloudDrive
+        case .googleDrive: L.Settings.googleDrive
+        case .local: L.Settings.localFolder
+        case .custom: url.lastPathComponent == "Pool" ? url.deletingLastPathComponent().lastPathComponent : url.lastPathComponent
+        }
+    }
+
+    static func resolveRoot(for chosenURL: URL) -> URL {
+        let name = chosenURL.lastPathComponent.lowercased()
+        if name == "pool" || name == "cyte" {
+            return chosenURL
+        }
+        let fm = FileManager.default
+        let hasSaves = fm.fileExists(atPath: chosenURL.appending(path: "Saves").path(percentEncoded: false))
+        let hasFolders = fm.fileExists(atPath: chosenURL.appending(path: "Folders").path(percentEncoded: false))
+        if hasSaves || hasFolders {
+            return chosenURL
+        }
+        return chosenURL.appending(path: "Pool", directoryHint: .isDirectory)
+    }
 }
 
 nonisolated struct LibraryPaths: Sendable {

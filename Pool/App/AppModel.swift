@@ -143,6 +143,10 @@ final class AppModel {
         refresh()
         enricher.enrichMissing()
         ingestor.processInbox()
+        xImport.onQuietDone = { [weak self] count in
+            if count > 0 { self?.feedback.toast(L.Toast.xVideos(count)) }
+        }
+        Task { await xImport.upgradeVideosQuietly() }
         warmEmbeddings()
         if ScreenshotWatcher.enabled { startScreenshots() }
         hotKey = HotKey(keyCode: kVK_ANSI_P, modifiers: optionKey | cmdKey) { [weak self] in
@@ -160,11 +164,18 @@ final class AppModel {
         Task.detached(priority: .utility) { await index.warm(saves) }
     }
 
-    func reopenLibrary(at root: URL) async {
-        LibraryLocation.current = root
-        await store.open(root: root)
+    func reopenLibrary(at root: URL, moving: Bool = false) async {
+        let resolved = LibraryLocation.resolveRoot(for: root)
+        let changed = LibraryLocation.current.standardizedFileURL != resolved.standardizedFileURL
+        LibraryLocation.current = resolved
+        let moved = moving ? await store.moveAndOpen(to: resolved) : 0
+        if !moving { await store.open(root: resolved) }
         refresh()
         enricher.enrichMissing()
+        if changed, moving {
+            let place = LibraryLocation.placeName(for: resolved)
+            feedback.toast(moved > 0 ? L.Toast.libraryMoved(moved, to: place) : L.Toast.librarySwitched(place))
+        }
     }
 
     func refresh() {

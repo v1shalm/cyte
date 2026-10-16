@@ -8,6 +8,7 @@ struct Tile: View {
     let save: Save
     let namespace: Namespace.ID
     let fresh: Bool
+    var playing = false
 
     @State private var hovering = false
     @State private var beamDone = false
@@ -24,7 +25,7 @@ struct Tile: View {
                 withAnimation(reduceMotion ? Theme.fade : Theme.open) { model.selectedID = save.id }
             }
         } label: {
-            TileFace(save: save, hovering: hovering)
+            TileFace(save: save, hovering: hovering, playing: playing)
                 .overlay(RoundedRectangle(cornerRadius: Theme.tileRadius, style: .continuous).strokeBorder(Theme.hairline))
                 .contentShape(RoundedRectangle(cornerRadius: Theme.tileRadius, style: .continuous))
         }
@@ -210,11 +211,12 @@ final class MenuTarget: NSObject {
 struct TileFace: View {
     let save: Save
     let hovering: Bool
+    var playing = false
 
     var body: some View {
         Group {
             switch save.kind {
-            case .image: ImageTile(save: save, hovering: hovering)
+            case .image: ImageTile(save: save, hovering: hovering, playing: playing)
             case .link: LinkTile(save: save)
             case .note: NoteTile(save: save)
             }
@@ -232,9 +234,10 @@ struct ImageTile: View {
     @Environment(AppModel.self) private var model
     let save: Save
     let hovering: Bool
+    let playing: Bool
 
     var body: some View {
-        Thumb(url: model.store.url(for: save, file: save.thumbnail), maxPixel: model.tilePixels, tint: save.tint)
+        SaveMedia(save: save, maxPixel: model.tilePixels, playing: playing, cornerRadius: Theme.tileRadius)
             .overlay(alignment: .bottomLeading) {
                 ZStack(alignment: .bottomLeading) {
                     LinearGradient(colors: [.black.opacity(0), .black.opacity(0.42)], startPoint: .top, endPoint: .bottom)
@@ -399,7 +402,9 @@ enum Clipboard {
     static func copy(_ save: Save, store: LibraryStore) {
         let board = NSPasteboard.general
         board.clearContents()
-        if let original = store.url(for: save, file: save.original), let image = NSImage(contentsOf: original) {
+        if save.motion == .video, let original = store.url(for: save, file: save.original) {
+            board.writeObjects([original as NSURL])
+        } else if let original = store.url(for: save, file: save.original), let image = NSImage(contentsOf: original) {
             board.writeObjects([image])
         } else if let url = save.url {
             board.writeObjects([url as NSURL])
