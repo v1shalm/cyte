@@ -1,12 +1,17 @@
 :root {
-  --yellow: #f9ed33;
-  --ink: #121212;
-  --ink-soft: rgba(18, 18, 18, 0.62);
-  --white: #ffffff;
-  --hairline: rgba(0, 0, 0, 0.08);
-  --serif: "Timeless Serif", "TimelessSerif-Regular", "Iowan Old Style", Georgia, serif;
-  --sans: "Timeless Sans Grotesk", "TimelessSans-GroteskRegular", -apple-system, BlinkMacSystemFont,
-    "Helvetica Neue", Arial, sans-serif;
+  --canvas: #ffffff;
+  --grey: #ebeaef;
+  --grey-soft: #f4f3f7;
+  --grey-strong: #e5e4ea;
+  --grey-hover: #e0dfe6;
+  --ink: #111319;
+  --ink-2: #6b7382;
+  --ink-3: #9aa1b0;
+  --hairline: rgba(31, 31, 66, 0.085);
+  --pill: #292b33;
+  --serif: var(--font-serif), "Iowan Old Style", Georgia, serif;
+  --sans: var(--font-sans), -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+  --ease: cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 * {
@@ -15,9 +20,14 @@
   padding: 0;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 html,
 body {
-  background: var(--yellow);
+  overflow-x: clip;
+  background: var(--canvas);
   color: var(--ink);
   font-family: var(--sans);
   -webkit-font-smoothing: antialiased;
@@ -27,4 +37,14 @@ body {
 a {
   color: inherit;
   text-decoration: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
 }

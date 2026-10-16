@@ -1,84 +1,290 @@
 import Image from "next/image";
+import { AppWindow } from "./appwindow";
+import { Icon, type IconName } from "./icons";
 import styles from "./page.module.css";
 
-const tiles = [
-  [{ h: 92, tone: "dark" }, { h: 60, tone: "white" }, { h: 76, tone: "blue" }],
-  [{ h: 64, tone: "white" }, { h: 104, tone: "sand" }, { h: 56, tone: "white" }],
-  [{ h: 80, tone: "blue" }, { h: 70, tone: "dark" }, { h: 84, tone: "white" }],
+const features: { icon: IconName; title: string; body: string; demo: "text" | "filter" | "select" | "smart" | "similar" | "x" }[] = [
+  {
+    icon: "scan",
+    title: "Search the words inside images",
+    body: "Cyte reads every image on your Mac. Type kerning and the poster that says it comes up.",
+    demo: "text",
+  },
+  {
+    icon: "filter",
+    title: "Filters live in the search bar",
+    body: "Pick a colour, a site, a tag or a date range without leaving the grid.",
+    demo: "filter",
+  },
+  {
+    icon: "tick",
+    title: "Select many, act once",
+    body: "Shift-click a range, then tag, file or delete it together. Deleting and filing both keep an undo.",
+    demo: "select",
+  },
+  {
+    icon: "sparkles",
+    title: "Smart folders",
+    body: "Save any filter as a folder that fills itself when new saves match.",
+    demo: "smart",
+  },
+  {
+    icon: "similar",
+    title: "Find similar",
+    body: "Right-click an image to see the saves that look like it, matched on your device.",
+    demo: "similar",
+  },
+  {
+    icon: "bookmark",
+    title: "X bookmarks, kept apart",
+    body: "Import bookmarked posts with images or videos. They get their own place and stay out of Everything.",
+    demo: "x",
+  },
 ];
 
-export default function Home() {
-  return (
-    <main className={styles.page}>
-      <section className={styles.hero}>
-        <Image
-          className={styles.icon}
-          src="/pool-icon.png"
-          alt=""
-          width={104}
-          height={104}
-          priority
-        />
-        <h1 className={styles.title}>Your saves, in one place.</h1>
-        <p className={styles.lede}>
-          Cyte keeps the images, links, notes and X bookmarks you collect on your Mac. It reads
-          each one on the device, so search finds a poster by the words printed on it.
-        </p>
-        <a className={styles.download} href="/downloads/Cyte.dmg" download>
-          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
-            <path
-              d="M8 2v8.2m0 0L4.6 6.8M8 10.2l3.4-3.4M3 13.5h10"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.6"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-          Download for Mac
-        </a>
-        <p className={styles.meta}>Free · macOS 26 or later · Apple silicon · 3.8 MB</p>
-        <p className={styles.note}>
-          First launch: open System Settings → Privacy &amp; Security and choose Open Anyway.
-        </p>
-      </section>
+const keys: [string, string][] = [
+  ["⌘K", "Search"],
+  ["⌃⌥ Space", "Search from anywhere"],
+  ["⌥⌘P", "Save the page in your browser"],
+  ["T", "Tag"],
+  ["F", "Add to folder"],
+  ["X", "Select"],
+  ["Space", "Open"],
+  ["⌘A", "Select all"],
+];
 
-      <div className={styles.window} aria-hidden="true">
-        <div className={styles.lights}>
-          <span />
-          <span />
-          <span />
-        </div>
-        <div className={styles.sidebar}>
-          <span className={styles.sideLabel} />
-          <span className={styles.sideActive} />
-          <span className={styles.sideLine} />
-          <span className={styles.sideLine} />
-        </div>
-        <div className={styles.canvas}>
-          <div className={styles.toolbar}>
-            <span className={styles.search} />
-            <span className={styles.tabs}>
-              <span className={styles.tabActive} />
-              <span className={styles.tab} />
-              <span className={styles.tab} />
+function Demo({ kind }: { kind: (typeof features)[number]["demo"] }) {
+  switch (kind) {
+    case "text":
+      return (
+        <div className={styles.demo}>
+          <div className={styles.miniSearch}>
+            <Icon name="search" size={13} />
+            <span>kerning</span>
+          </div>
+          <div className={styles.hitRow}>
+            <span className={`${styles.hit} ${styles.hitA}`}>
+              <em>Kerning</em>
+            </span>
+            <span className={`${styles.hit} ${styles.hitB}`}>
+              <em>kerning pairs</em>
             </span>
           </div>
-          <div className={styles.grid}>
-            {tiles.map((column, c) => (
-              <div className={styles.column} key={c}>
-                {column.map((tile, t) => (
-                  <span
-                    key={t}
-                    className={`${styles.tile} ${styles[tile.tone]}`}
-                    style={{ height: tile.h }}
-                  />
-                ))}
-              </div>
+        </div>
+      );
+    case "filter":
+      return (
+        <div className={styles.demo}>
+          <div className={styles.chips}>
+            <span className={styles.chipOn}>This month</span>
+            <span>This week</span>
+            <span>Today</span>
+          </div>
+          <div className={styles.dots}>
+            {["#111319", "#8b8f9c", "#8b5a3c", "#d7263d", "#f46a1f", "#f2c230", "#3a9d5d", "#2563eb", "#7c3aed", "#ec6fa9"].map((c) => (
+              <i key={c} style={{ background: c }} />
             ))}
           </div>
         </div>
-      </div>
-    </main>
+      );
+    case "select":
+      return (
+        <div className={styles.demo}>
+          <div className={styles.bar}>
+            <span className={styles.barClose}>
+              <Icon name="cancel" size={11} />
+            </span>
+            <b>3 selected</b>
+            <span className={styles.split}>
+              <i className={styles.splitFirst}>
+                <Icon name="folder" size={12} /> Folder
+              </i>
+              <i className={styles.splitMid}>
+                <Icon name="hash" size={12} /> Tag
+              </i>
+              <i className={styles.splitLast}>
+                <Icon name="trash" size={12} /> Delete
+              </i>
+            </span>
+          </div>
+        </div>
+      );
+    case "smart":
+      return (
+        <div className={styles.demo}>
+          <div className={styles.folder}>
+            <span className={styles.folderArt}>
+              <Icon name="sparkles" size={20} />
+            </span>
+            <b>Type · Images</b>
+            <em>38 saves</em>
+          </div>
+        </div>
+      );
+    case "similar":
+      return (
+        <div className={styles.demo}>
+          <div className={styles.thumbs}>
+            <i style={{ background: "linear-gradient(160deg,#1d2cf0,#7b5cff)" }} />
+            <i style={{ background: "linear-gradient(160deg,#3a4cf5,#9a85ff)" }} />
+            <i style={{ background: "linear-gradient(160deg,#5160f7,#b7a9ff)" }} />
+            <i style={{ background: "linear-gradient(160deg,#6c78f9,#cfc6ff)" }} />
+          </div>
+        </div>
+      );
+    case "x":
+      return (
+        <div className={styles.demo}>
+          <div className={styles.railMini}>
+            <span>
+              <Icon name="grid" size={18} />
+            </span>
+            <span className={styles.railMiniOn}>
+              <Icon name="bookmark" size={18} />
+            </span>
+            <span>
+              <Icon name="folder" size={18} />
+            </span>
+          </div>
+        </div>
+      );
+  }
+}
+
+export default function Home() {
+  return (
+    <>
+      <header className={styles.nav}>
+        <a className={styles.brand} href="#top">
+          <Image src="/pool-icon.png" alt="" width={28} height={28} priority />
+          Cyte
+        </a>
+        <nav className={styles.navLinks}>
+          <a href="#features">Features</a>
+          <a href="#keyboard">Keyboard</a>
+          <a className={styles.navCta} href="/downloads/Cyte.dmg" download>
+            Download
+          </a>
+        </nav>
+      </header>
+
+      <main id="top" className={styles.page}>
+        <section className={styles.hero}>
+          <h1 className={styles.title}>
+            Save anything.
+            <br />
+            <span>Find it in seconds.</span>
+          </h1>
+          <p className={styles.lede}>
+            Cyte keeps the images, links, notes and X bookmarks you collect in one calm grid on your Mac. It reads
+            every image on your device, so you can search a poster by the words printed on it.
+          </p>
+          <div className={styles.pair}>
+            <a className={styles.primary} href="/downloads/Cyte.dmg" download>
+              <Icon name="download" size={16} />
+              Download for Mac
+            </a>
+            <a className={styles.secondary} href="https://github.com/v1shalm/cyte">
+              <Icon name="github" size={16} />
+              GitHub
+            </a>
+          </div>
+          <p className={styles.meta}>Free · macOS 26 or later · Apple silicon · 4.3 MB</p>
+        </section>
+
+        <div className={styles.stage}>
+          <AppWindow />
+        </div>
+
+        <section id="features" className={styles.section}>
+          <h2 className={styles.h2}>
+            Everything you save,
+            <br />
+            one calm grid.
+          </h2>
+          <div className={styles.bento}>
+            {features.map((f) => (
+              <article className={styles.card} key={f.title}>
+                <Demo kind={f.demo} />
+                <div className={styles.cardText}>
+                  <span className={styles.cardIcon}>
+                    <Icon name={f.icon} size={16} />
+                  </span>
+                  <h3>{f.title}</h3>
+                  <p>{f.body}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className={styles.stats}>
+          <div>
+            <b>2,500</b>
+            <span>saves in the largest library we tested</span>
+          </div>
+          <div>
+            <b>36 ms</b>
+            <span>for the slowest search across them</span>
+          </div>
+          <div>
+            <b>4.3 MB</b>
+            <span>to download</span>
+          </div>
+          <div>
+            <b>0</b>
+            <span>accounts to create</span>
+          </div>
+        </section>
+
+        <section id="keyboard" className={styles.section}>
+          <h2 className={styles.h2}>Made for the keyboard.</h2>
+          <p className={styles.sub}>Move with the arrow keys, then act on the save you are on.</p>
+          <ul className={styles.keys}>
+            {keys.map(([k, label]) => (
+              <li key={k}>
+                <kbd>{k}</kbd>
+                <span>{label}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section className={styles.private}>
+          <span className={styles.privateIcon}>
+            <Icon name="lock" size={20} />
+          </span>
+          <h2 className={styles.h2}>Your library is a folder.</h2>
+          <p className={styles.sub}>
+            Every save is a plain folder in iCloud Drive, or wherever you choose. Cyte reads text and colour on your
+            Mac, and nothing is uploaded.
+          </p>
+        </section>
+
+        <section id="download" className={styles.cta}>
+          <Image src="/pool-icon.png" alt="" width={88} height={88} className={styles.ctaIcon} />
+          <h2 className={styles.h2}>Get Cyte for Mac.</h2>
+          <div className={styles.pair}>
+            <a className={styles.primary} href="/downloads/Cyte.dmg" download>
+              <Icon name="download" size={16} />
+              Download for Mac
+            </a>
+            <a className={styles.secondary} href="https://github.com/v1shalm/cyte">
+              <Icon name="github" size={16} />
+              GitHub
+            </a>
+          </div>
+          <p className={styles.meta}>Free · macOS 26 or later · Apple silicon · 4.3 MB</p>
+          <p className={styles.note}>
+            On first launch, open System Settings → Privacy &amp; Security and choose Open Anyway.
+          </p>
+        </section>
+      </main>
+
+      <footer className={styles.footer}>
+        <span>© 2026 Cyte</span>
+        <a href="https://github.com/v1shalm/cyte">Source on GitHub</a>
+      </footer>
+    </>
   );
 }
