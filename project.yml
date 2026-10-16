@@ -4,6 +4,10 @@ options:
   deploymentTarget:
     macOS: "26.0"
   createIntermediateGroups: true
+packages:
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    from: "2.6.4"
 settings:
   base:
     SWIFT_VERSION: "6.0"
@@ -22,12 +26,16 @@ targets:
     platform: macOS
     sources:
       - path: Pool
+    dependencies:
+      - package: Sparkle
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.cyte.mac
         PRODUCT_NAME: Cyte
         ENABLE_APP_SANDBOX: NO
         CODE_SIGN_ENTITLEMENTS: Pool/Resources/Cyte.entitlements
+        CYTE_FEED_URL: https://pool-mac.vercel.app/appcast.xml
+        CYTE_UPDATE_KEY: ""
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: Cyte
@@ -49,6 +57,10 @@ targets:
         CFBundleURLTypes:
           - CFBundleURLName: app.cyte.mac
             CFBundleURLSchemes: [cyte, pool]
+        SUFeedURL: $(CYTE_FEED_URL)
+        SUPublicEDKey: $(CYTE_UPDATE_KEY)
+        SUEnableAutomaticChecks: true
+        SUScheduledCheckInterval: 86400
   CyteTests:
     type: bundle.unit-test
     platform: macOS

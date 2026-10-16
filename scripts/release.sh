@@ -5,6 +5,8 @@ root="${0:A:h:h}"
 out="$root/build/release"
 profile="${CYTE_NOTARY_PROFILE:-cyte-notary}"
 team="${CYTE_TEAM_ID:-}"
+update_key="${CYTE_UPDATE_KEY:-}"
+feed="${CYTE_FEED_URL:-}"
 identity="Developer ID Application"
 
 usage() {
@@ -15,10 +17,15 @@ One-time setup, after joining the Apple Developer Program:
   1. Xcode > Settings > Accounts > Manage Certificates > + > Developer ID Application
   2. xcrun notarytool store-credentials $profile --apple-id YOU@EMAIL --team-id TEAMID
      (use an app-specific password from account.apple.com)
+  3. Update signing key, made once on your own Mac and kept forever:
+     build/dd/SourcePackages/artifacts/sparkle/Sparkle/bin/generate_keys
+     It stores the private key in your login keychain and prints the public key.
+     Back the private key up with: generate_keys -x cyte-update-key.pem
 
 Run:
-  CYTE_TEAM_ID=TEAMID scripts/release.sh          full release
-  CYTE_TEAM_ID=TEAMID scripts/release.sh --check  check the setup only
+  CYTE_TEAM_ID=TEAMID CYTE_UPDATE_KEY=PUBLICKEY scripts/release.sh          full release
+  CYTE_TEAM_ID=TEAMID CYTE_UPDATE_KEY=PUBLICKEY scripts/release.sh --check  check the setup only
+  Optional: CYTE_FEED_URL to override the update feed in project.yml
 EOF
 }
 
@@ -30,6 +37,7 @@ check() {
     || fail "no '$identity' certificate for team $team in your keychain"
   xcrun notarytool history --keychain-profile "$profile" >/dev/null 2>&1 \
     || fail "notary profile '$profile' is missing; run: xcrun notarytool store-credentials $profile"
+  [[ -n "$update_key" ]] || fail "set CYTE_UPDATE_KEY to the public key from Sparkle's generate_keys"
   print "release: setup looks good for team $team"
 }
 
@@ -53,7 +61,7 @@ xcodebuild test -project Pool.xcodeproj -scheme Pool -destination 'platform=macO
 xcodebuild archive -project Pool.xcodeproj -scheme Pool -configuration Release \
   -archivePath "$out/Cyte.xcarchive" -derivedDataPath "$out/dd" -quiet \
   DEVELOPMENT_TEAM="$team" CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="$identity" \
-  OTHER_CODE_SIGN_FLAGS="--timestamp"
+  OTHER_CODE_SIGN_FLAGS="--timestamp" CYTE_UPDATE_KEY="$update_key" ${feed:+CYTE_FEED_URL="$feed"}
 
 cat > "$out/ExportOptions.plist" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
@@ -92,4 +100,10 @@ xcrun stapler staple "$dmg"
 
 spctl --assess --type execute -vv "$app"
 spctl --assess --type open --context context:primary-signature -vv "$dmg"
+
+updates="$out/updates"
+mkdir -p "$updates"
+cp "$dmg" "$updates/"
+"$out/dd/SourcePackages/artifacts/sparkle/Sparkle/bin/generate_appcast" "$updates"
 print "release: $dmg is signed, notarized and stapled"
+print "release: upload everything in $updates next to the feed URL to ship the update"

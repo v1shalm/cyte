@@ -112,6 +112,8 @@ enum L {
         static let change = "Choose folder…"
         static let show = "Show in Finder"
         static let general = "General"
+        static let updates = "Check for updates automatically"
+        static let updatesBody = "Cyte looks for a new version once a day and asks before it installs anything."
         static let intelligence = "Titles and tags"
         static let aiOffTitle = "Apple Intelligence is off"
         static let aiOffBody = "Cyte writes titles, summaries and tags with Apple Intelligence on this Mac. Turn it on in System Settings → Apple Intelligence & Siri."
@@ -184,6 +186,7 @@ enum L {
     }
 
     enum Menu {
+        static let checkUpdates = "Check for updates…"
         static let saveClipboard = "Save clipboard"
         static let open = "Open Cyte"
         static let newNote = "New note"

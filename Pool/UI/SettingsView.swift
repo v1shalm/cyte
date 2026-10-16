@@ -7,6 +7,7 @@ struct SettingsView: View {
     @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
     @State private var sounds = SoundEngine.shared.enabled
     @State private var screenshots = ScreenshotWatcher.enabled
+    @State private var autoUpdates = Updater.shared.checksAutomatically
     @State private var libraryPath = LibraryLocation.current.path(percentEncoded: false)
 
     var body: some View {
@@ -71,6 +72,10 @@ struct SettingsView: View {
                     Divider().padding(.leading, 16)
                     row(L.Settings.screenshots, L.Settings.screenshotsBody, isOn: $screenshots) { on in
                         if on { model.startScreenshots() } else { ScreenshotWatcher.enabled = false }
+                    }
+                    if Updater.shared.isAvailable {
+                        Divider().padding(.leading, 16)
+                        row(L.Settings.updates, L.Settings.updatesBody, isOn: $autoUpdates) { Updater.shared.checksAutomatically = $0 }
                     }
                 }
 

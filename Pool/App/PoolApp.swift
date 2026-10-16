@@ -39,6 +39,11 @@ struct PoolCommands: Commands {
     let model: AppModel
 
     var body: some Commands {
+        CommandGroup(after: .appInfo) {
+            if Updater.shared.isAvailable {
+                Button(L.Menu.checkUpdates) { Updater.shared.checkNow() }
+            }
+        }
         CommandGroup(replacing: .newItem) {
             Button(L.Menu.newNote) { model.composingNote = true }
                 .keyboardShortcut("n")
@@ -95,6 +100,9 @@ struct MenuBarContent: View {
         Toggle(L.Menu.sound, isOn: $soundOn)
             .onChange(of: soundOn) { _, value in SoundEngine.shared.enabled = value }
         Divider()
+        if Updater.shared.isAvailable {
+            Button(L.Menu.checkUpdates) { Updater.shared.checkNow() }
+        }
         Button(L.Menu.quit) { NSApp.terminate(nil) }
             .keyboardShortcut("q")
     }
@@ -112,6 +120,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         guard !Identity.isTesting else { return }
+        _ = Updater.shared
         let model = AppModel.shared
         Task { await model.start() }
         if !OnboardingController.completed {

@@ -30,6 +30,14 @@
 	</array>
 	<key>CFBundleVersion</key>
 	<string>1</string>
+	<key>SUEnableAutomaticChecks</key>
+	<true/>
+	<key>SUFeedURL</key>
+	<string>$(CYTE_FEED_URL)</string>
+	<key>SUPublicEDKey</key>
+	<string>$(CYTE_UPDATE_KEY)</string>
+	<key>SUScheduledCheckInterval</key>
+	<integer>86400</integer>
 	<key>UTExportedTypeDeclarations</key>
 	<array>
 		<dict>
