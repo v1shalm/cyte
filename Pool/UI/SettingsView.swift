@@ -74,6 +74,10 @@ struct SettingsView: View {
                     }
                 }
 
+                if model.enricher.modelState != .ready {
+                    group(L.Settings.intelligence) { intelligence }
+                }
+
                 group(L.Settings.x) {
                     VStack(alignment: .leading, spacing: 14) {
                         VStack(alignment: .leading, spacing: 3) {
@@ -126,6 +130,29 @@ struct SettingsView: View {
         .frame(width: 560, height: 680)
         .background(Color.white)
         .preferredColorScheme(.light)
+    }
+
+    @ViewBuilder private var intelligence: some View {
+        let state = model.enricher.modelState
+        VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 3) {
+                Text(state == .off ? L.Settings.aiOffTitle : state == .downloading ? L.Settings.aiDownloadingTitle : L.Settings.aiUnsupportedTitle)
+                    .font(Theme.ui(13.5, weight: .medium))
+                    .foregroundStyle(Theme.ink)
+                Text(state == .off ? L.Settings.aiOffBody : state == .downloading ? L.Settings.aiDownloadingBody : L.Settings.aiUnsupportedBody)
+                    .font(Theme.ui(12))
+                    .foregroundStyle(Theme.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            if state == .off {
+                Button(L.Settings.aiOffAction) {
+                    if let url = URL(string: "x-apple.systempreferences:com.apple.Siri-Settings.extension") { NSWorkspace.shared.open(url) }
+                }
+                .poolSecondary(.alone)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(16)
     }
 
     private static let shortcuts: [(String, String)] = [

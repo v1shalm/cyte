@@ -8,7 +8,7 @@ final class Ingestor {
     private let store: LibraryStore
     private let enricher: Enricher
     private let feedback: Feedback
-    private let log = Logger(subsystem: "in.tistmedia.pool", category: "ingest")
+    private let log = Logger(subsystem: Identity.subsystem, category: "ingest")
     private var inboxBusy = false
 
     init(store: LibraryStore, enricher: Enricher, feedback: Feedback) {

@@ -16,7 +16,7 @@ final class LibraryStore {
     @ObservationIgnored private var reloadTask: Task<Void, Never>?
     @ObservationIgnored var onInboxChange: (() -> Void)?
 
-    private let log = Logger(subsystem: "in.tistmedia.pool", category: "library")
+    private let log = Logger(subsystem: Identity.subsystem, category: "library")
 
     init(root: URL = LibraryLocation.current) {
         paths = LibraryPaths(root: root)

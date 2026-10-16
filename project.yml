@@ -1,6 +1,6 @@
 name: Pool
 options:
-  bundleIdPrefix: in.tistmedia
+  bundleIdPrefix: app.cyte
   deploymentTarget:
     macOS: "26.0"
   createIntermediateGroups: true
@@ -13,7 +13,7 @@ settings:
     DEVELOPMENT_TEAM: XNTSUNT6QD
     CODE_SIGN_STYLE: Automatic
     CODE_SIGN_IDENTITY: "Apple Development"
-    ENABLE_HARDENED_RUNTIME: NO
+    ENABLE_HARDENED_RUNTIME: YES
     MARKETING_VERSION: "0.1.0"
     CURRENT_PROJECT_VERSION: "1"
 targets:
@@ -24,9 +24,10 @@ targets:
       - path: Pool
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: in.tistmedia.pool
+        PRODUCT_BUNDLE_IDENTIFIER: app.cyte.mac
         PRODUCT_NAME: Cyte
         ENABLE_APP_SANDBOX: NO
+        CODE_SIGN_ENTITLEMENTS: Pool/Resources/Cyte.entitlements
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: Cyte
@@ -34,7 +35,7 @@ targets:
         INFOPLIST_KEY_NSHumanReadableCopyright: ""
         INFOPLIST_KEY_NSDesktopFolderUsageDescription: Cyte adds new screenshots to your library as you take them.
         INFOPLIST_KEY_NSDocumentsFolderUsageDescription: Cyte reads the folder you chose for your library.
-        INFOPLIST_KEY_NSDownloadsFolderUsageDescription: Cyte saves images you drag in from Downloads.
+        INFOPLIST_KEY_NSDownloadsFolderUsageDescription: Cyte saves images and videos you drag in from Downloads.
         INFOPLIST_KEY_NSMicrophoneUsageDescription: Cyte listens while you speak a note or search by voice.
         INFOPLIST_KEY_NSSpeechRecognitionUsageDescription: Cyte turns what you say into text on this Mac.
         INFOPLIST_KEY_NSAppleEventsUsageDescription: Cyte reads the address of the page open in your browser so it can save it.
@@ -42,9 +43,35 @@ targets:
       path: Pool/Resources/Info.plist
       properties:
         UTExportedTypeDeclarations:
-          - UTTypeIdentifier: in.tistmedia.pool.save
+          - UTTypeIdentifier: app.cyte.mac.save
             UTTypeDescription: Cyte save
             UTTypeConformsTo: [public.data]
         CFBundleURLTypes:
-          - CFBundleURLName: in.tistmedia.pool
-            CFBundleURLSchemes: [pool]
+          - CFBundleURLName: app.cyte.mac
+            CFBundleURLSchemes: [cyte, pool]
+  CyteTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: CyteTests
+    dependencies:
+      - target: Pool
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.cyte.mac.tests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Cyte.app/Contents/MacOS/Cyte"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+schemes:
+  Pool:
+    build:
+      targets:
+        Pool: all
+        CyteTests: [test]
+    test:
+      targets:
+        - CyteTests
+    run:
+      config: Debug
+    archive:
+      config: Release

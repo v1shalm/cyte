@@ -38,7 +38,7 @@ final class XImporter: NSObject, WKNavigationDelegate {
     @ObservationIgnored private var videosBefore = 0
     @ObservationIgnored var onQuietDone: ((Int) -> Void)?
     private static let motionPassKey = "pool.x.motionPass"
-    private static let log = Logger(subsystem: "in.tistmedia.pool", category: "x")
+    private static let log = Logger(subsystem: Identity.subsystem, category: "x")
     @ObservationIgnored private var queue: [Data] = []
     @ObservationIgnored private var draining = false
     @ObservationIgnored private var pageFinished = false

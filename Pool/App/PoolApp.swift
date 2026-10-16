@@ -107,6 +107,7 @@ struct MenuBarContent: View {
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
+        guard !Identity.isTesting else { return }
         let model = AppModel.shared
         Task { await model.start() }
         if !OnboardingController.completed {

@@ -13,6 +13,7 @@
 		0A996EE8B5CEA4C614BE9CDB /* LibraryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B60A45B0B89DD80E1377B16B /* LibraryStore.swift */; };
 		10938A438A90F122AB44C809 /* SoundEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36AD169BBF5B9CD685D1CBFC /* SoundEngine.swift */; };
 		121746983B0380B7F8B86F40 /* ImageFiles.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3C781734C8214AE555647FC /* ImageFiles.swift */; };
+		12577F8E105AF1449F8A9D81 /* MediaTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 428179F3E8303DEA19F604CA /* MediaTests.swift */; };
 		15B8364BBFAC5D88CAFCBC11 /* OnboardingScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19B8C7E44463E063A66E8B74 /* OnboardingScene.swift */; };
 		278503100B65F0A0327A68A2 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1358C0AE7CE4E631B52E1BB /* RootView.swift */; };
 		2815A15418EAF2E031EA4D52 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64A04A8535DE8B0FCE6C12AE /* SettingsView.swift */; };
@@ -35,6 +36,7 @@
 		6BDA1E3AB7D5EBFD245095FB /* AddMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6930138B7B809B9E9C420D77 /* AddMenu.swift */; };
 		6F60B5ABF549EC74C902926A /* MotionMedia.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E9A13406C15A576F0B406DE /* MotionMedia.swift */; };
 		6FA2EA693E11D7562E7FDD8D /* LinkPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E9FD5B1A3FCFB3FA6990F0A /* LinkPreview.swift */; };
+		71C40CBBB4277E14C59918F5 /* Identity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07B0266BC6C453636558FE1C /* Identity.swift */; };
 		73EDC23CD358F8F98305807A /* QuestionPill.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90E40B0BFF13C998E68FC9E1 /* QuestionPill.swift */; };
 		763E3DC112C6DABBAA6ADFB6 /* VisionPass.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2B912744D412308A2E5F50D /* VisionPass.swift */; };
 		81EE3C93231EB7902C626C2C /* Rail.swift in Sources */ = {isa = PBXBuildFile; fileRef = B143B5D7D7913DFF943C8F07 /* Rail.swift */; };
@@ -56,15 +58,28 @@
 		C999C7932D2CA4942010979E /* Effects.metal in Sources */ = {isa = PBXBuildFile; fileRef = 44DF8A0CEE4A17DE399FD5CD /* Effects.metal */; };
 		CBE1EFC9C8C24C932679BF93 /* OnboardingController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D80DA82D221879867F874EF1 /* OnboardingController.swift */; };
 		D05020784D295BFD0F1CBD5C /* LibraryLocation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 289B6DC65A795FDD1C88AFF0 /* LibraryLocation.swift */; };
+		D1BF809978E8CC2DB22332B2 /* LibraryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 712F60B652D724A206839123 /* LibraryTests.swift */; };
 		D283DDE464463D1CEC20DED0 /* VoiceViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB266BD3D2BE7694A2B693DB /* VoiceViews.swift */; };
 		D4FB8503301475E62139E4C1 /* Save.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9361FD433BEA1A8BE0F051A4 /* Save.swift */; };
+		DA41130B95848AEB6E3AEE11 /* XParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8707EE5E4539B9E518C1BB61 /* XParserTests.swift */; };
 		ECE21EE69479C6BE330522AA /* LibraryDisk.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CE742539527748FEF3635D6 /* LibraryDisk.swift */; };
 		F747C5DA85DCD1AF7613E3E5 /* BorderBeam.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47B174EA84487E5AAF3A40A1 /* BorderBeam.swift */; };
 		FC3E5F9A877CBC04C75104C7 /* MasonryGrid.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B77C23F764835D0E74874C6 /* MasonryGrid.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		0699D1B39F8F945A101ABA26 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5BF2A0E1055944BFCC2218C3 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A6A63B4735F050C9775DBACA;
+			remoteInfo = Pool;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		017850A9AB9CC82F73DADCCE /* HotKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotKey.swift; sourceTree = "<group>"; };
+		07B0266BC6C453636558FE1C /* Identity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Identity.swift; sourceTree = "<group>"; };
 		0B6A9B14174E879CD45D79D2 /* Motion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Motion.swift; sourceTree = "<group>"; };
 		0C0C591561DF4C5EBCAAD37F /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		0CF9DFF800517316B403041D /* Feedback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Feedback.swift; sourceTree = "<group>"; };
@@ -79,22 +94,27 @@
 		2E9A13406C15A576F0B406DE /* MotionMedia.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotionMedia.swift; sourceTree = "<group>"; };
 		2E9FD5B1A3FCFB3FA6990F0A /* LinkPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkPreview.swift; sourceTree = "<group>"; };
 		33B8E1A79892021EC7A4BE04 /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
+		34F798CF79131AC141027361 /* Cyte.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Cyte.entitlements; sourceTree = "<group>"; };
 		36AD169BBF5B9CD685D1CBFC /* SoundEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoundEngine.swift; sourceTree = "<group>"; };
 		415FF2EBEEFADC51B10DBE29 /* Thumb.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Thumb.swift; sourceTree = "<group>"; };
 		4209E077A0686B4033890CEF /* Pool.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Pool.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		428179F3E8303DEA19F604CA /* MediaTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaTests.swift; sourceTree = "<group>"; };
 		44DF8A0CEE4A17DE399FD5CD /* Effects.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Effects.metal; sourceTree = "<group>"; };
 		47B174EA84487E5AAF3A40A1 /* BorderBeam.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BorderBeam.swift; sourceTree = "<group>"; };
 		49DA049B8EBE06EF6195AB7B /* SearchEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchEngine.swift; sourceTree = "<group>"; };
 		4B2A3C53B2E496BD626C0A56 /* XTweet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XTweet.swift; sourceTree = "<group>"; };
 		4B77C23F764835D0E74874C6 /* MasonryGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MasonryGrid.swift; sourceTree = "<group>"; };
 		4D40CF4687CC645036A9FC2B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		58F7912F0AE1627707966262 /* CyteTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CyteTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		64A04A8535DE8B0FCE6C12AE /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		6930138B7B809B9E9C420D77 /* AddMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddMenu.swift; sourceTree = "<group>"; };
 		6B2F7346AAB59057FAC9D3E8 /* Tiles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tiles.swift; sourceTree = "<group>"; };
 		6C944D6F317898C65FE0BC92 /* ViewMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewMenu.swift; sourceTree = "<group>"; };
 		6CE742539527748FEF3635D6 /* LibraryDisk.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryDisk.swift; sourceTree = "<group>"; };
+		712F60B652D724A206839123 /* LibraryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryTests.swift; sourceTree = "<group>"; };
 		7E3F84FE2A3735AD8BC084E4 /* WindowChrome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowChrome.swift; sourceTree = "<group>"; };
 		8198AD812355FFC8EF7BC23E /* CommandPalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandPalette.swift; sourceTree = "<group>"; };
+		8707EE5E4539B9E518C1BB61 /* XParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XParserTests.swift; sourceTree = "<group>"; };
 		8A5FC5478092E598DA5211B5 /* Enricher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Enricher.swift; sourceTree = "<group>"; };
 		90E40B0BFF13C998E68FC9E1 /* QuestionPill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuestionPill.swift; sourceTree = "<group>"; };
 		9361FD433BEA1A8BE0F051A4 /* Save.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Save.swift; sourceTree = "<group>"; };
@@ -143,6 +163,7 @@
 		100ADF27B09E2635ECC59CE3 = {
 			isa = PBXGroup;
 			children = (
+				B170CF9492FB8022C6379DFE /* CyteTests */,
 				F16600B15F3F01F5C4954A9E /* Pool */,
 				704B04EBC1362B98D4590869 /* Products */,
 			);
@@ -153,6 +174,7 @@
 			children = (
 				B1D8A26714EA442984A49D48 /* AppIcon.icon */,
 				4D40CF4687CC645036A9FC2B /* Assets.xcassets */,
+				34F798CF79131AC141027361 /* Cyte.entitlements */,
 				2D438E8582781D57DAE4127A /* Info.plist */,
 			);
 			path = Resources;
@@ -172,6 +194,7 @@
 		704B04EBC1362B98D4590869 /* Products */ = {
 			isa = PBXGroup;
 			children = (
+				58F7912F0AE1627707966262 /* CyteTests.xctest */,
 				4209E077A0686B4033890CEF /* Pool.app */,
 			);
 			name = Products;
@@ -214,6 +237,7 @@
 			isa = PBXGroup;
 			children = (
 				33B8E1A79892021EC7A4BE04 /* AppModel.swift */,
+				07B0266BC6C453636558FE1C /* Identity.swift */,
 				9F101ABA3F921BD62AC14A66 /* PoolApp.swift */,
 				A5CF6E09D2E7B02E138AB79D /* Strings.swift */,
 			);
@@ -238,6 +262,16 @@
 				4B2A3C53B2E496BD626C0A56 /* XTweet.swift */,
 			);
 			path = Sources;
+			sourceTree = "<group>";
+		};
+		B170CF9492FB8022C6379DFE /* CyteTests */ = {
+			isa = PBXGroup;
+			children = (
+				712F60B652D724A206839123 /* LibraryTests.swift */,
+				428179F3E8303DEA19F604CA /* MediaTests.swift */,
+				8707EE5E4539B9E518C1BB61 /* XParserTests.swift */,
+			);
+			path = CyteTests;
 			sourceTree = "<group>";
 		};
 		B3E086679DDC3AC07432A437 /* Onboarding */ = {
@@ -292,6 +326,24 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		2E5C1E0BC71C2DE20813D12F /* CyteTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 72A92F8A25B6ACF3C49D365C /* Build configuration list for PBXNativeTarget "CyteTests" */;
+			buildPhases = (
+				78BC2012B9F42BD2F0CD33D5 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				E27325B2F0280F248325E449 /* PBXTargetDependency */,
+			);
+			name = CyteTests;
+			packageProductDependencies = (
+			);
+			productName = CyteTests;
+			productReference = 58F7912F0AE1627707966262 /* CyteTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		A6A63B4735F050C9775DBACA /* Pool */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = F55CD9F87AE0CB949BC13FB4 /* Build configuration list for PBXNativeTarget "Pool" */;
@@ -319,6 +371,10 @@
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
+					2E5C1E0BC71C2DE20813D12F = {
+						DevelopmentTeam = XNTSUNT6QD;
+						ProvisioningStyle = Automatic;
+					};
 					A6A63B4735F050C9775DBACA = {
 						DevelopmentTeam = XNTSUNT6QD;
 						ProvisioningStyle = Automatic;
@@ -340,6 +396,7 @@
 			projectRoot = "";
 			targets = (
 				A6A63B4735F050C9775DBACA /* Pool */,
+				2E5C1E0BC71C2DE20813D12F /* CyteTests */,
 			);
 		};
 /* End PBXProject section */
@@ -357,6 +414,16 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		78BC2012B9F42BD2F0CD33D5 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D1BF809978E8CC2DB22332B2 /* LibraryTests.swift in Sources */,
+				12577F8E105AF1449F8A9D81 /* MediaTests.swift in Sources */,
+				DA41130B95848AEB6E3AEE11 /* XParserTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		EBF39024AD4C82CA745224DA /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -378,6 +445,7 @@
 				ADA9A6556618EDB4FD206CD4 /* FoldersPage.swift in Sources */,
 				602C62B619107B78CD612502 /* HotKey.swift in Sources */,
 				09C51D7F6388599D10343704 /* Icon.swift in Sources */,
+				71C40CBBB4277E14C59918F5 /* Identity.swift in Sources */,
 				121746983B0380B7F8B86F40 /* ImageFiles.swift in Sources */,
 				B13052B4C551CEF52EDDB4EC /* Ingestor.swift in Sources */,
 				ECE21EE69479C6BE330522AA /* LibraryDisk.swift in Sources */,
@@ -418,11 +486,20 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		E27325B2F0280F248325E449 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A6A63B4735F050C9775DBACA /* Pool */;
+			targetProxy = 0699D1B39F8F945A101ABA26 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
 		1D2519C678A8396A33134E82 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Pool/Resources/Cyte.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
 				ENABLE_APP_SANDBOX = NO;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -432,7 +509,7 @@
 				INFOPLIST_KEY_NSAppleEventsUsageDescription = "Cyte reads the address of the page open in your browser so it can save it.";
 				INFOPLIST_KEY_NSDesktopFolderUsageDescription = "Cyte adds new screenshots to your library as you take them.";
 				INFOPLIST_KEY_NSDocumentsFolderUsageDescription = "Cyte reads the folder you chose for your library.";
-				INFOPLIST_KEY_NSDownloadsFolderUsageDescription = "Cyte saves images you drag in from Downloads.";
+				INFOPLIST_KEY_NSDownloadsFolderUsageDescription = "Cyte saves images and videos you drag in from Downloads.";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Cyte listens while you speak a note or search by voice.";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Cyte turns what you say into text on this Mac.";
@@ -440,7 +517,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = in.tistmedia.pool;
+				PRODUCT_BUNDLE_IDENTIFIER = app.cyte.mac;
 				PRODUCT_NAME = Cyte;
 				SDKROOT = macosx;
 			};
@@ -485,7 +562,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = XNTSUNT6QD;
-				ENABLE_HARDENED_RUNTIME = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -517,6 +594,23 @@
 				SWIFT_VERSION = 6.0;
 			};
 			name = Debug;
+		};
+		7BAFE7ECDB68BBDE4B6E4B24 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = app.cyte.mac.tests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Cyte.app/Contents/MacOS/Cyte";
+			};
+			name = Release;
 		};
 		8F3089CC65E4EADEDCE56CCD /* Release */ = {
 			isa = XCBuildConfiguration;
@@ -557,7 +651,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = XNTSUNT6QD;
-				ENABLE_HARDENED_RUNTIME = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -583,10 +677,28 @@
 			};
 			name = Release;
 		};
+		AC6557D4CB530FAB01F13DC2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = app.cyte.mac.tests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Cyte.app/Contents/MacOS/Cyte";
+			};
+			name = Debug;
+		};
 		FA35E1FF162F02CA957267AB /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Pool/Resources/Cyte.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
 				ENABLE_APP_SANDBOX = NO;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -596,7 +708,7 @@
 				INFOPLIST_KEY_NSAppleEventsUsageDescription = "Cyte reads the address of the page open in your browser so it can save it.";
 				INFOPLIST_KEY_NSDesktopFolderUsageDescription = "Cyte adds new screenshots to your library as you take them.";
 				INFOPLIST_KEY_NSDocumentsFolderUsageDescription = "Cyte reads the folder you chose for your library.";
-				INFOPLIST_KEY_NSDownloadsFolderUsageDescription = "Cyte saves images you drag in from Downloads.";
+				INFOPLIST_KEY_NSDownloadsFolderUsageDescription = "Cyte saves images and videos you drag in from Downloads.";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Cyte listens while you speak a note or search by voice.";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Cyte turns what you say into text on this Mac.";
@@ -604,7 +716,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = in.tistmedia.pool;
+				PRODUCT_BUNDLE_IDENTIFIER = app.cyte.mac;
 				PRODUCT_NAME = Cyte;
 				SDKROOT = macosx;
 			};
@@ -618,6 +730,15 @@
 			buildConfigurations = (
 				72DCF6DB841E4C626AAA9209 /* Debug */,
 				8F3089CC65E4EADEDCE56CCD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		72A92F8A25B6ACF3C49D365C /* Build configuration list for PBXNativeTarget "CyteTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AC6557D4CB530FAB01F13DC2 /* Debug */,
+				7BAFE7ECDB68BBDE4B6E4B24 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

@@ -2,7 +2,7 @@ import Foundation
 import OSLog
 
 nonisolated enum LibraryDisk {
-    static let log = Logger(subsystem: "in.tistmedia.pool", category: "disk")
+    static let log = Logger(subsystem: Identity.subsystem, category: "disk")
 
     private static var encoder: JSONEncoder {
         let encoder = JSONEncoder()

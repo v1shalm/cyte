@@ -112,6 +112,14 @@ enum L {
         static let change = "Choose folder…"
         static let show = "Show in Finder"
         static let general = "General"
+        static let intelligence = "Titles and tags"
+        static let aiOffTitle = "Apple Intelligence is off"
+        static let aiOffBody = "Cyte writes titles, summaries and tags with Apple Intelligence on this Mac. Turn it on in System Settings → Apple Intelligence & Siri."
+        static let aiOffAction = "Open Apple Intelligence settings"
+        static let aiDownloadingTitle = "Apple Intelligence is still downloading"
+        static let aiDownloadingBody = "Cyte starts writing titles and tags when the download finishes. Your saves keep working until then."
+        static let aiUnsupportedTitle = "This Mac can't run Apple Intelligence"
+        static let aiUnsupportedBody = "Cyte still reads text in your images, pulls colours and finds similar saves. Titles and tags come from the file and the page."
         static let login = "Open Cyte at login"
         static let loginBody = "Cyte starts in the menu bar so saving is always one shortcut away."
         static let sounds = "Sounds"
@@ -280,7 +288,7 @@ enum L {
         static func introBody(_ browser: String?) -> String {
             "Cyte uses the X login you already have in \(browser ?? "your browser"). It brings in bookmarked posts that have images or videos and skips text-only posts."
         }
-        static let introPrivacy = "macOS asks once to let Cyte read that login. Choose Always Allow so later imports run on their own."
+        static let introPrivacy = "macOS asks once to let Cyte read that login. Cyte uses it only to open x.com on this Mac. Choose Always Allow so later imports run on their own."
         static let start = "Import bookmarks"
         static let cancel = "Cancel"
         static let loading = "Opening your bookmarks"

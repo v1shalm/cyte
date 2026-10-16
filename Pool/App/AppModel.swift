@@ -7,7 +7,10 @@ enum SortOrder: String, CaseIterable { case newest, oldest, shuffle }
 
 @Observable
 final class AppModel {
-    static let shared = AppModel()
+    static let shared: AppModel = {
+        Identity.migrateLegacyDefaults()
+        return AppModel()
+    }()
 
     let store: LibraryStore
     let enricher: Enricher
@@ -87,7 +90,7 @@ final class AppModel {
     var topInset: CGFloat { Theme.topInset + (filterCount > 0 ? 52 : 0) }
     var tilePixels: Int { Int(ceil(tileWidth * 2 / 64)) * 64 }
     static let railWidth: CGFloat = 72
-    static let saveType = "in.tistmedia.pool.save"
+    static let saveType = Identity.saveType
     private(set) var results: [Save] = []
     private(set) var related: [Save] = []
 
@@ -406,7 +409,7 @@ final class AppModel {
     }
 
     func handle(url: URL) {
-        guard url.scheme == "pool", let components = URLComponents(url: url, resolvingAgainstBaseURL: false) else { return }
+        guard let scheme = url.scheme, Identity.schemes.contains(scheme), let components = URLComponents(url: url, resolvingAgainstBaseURL: false) else { return }
         let items = components.queryItems ?? []
         if let raw = items.first(where: { $0.name == "url" })?.value, let link = Ingestor.webURL(in: raw) {
             ingestor.ingest(link: link, title: items.first(where: { $0.name == "title" })?.value, source: "browser")
@@ -415,5 +418,5 @@ final class AppModel {
         }
     }
 
-    static let bookmarklet = "javascript:location.href='pool://save?url='+encodeURIComponent(location.href)+'&title='+encodeURIComponent(document.title)"
+    static let bookmarklet = "javascript:location.href='cyte://save?url='+encodeURIComponent(location.href)+'&title='+encodeURIComponent(document.title)"
 }

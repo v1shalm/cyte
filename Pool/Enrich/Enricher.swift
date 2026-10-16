@@ -21,7 +21,7 @@ final class Enricher {
     @ObservationIgnored private var queue: [String] = []
     @ObservationIgnored private var running = false
     @ObservationIgnored private var session: LanguageModelSession?
-    private let log = Logger(subsystem: "in.tistmedia.pool", category: "enrich")
+    private let log = Logger(subsystem: Identity.subsystem, category: "enrich")
 
     init(store: LibraryStore) {
         self.store = store
@@ -30,6 +30,17 @@ final class Enricher {
     var modelAvailable: Bool {
         if case .available = SystemLanguageModel.default.availability { return true }
         return false
+    }
+
+    enum ModelState { case ready, off, downloading, unsupported }
+
+    var modelState: ModelState {
+        switch SystemLanguageModel.default.availability {
+        case .available: .ready
+        case .unavailable(.appleIntelligenceNotEnabled): .off
+        case .unavailable(.modelNotReady): .downloading
+        default: .unsupported
+        }
     }
 
     func enrich(_ id: String) {
@@ -98,7 +109,7 @@ final class Enricher {
 
     private func describe(_ save: Save, vision: VisionResult) async -> SaveInsight? {
         guard modelAvailable else { return nil }
-        var facts: [String] = ["Kind: \(save.kind.rawValue)"]
+        var facts: [String] = ["Kind: \(save.motion.map { $0 == .video ? "video" : "animated GIF" } ?? save.kind.rawValue)"]
         if !save.title.isEmpty { facts.append("Current title: \(save.title)") }
         if let host = save.host { facts.append("Website: \(host)") }
         if let summary = save.summary { facts.append("Page description: \(summary.prefix(400))") }
@@ -108,7 +119,8 @@ final class Enricher {
         guard facts.count > 1 else { return nil }
 
         let session = LanguageModelSession(instructions: """
-            You label items a designer saved for reference: images, screenshots, web links and short notes.
+            You label items in a personal reference library: images, videos, screenshots, web links and short notes.
+            Describe the item itself. Never mention who saved it or why.
             Use only the facts given. Do not invent brands, people or places that the facts do not mention.
             Prefer concrete visual and subject words such as poster, packaging, typography, interior, landing page.
             """)
