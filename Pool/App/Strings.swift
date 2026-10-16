@@ -1,0 +1,232 @@
+import Foundation
+
+enum L {
+    enum Onboarding {
+        static func welcomeTitle(_ name: String) -> String { name.isEmpty ? "Hello." : "Hello, \(name)." }
+        static let welcomeBody = "Everything you save, in one place."
+        static let welcomePrimary = "Show me my screenshots"
+        static let welcomeSecondary = "Start empty"
+
+        static let libraryTitle = "Where should it live?"
+        static let libraryBody = "Pool keeps your saves as plain files in one folder. In iCloud Drive, your iPhone sees them too."
+        static let libraryPrimary = "Use iCloud Drive"
+        static let librarySecondary = "Choose a folder"
+        static let libraryNoICloud = "iCloud Drive is off on this Mac. Pool will make a Pool folder in your home folder, and you can move it later."
+
+        static let doneTitle = "Your pool is ready."
+        static let doneBody = "Drop anything on the window, paste with ⌘V, or press ⌥⌘P from any app."
+        static let doneButton = "Open Pool"
+
+        static let sound = "Sound"
+        static let skipHint = "esc to skip"
+    }
+
+    enum Empty {
+        static let title = "Nothing saved yet"
+        static let body = "Everything you save lands here as a tile."
+        static let primary = "Paste from clipboard"
+        static let secondary = "Choose files"
+    }
+
+    enum Search {
+        static let placeholder = "Search your pool"
+        static func emptyTitle(_ query: String) -> String { "No saves match “\(query)”" }
+        static let emptyBody = "Pool looked through titles, tags, notes and the text inside images."
+        static let emptyPrimary = "Clear search"
+        static let related = "Close in meaning"
+    }
+
+    enum Toast {
+        static let saved = "Saved"
+        static func savedMany(_ count: Int) -> String { "Saved \(count) items" }
+        static let screenshot = "Screenshot saved"
+        static let deleted = "Moved to trash"
+        static let undo = "Undo"
+        static let nothingToPaste = "Your clipboard has no image, link or text"
+        static let copied = "Copied"
+        static let duplicate = "You already saved this link"
+    }
+
+    enum Detail {
+        static let tags = "Tags"
+        static let addTag = "Add tag"
+        static let note = "Note"
+        static let notePlaceholder = "Write a note"
+        static let summary = "Summary"
+        static let similar = "Similar saves"
+        static let text = "Text in image"
+        static let openLink = "Open link"
+        static let copy = "Copy"
+        static let reveal = "Show in Finder"
+        static let delete = "Delete"
+        static let reading = "Reading this save"
+        static let folders = "Folders"
+        static let showAll = "Show all"
+        static let showLess = "Show less"
+    }
+
+    enum Filter {
+        static let all = "Everything"
+        static let images = "Images"
+        static let links = "Links"
+        static let notes = "Notes"
+        static let title = "Filter"
+        static let tags = "Tags"
+        static let yourTags = "Your tags"
+        static let autoTags = "Found in images"
+        static let clear = "Clear filters"
+        static let empty = "No tags yet. Open a save and add one, or right-click it and choose Tag."
+        static let tag = "Tag"
+        static let newTag = "New tag"
+        static let newTagPrompt = "Name the tag"
+        static let create = "Add tag"
+        static let cancel = "Cancel"
+    }
+
+    enum Menu {
+        static let saveClipboard = "Save clipboard"
+        static let open = "Open Pool"
+        static let newNote = "New note"
+        static let replayOnboarding = "Replay onboarding"
+        static let copyBookmarklet = "Copy browser bookmarklet"
+        static let sound = "Sound effects"
+        static let quit = "Quit Pool"
+    }
+
+    enum Note {
+        static let placeholder = "Write something to keep"
+        static let save = "Save note"
+        static let cancel = "Discard"
+        static let discardQuestion = "Discard this note?"
+        static let discardYes = "Discard"
+        static let discardNo = "Keep writing"
+    }
+
+    enum Palette {
+        static let title = "Search"
+        static let placeholder = "Search your pool or type a command"
+        static let recent = "Recent"
+        static let saves = "Saves"
+        static let actions = "Actions"
+        static let saveLink = "Save this link"
+        static func noteFrom(_ text: String) -> String { "Write a note: \(text)" }
+        static let showInGrid = "Show results in the grid"
+        static let open = "Open"
+        static let move = "Move"
+        static let close = "Close"
+    }
+
+    enum Voice {
+        static let listening = "Listening…"
+        static let denied = "Pool needs microphone and speech access. Turn them on in System Settings → Privacy & Security."
+        static let failed = "Speech recognition isn't available right now."
+        static let save = "Save note"
+        static let discard = "Discard"
+        static let search = "Search by voice"
+        static let stop = "Stop listening"
+        static let speakNote = "Speak a note"
+    }
+
+    enum Sort {
+        static let newest = "Newest"
+        static let oldest = "Oldest"
+        static let shuffle = "Shuffle"
+        static let label = "Sort"
+    }
+
+    enum Actions {
+        static let open = "Open link"
+        static let addToFolder = "Add to folder"
+        static let delete = "Delete"
+    }
+
+    enum Sidebar {
+        static func count(_ n: Int) -> String { n == 1 ? "1 save" : "\(n) saves" }
+        static let noFolders = "Make a folder to group saves for a project or a mood."
+        static let iCloud = "iCloud Drive"
+    }
+
+    enum Folders {
+        static let title = "Folders"
+        static let new = "New folder"
+        static let untitled = "Untitled folder"
+        static let addTo = "Add to folder"
+        static let removeFrom = "Remove from this folder"
+        static let rename = "Rename"
+        static let delete = "Delete folder"
+        static let emptyTitle = "This folder is empty"
+        static let emptyBody = "Drag saves onto the folder in the sidebar, or choose Add to folder on any save."
+        static let showSidebar = "Show sidebar"
+        static let hideSidebar = "Hide sidebar"
+        static func added(_ name: String) -> String { "Added to \(name)" }
+    }
+
+    enum Add {
+        static let button = "Add"
+        static let link = "Save a link"
+        static let title = "Add to your pool"
+        static let linkPlaceholder = "Paste a link and press return"
+        static let linkInvalid = "Links look like site.com or https://site.com"
+        static func saveHost(_ host: String) -> String { "Save \(host)" }
+        static let images = "Choose images"
+        static let note = "Write a note"
+        static let paste = "Paste clipboard"
+        static let hint = "You can also drag anything onto the window."
+    }
+
+    enum X {
+        static let source = "X bookmarks"
+        static let connect = "Connect"
+        static let syncing = "Importing"
+        static let importAction = "Import X bookmarks"
+        static let disconnect = "Disconnect X"
+        static let syncNow = "Import new bookmarks"
+        static let introTitle = "Bring in your X bookmarks"
+        static func introBody(_ browser: String?) -> String {
+            "Pool uses the X login you already have in \(browser ?? "your browser"). It brings in bookmarked posts that have images or videos and skips text-only posts."
+        }
+        static let introPrivacy = "macOS asks once to let Pool read that login. Choose Always Allow so later imports run on their own."
+        static let start = "Import bookmarks"
+        static let cancel = "Cancel"
+        static let loading = "Opening your bookmarks"
+        static let importing = "Importing your bookmarks"
+        static func progress(found: Int, added: Int) -> String {
+            found == 0 ? "Waiting for X to send the first page" : "\(added) with images or videos out of \(found) checked"
+        }
+        static let keepOpen = "Keep this window open until Pool finishes."
+        static let stop = "Stop"
+        static func doneTitle(_ n: Int) -> String {
+            switch n {
+            case 0: "Your bookmarks are up to date"
+            case 1: "1 bookmark imported"
+            default: "\(n) bookmarks imported"
+            }
+        }
+        static let doneBody = "Pool brought in posts with images or videos. Search from:x.com any time to see them."
+        static let showThem = "Show them"
+        static let done = "Done"
+        static let failedTitle = "X didn't send your bookmarks"
+        static let noLoginTitle = "Pool can't find your X login"
+        static let noLogin = "Sign in at x.com in Dia, Chrome or Arc, then try again. Pool borrows that login, so you never sign in here."
+        static let failedLimited = "X slows down accounts that load many bookmarks at once. Wait about 15 minutes, then try again."
+        static let failedNoPage = "Your bookmarks page didn't load in time. Try again, and sign in once more if X asks."
+        static let tryAgain = "Try again"
+        static let close = "Close"
+    }
+
+    enum Appearance {
+        static let title = "Appearance"
+        static let body = "Pick a theme for Pool. It changes every screen at once."
+        static let menu = "Theme"
+        static func description(_ kind: ThemeKind) -> String {
+            switch kind {
+            case .vishal: "Yellow canvas with a black sidebar and black controls."
+            case .cyan: "Cyan canvas with a navy sidebar, navy controls and a flowing cyan glow."
+            case .white: "An all-white canvas where soft shadows set every card apart."
+            }
+        }
+        static func switchTo(_ name: String) -> String { "Switch to the \(name) theme" }
+    }
+
+    static let dropOverlay = "Drop to save"
+}

@@ -1,0 +1,6 @@
+build/
+.DS_Store
+xcuserdata/
+.agents/
+.claude/
+skills-lock.json

@@ -1,0 +1,30 @@
+:root {
+  --yellow: #f9ed33;
+  --ink: #121212;
+  --ink-soft: rgba(18, 18, 18, 0.62);
+  --white: #ffffff;
+  --hairline: rgba(0, 0, 0, 0.08);
+  --serif: "Timeless Serif", "TimelessSerif-Regular", "Iowan Old Style", Georgia, serif;
+  --sans: "Timeless Sans Grotesk", "TimelessSans-GroteskRegular", -apple-system, BlinkMacSystemFont,
+    "Helvetica Neue", Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  background: var(--yellow);
+  color: var(--ink);
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
