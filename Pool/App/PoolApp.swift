@@ -74,6 +74,9 @@ struct PoolCommands: Commands {
             Divider()
         }
         CommandGroup(replacing: .help) {
+            if !Diagnostics.shared.reports.isEmpty {
+                Button(L.Menu.sendReport) { Diagnostics.shared.send() }
+            }
             Button(L.Menu.replayOnboarding) { OnboardingController.shared.present(model: model) }
         }
     }
@@ -121,6 +124,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         guard !Identity.isTesting else { return }
         _ = Updater.shared
+        Diagnostics.shared.start()
         let model = AppModel.shared
         Task { await model.start() }
         if !OnboardingController.completed {

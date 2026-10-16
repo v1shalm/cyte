@@ -30,6 +30,8 @@
 	</array>
 	<key>CFBundleVersion</key>
 	<string>1</string>
+	<key>CyteSupportEmail</key>
+	<string>$(CYTE_SUPPORT_EMAIL)</string>
 	<key>SUEnableAutomaticChecks</key>
 	<true/>
 	<key>SUFeedURL</key>

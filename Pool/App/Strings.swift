@@ -112,6 +112,14 @@ enum L {
         static let change = "Choose folder…"
         static let show = "Show in Finder"
         static let general = "General"
+        static let reports = "Problem reports"
+        static func reportsTitle(_ n: Int) -> String { n == 1 ? "Cyte saved 1 problem report" : "Cyte saved \(n) problem reports" }
+        static let reportsBody = "Each one holds technical details about a crash or a slowdown on this Mac, and nothing from your library. Nothing leaves this Mac unless you send it."
+        static let reportsSend = "Email reports"
+        static let reportsShow = "Show in Finder"
+        static let reportsDelete = "Delete reports"
+        static func reportSubject(version: String) -> String { "Cyte \(version) problem report" }
+        static let reportBody = "The attached reports came from Cyte on my Mac."
         static let updates = "Check for updates automatically"
         static let updatesBody = "Cyte looks for a new version once a day and asks before it installs anything."
         static let intelligence = "Titles and tags"
@@ -187,6 +195,7 @@ enum L {
 
     enum Menu {
         static let checkUpdates = "Check for updates…"
+        static let sendReport = "Send a problem report…"
         static let saveClipboard = "Save clipboard"
         static let open = "Open Cyte"
         static let newNote = "New note"

@@ -123,3 +123,26 @@ struct IdentityMigrationTests {
         #expect(defaults.persistentDomain(forName: domain)?["cyte.migrated"] == nil)
     }
 }
+
+struct DiagnosticsTests {
+    @Test func `stores each report once and lists the newest first`() throws {
+        let fm = FileManager.default
+        let directory = fm.temporaryDirectory.appending(path: "cyte-diag-\(UUID().uuidString)", directoryHint: .isDirectory)
+        defer { try? fm.removeItem(at: directory) }
+        let suite = "app.cyte.tests.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let diagnostics = Diagnostics(directory: directory, defaults: defaults)
+        let first = Data(#"{"crash":1}"#.utf8)
+        let second = Data(#"{"crash":2}"#.utf8)
+        diagnostics.write([first])
+        diagnostics.write([first, second])
+        diagnostics.reload()
+        #expect(diagnostics.reports.count == 2)
+        diagnostics.clear()
+        #expect(diagnostics.reports.isEmpty)
+        diagnostics.write([first, second])
+        diagnostics.reload()
+        #expect(diagnostics.reports.isEmpty)
+    }
+}

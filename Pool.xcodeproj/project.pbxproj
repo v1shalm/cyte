@@ -47,6 +47,7 @@
 		9CBCD18ECD96B0FC45849792 /* ScreenshotWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9A49F730908F901BD90E13D /* ScreenshotWatcher.swift */; };
 		9E2E9622C275B93BFE4E8F1B /* Tiles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B2F7346AAB59057FAC9D3E8 /* Tiles.swift */; };
 		A1B7D567C1857C30B9A352BA /* Selection.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8D6FF88D9E0BEDF59149136 /* Selection.swift */; };
+		A4E19D5F71A48CA4DB1EA0BD /* Diagnostics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C45490AC9A84ADB9686392E /* Diagnostics.swift */; };
 		AB2F05D8397653238EF55BE8 /* AddPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23358A1F12A6D3FD585797A0 /* AddPanel.swift */; };
 		ADA9A6556618EDB4FD206CD4 /* FoldersPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3F8F54F40A77BA259831001 /* FoldersPage.swift */; };
 		B13052B4C551CEF52EDDB4EC /* Ingestor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3038B8F3428B6B2FEA6E289 /* Ingestor.swift */; };
@@ -117,6 +118,7 @@
 		6C944D6F317898C65FE0BC92 /* ViewMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewMenu.swift; sourceTree = "<group>"; };
 		6CE742539527748FEF3635D6 /* LibraryDisk.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryDisk.swift; sourceTree = "<group>"; };
 		712F60B652D724A206839123 /* LibraryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryTests.swift; sourceTree = "<group>"; };
+		7C45490AC9A84ADB9686392E /* Diagnostics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Diagnostics.swift; sourceTree = "<group>"; };
 		7E3F84FE2A3735AD8BC084E4 /* WindowChrome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowChrome.swift; sourceTree = "<group>"; };
 		8198AD812355FFC8EF7BC23E /* CommandPalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandPalette.swift; sourceTree = "<group>"; };
 		8707EE5E4539B9E518C1BB61 /* XParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XParserTests.swift; sourceTree = "<group>"; };
@@ -307,6 +309,7 @@
 		D36C6BFA2A39D768FEB67BFD /* System */ = {
 			isa = PBXGroup;
 			children = (
+				7C45490AC9A84ADB9686392E /* Diagnostics.swift */,
 				0CF9DFF800517316B403041D /* Feedback.swift */,
 				017850A9AB9CC82F73DADCCE /* HotKey.swift */,
 				F9A49F730908F901BD90E13D /* ScreenshotWatcher.swift */,
@@ -462,6 +465,7 @@
 				B1D4945E9B86EDF08D4E0656 /* BrowserLogin.swift in Sources */,
 				31F0FAFCC44A6636FD362702 /* CommandPalette.swift in Sources */,
 				3B32C45FCFF9192ED4D950A9 /* DetailView.swift in Sources */,
+				A4E19D5F71A48CA4DB1EA0BD /* Diagnostics.swift in Sources */,
 				C999C7932D2CA4942010979E /* Effects.metal in Sources */,
 				C0F59C6B50A9D194780049A2 /* EmptyStates.swift in Sources */,
 				01F8298F451743F8C90868A8 /* Enricher.swift in Sources */,
@@ -531,6 +535,7 @@
 				CODE_SIGN_ENTITLEMENTS = Pool/Resources/Cyte.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
 				CYTE_FEED_URL = "https://pool-mac.vercel.app/appcast.xml";
+				CYTE_SUPPORT_EMAIL = "";
 				CYTE_UPDATE_KEY = "";
 				ENABLE_APP_SANDBOX = NO;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -732,6 +737,7 @@
 				CODE_SIGN_ENTITLEMENTS = Pool/Resources/Cyte.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
 				CYTE_FEED_URL = "https://pool-mac.vercel.app/appcast.xml";
+				CYTE_SUPPORT_EMAIL = "";
 				CYTE_UPDATE_KEY = "";
 				ENABLE_APP_SANDBOX = NO;
 				GENERATE_INFOPLIST_FILE = YES;

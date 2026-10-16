@@ -36,6 +36,7 @@ targets:
         CODE_SIGN_ENTITLEMENTS: Pool/Resources/Cyte.entitlements
         CYTE_FEED_URL: https://pool-mac.vercel.app/appcast.xml
         CYTE_UPDATE_KEY: ""
+        CYTE_SUPPORT_EMAIL: ""
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: Cyte
@@ -61,6 +62,7 @@ targets:
         SUPublicEDKey: $(CYTE_UPDATE_KEY)
         SUEnableAutomaticChecks: true
         SUScheduledCheckInterval: 86400
+        CyteSupportEmail: $(CYTE_SUPPORT_EMAIL)
   CyteTests:
     type: bundle.unit-test
     platform: macOS

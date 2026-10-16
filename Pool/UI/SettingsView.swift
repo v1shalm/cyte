@@ -107,6 +107,10 @@ struct SettingsView: View {
                     .padding(16)
                 }
 
+                if !Diagnostics.shared.reports.isEmpty {
+                    group(L.Settings.reports) { reportsRow }
+                }
+
                 group(L.Settings.shortcuts) {
                     ForEach(Array(Self.shortcuts.enumerated()), id: \.offset) { index, item in
                         if index > 0 { Divider().padding(.leading, 16) }
@@ -135,6 +139,30 @@ struct SettingsView: View {
         .frame(width: 560, height: 680)
         .background(Color.white)
         .preferredColorScheme(.light)
+    }
+
+    private var reportsRow: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 3) {
+                Text(L.Settings.reportsTitle(Diagnostics.shared.reports.count))
+                    .font(Theme.ui(13.5, weight: .medium))
+                    .foregroundStyle(Theme.ink)
+                Text(L.Settings.reportsBody)
+                    .font(Theme.ui(12))
+                    .foregroundStyle(Theme.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            HStack(spacing: 2) {
+                if Diagnostics.supportEmail.isEmpty {
+                    Button(L.Settings.reportsShow) { Diagnostics.shared.reveal() }.poolSecondary(.first)
+                } else {
+                    Button(L.Settings.reportsSend) { Diagnostics.shared.send() }.poolSecondary(.first)
+                }
+                Button(L.Settings.reportsDelete) { Diagnostics.shared.clear() }.poolSecondary(.last)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(16)
     }
 
     @ViewBuilder private var intelligence: some View {
