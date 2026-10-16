@@ -253,20 +253,19 @@
 
 .add {
   position: absolute;
-  left: 50%;
-  bottom: 22px;
-  transform: translateX(-50%);
+  top: 21px;
+  right: 34px;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  height: 46px;
-  padding: 0 26px;
+  gap: 6px;
+  height: 34px;
+  padding: 0 14px;
   border-radius: 999px;
   background: var(--ink);
   color: #fff;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
-  box-shadow: 0 10px 24px rgba(17, 19, 25, 0.25);
+  box-shadow: 0 3px 6px rgba(17, 19, 25, 0.08);
 }
 
 @media (max-width: 760px) {

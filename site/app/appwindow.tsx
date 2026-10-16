@@ -36,7 +36,7 @@ export function AppWindow() {
         <span className={styles.light} data-c="g" />
       </div>
       <div className={styles.rail}>
-        <Image src="/pool-icon.png" alt="" width={34} height={34} className={styles.mark} />
+        <Image src="/cyte-icon.png" alt="" width={34} height={34} className={styles.mark} />
         <span className={`${styles.railIcon} ${styles.railOn}`}>
           <Icon name="grid" size={20} weight="fill" />
         </span>
@@ -106,7 +106,7 @@ export function AppWindow() {
           ))}
         </div>
         <div className={styles.add}>
-          <Icon name="plus" size={16} /> Add
+          <Icon name="plus" size={14} /> Add
         </div>
       </div>
     </div>

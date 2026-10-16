@@ -1,20 +1,21 @@
 import Image from "next/image";
 import { AppWindow } from "./appwindow";
+import { SiteFooter } from "./doc";
 import { Icon, type IconName } from "./icons";
 import styles from "./page.module.css";
 
-const features: { icon: IconName; title: string; body: string; demo: "text" | "filter" | "select" | "smart" | "similar" | "x" }[] = [
+const features: { icon: IconName; title: string; body: string; demo: "motion" | "text" | "select" | "smart" | "similar" | "x" }[] = [
+  {
+    icon: "play",
+    title: "Videos and GIFs play in the grid",
+    body: "Saved videos and GIFs loop on their own as you scroll. Open one to hear it, scrub through it or pause it.",
+    demo: "motion",
+  },
   {
     icon: "scan",
     title: "Search the words inside images",
     body: "Cyte reads every image on your Mac. Type kerning and the poster that says it comes up.",
     demo: "text",
-  },
-  {
-    icon: "filter",
-    title: "Filter beside Newest",
-    body: "Pick a colour, a site, a tag or a date range from the Filter button and stay on the grid.",
-    demo: "filter",
   },
   {
     icon: "tick",
@@ -55,6 +56,19 @@ const keys: [string, string][] = [
 
 function Demo({ kind }: { kind: (typeof features)[number]["demo"] }) {
   switch (kind) {
+    case "motion":
+      return (
+        <div className={styles.demo}>
+          <div className={styles.motionTiles}>
+            <i style={{ backgroundImage: "linear-gradient(135deg,#ff8a5c,#ff3d7f,#7b5cff,#ff8a5c)" }}>
+              <b />
+            </i>
+            <i style={{ backgroundImage: "linear-gradient(135deg,#2bd2a5,#2563eb,#111319,#2bd2a5)" }}>
+              <b />
+            </i>
+          </div>
+        </div>
+      );
     case "text":
       return (
         <div className={styles.demo}>
@@ -69,21 +83,6 @@ function Demo({ kind }: { kind: (typeof features)[number]["demo"] }) {
             <span className={`${styles.hit} ${styles.hitB}`}>
               <em>kerning pairs</em>
             </span>
-          </div>
-        </div>
-      );
-    case "filter":
-      return (
-        <div className={styles.demo}>
-          <div className={styles.chips}>
-            <span className={styles.chipOn}>This month</span>
-            <span>This week</span>
-            <span>Today</span>
-          </div>
-          <div className={styles.dots}>
-            {["#111319", "#8b8f9c", "#8b5a3c", "#d7263d", "#f46a1f", "#f2c230", "#3a9d5d", "#2563eb", "#7c3aed", "#ec6fa9"].map((c) => (
-              <i key={c} style={{ background: c }} />
-            ))}
           </div>
         </div>
       );
@@ -156,7 +155,7 @@ export default function Home() {
     <>
       <header className={styles.nav}>
         <a className={styles.brand} href="#top">
-          <Image src="/pool-icon.png" alt="" width={28} height={28} priority />
+          <Image src="/cyte-icon.png" alt="" width={28} height={28} priority />
           Cyte
         </a>
         <nav className={styles.navLinks}>
@@ -189,7 +188,7 @@ export default function Home() {
               GitHub
             </a>
           </div>
-          <p className={styles.meta}>Free · macOS 26 or later · Apple silicon · 4.5 MB</p>
+          <p className={styles.meta}>Free · macOS 26 or later · Apple silicon</p>
         </section>
 
         <div className={styles.stage}>
@@ -220,16 +219,16 @@ export default function Home() {
 
         <section className={styles.stats}>
           <div>
-            <b>2,500</b>
+            <b>10,000</b>
             <span>saves in the largest library we tested</span>
           </div>
           <div>
-            <b>36 ms</b>
-            <span>for the slowest search across them</span>
+            <b>83 ms</b>
+            <span>to open all of them from the index</span>
           </div>
           <div>
-            <b>4.5 MB</b>
-            <span>to download</span>
+            <b>0</b>
+            <span>servers that see your library</span>
           </div>
           <div>
             <b>0</b>
@@ -262,7 +261,7 @@ export default function Home() {
         </section>
 
         <section id="download" className={styles.cta}>
-          <Image src="/pool-icon.png" alt="" width={88} height={88} className={styles.ctaIcon} />
+          <Image src="/cyte-icon.png" alt="" width={88} height={88} className={styles.ctaIcon} />
           <h2 className={styles.h2}>Get Cyte for Mac.</h2>
           <div className={styles.pair}>
             <a className={styles.primary} href="/downloads/Cyte.dmg" download>
@@ -274,17 +273,14 @@ export default function Home() {
               GitHub
             </a>
           </div>
-          <p className={styles.meta}>Free · macOS 26 or later · Apple silicon · 4.5 MB</p>
+          <p className={styles.meta}>Free · macOS 26 or later · Apple silicon</p>
           <p className={styles.note}>
             On first launch, open System Settings → Privacy &amp; Security and choose Open Anyway.
           </p>
         </section>
       </main>
 
-      <footer className={styles.footer}>
-        <span>© 2026 Cyte</span>
-        <a href="https://github.com/v1shalm/cyte">Source on GitHub</a>
-      </footer>
+      <SiteFooter />
     </>
   );
 }
