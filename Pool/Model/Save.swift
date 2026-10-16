@@ -33,6 +33,7 @@ nonisolated struct Save: Codable, Identifiable, Hashable, Sendable {
     var pending: Bool
 
     var folderIDs: [String]?
+    var contentHash: String?
 
     var folders: [String] {
         get { folderIDs ?? [] }

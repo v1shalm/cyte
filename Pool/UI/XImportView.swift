@@ -33,9 +33,9 @@ struct XImportView: View {
                     .foregroundStyle(Theme.tertiary)
                     .padding(.top, 10)
                 actions {
-                    Button(L.X.cancel) { importer.close() }.poolSecondary()
+                    Button(L.X.cancel) { importer.close() }.poolSecondary(.first)
                     Button(L.X.start) { importer.begin() }
-                        .poolPrimary()
+                        .poolPrimary(.last)
                         .disabled(importer.browserName == nil)
                 }
             case .loading, .importing:
@@ -58,7 +58,7 @@ struct XImportView: View {
                 title(L.X.doneTitle(count))
                 if count > 0 { paragraph(L.X.doneBody) }
                 actions {
-                    Button(L.X.done) { importer.close() }.modifier(DoneStyle(prominent: count == 0))
+                    Button(L.X.done) { importer.close() }.modifier(DoneStyle(prominent: count == 0, segment: count > 0 ? .first : .alone))
                     if count > 0 {
                         Button(L.X.showThem) {
                             importer.close()
@@ -67,15 +67,15 @@ struct XImportView: View {
                             model.query = ""
                             model.bookmarksOnly = true
                         }
-                        .poolPrimary()
+                        .poolPrimary(.last)
                     }
                 }
             case .failed(let failure):
                 title(failure == .noLogin ? L.X.noLoginTitle : L.X.failedTitle)
                 paragraph(failure == .noLogin ? L.X.noLogin : failure == .limited ? L.X.failedLimited : L.X.failedNoPage)
                 actions {
-                    Button(L.X.close) { importer.close() }.poolSecondary()
-                    Button(L.X.tryAgain) { importer.begin() }.poolPrimary()
+                    Button(L.X.close) { importer.close() }.poolSecondary(.first)
+                    Button(L.X.tryAgain) { importer.begin() }.poolPrimary(.last)
                 }
             case .idle:
                 EmptyView()
@@ -85,7 +85,7 @@ struct XImportView: View {
         .frame(width: 420, alignment: .leading)
         .background(Color.white)
         .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).strokeBorder(Color.black.opacity(0.06)))
+        .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).strokeBorder(Theme.hairline))
         .borderBeam(size: .line, strength: 0.5, active: importer.isBusy, cornerRadius: 22, duration: 1.6)
         .shadow(color: .black.opacity(0.06), radius: 2, y: 1)
         .shadow(color: .black.opacity(0.12), radius: 40, y: 20)
@@ -118,7 +118,7 @@ struct XImportView: View {
     }
 
     private func actions<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 2) {
             Spacer()
             content()
         }
@@ -166,8 +166,9 @@ struct WebHost: NSViewRepresentable {
 
 private struct DoneStyle: ViewModifier {
     let prominent: Bool
+    var segment: Segment = .alone
 
     @ViewBuilder func body(content: Content) -> some View {
-        if prominent { content.poolPrimary() } else { content.poolSecondary() }
+        if prominent { content.poolPrimary(segment) } else { content.poolSecondary(segment) }
     }
 }

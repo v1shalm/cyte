@@ -1,4 +1,5 @@
 import AppKit
+import CryptoKit
 import Foundation
 import OSLog
 import UniformTypeIdentifiers
@@ -150,6 +151,7 @@ final class Ingestor {
             let save = Save(kind: .image, title: url.deletingPathExtension().lastPathComponent, source: source ?? "file")
             let folder = store.folder(for: save)
             guard let prepared = await Self.prepareImage(copying: url, into: folder) else { return nil }
+            if reportDuplicate(prepared, folder: folder) { return nil }
             return commit(save, prepared: prepared)
         }
         if ["webloc", "url"].contains(url.pathExtension.lowercased()),
@@ -163,7 +165,16 @@ final class Ingestor {
         let save = Save(kind: .image, url: url, source: source ?? url?.host())
         let folder = store.folder(for: save)
         guard let prepared = await Self.prepareImage(data: data, into: folder) else { return nil }
+        if reportDuplicate(prepared, folder: folder) { return nil }
         return commit(save, prepared: prepared)
+    }
+
+    private func reportDuplicate(_ prepared: PreparedImage, folder: URL) -> Bool {
+        guard let existing = store.saves.first(where: { $0.contentHash == prepared.hash }) else { return false }
+        try? FileManager.default.removeItem(at: folder)
+        feedback.toast(L.Toast.duplicateImage)
+        feedback.focus(existing.id)
+        return true
     }
 
     @discardableResult
@@ -172,6 +183,7 @@ final class Ingestor {
         save.original = prepared.original
         save.thumbnail = prepared.thumbnail
         save.aspect = prepared.aspect
+        save.contentHash = prepared.hash
         store.insert(save, fresh: fresh)
         enricher.enrich(save.id)
         return save
@@ -236,6 +248,7 @@ final class Ingestor {
         let original: String
         let thumbnail: String
         let aspect: Double
+        let hash: String
     }
 
     @concurrent
@@ -270,7 +283,8 @@ final class Ingestor {
         guard let info = ImageFiles.info(at: originalURL),
               let thumb = ImageFiles.downsample(originalURL, maxPixel: 1400) else { return nil }
         ImageFiles.writeThumbnail(from: thumb, to: folder.appending(path: "thumb.jpg"))
-        return PreparedImage(original: original, thumbnail: "thumb.jpg", aspect: info.aspect)
+        let hash = (try? Data(contentsOf: originalURL, options: .mappedIfSafe)).map { SHA256.hash(data: $0).map { String(format: "%02x", $0) }.joined() } ?? UUID().uuidString
+        return PreparedImage(original: original, thumbnail: "thumb.jpg", aspect: info.aspect, hash: hash)
     }
 
     nonisolated struct PreviewFiles: Sendable {

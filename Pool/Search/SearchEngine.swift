@@ -49,20 +49,69 @@ nonisolated struct SearchQuery: Equatable, Sendable {
     }
 }
 
+nonisolated struct PendingRelated: Sendable {
+    var sentence: String
+    var candidates: [Save]
+}
+
 nonisolated struct SearchResult: Sendable {
     var matches: [Save]
-    var related: [Save]
+    var pending: PendingRelated?
+}
+
+actor EmbeddingIndex {
+    private var cache: [String: (stamp: Date, vector: [Double])] = [:]
+    private let embedding = NLEmbedding.sentenceEmbedding(for: .english)
+
+    func related(_ pending: PendingRelated) -> [Save] {
+        guard let embedding, let target = embedding.vector(for: pending.sentence) else { return [] }
+        var scored: [(Save, Double)] = []
+        for save in pending.candidates {
+            if Task.isCancelled { return [] }
+            guard let vector = vector(for: save, embedding: embedding) else { continue }
+            let score = Self.cosine(target, vector)
+            if score > 0.55 { scored.append((save, score)) }
+        }
+        return scored.sorted { $0.1 > $1.1 }.prefix(24).map(\.0)
+    }
+
+    func warm(_ saves: [Save]) {
+        guard let embedding else { return }
+        for save in saves {
+            if Task.isCancelled { return }
+            _ = vector(for: save, embedding: embedding)
+        }
+    }
+
+    private func vector(for save: Save, embedding: NLEmbedding) -> [Double]? {
+        if let cached = cache[save.id], cached.stamp == save.updatedAt { return cached.vector }
+        let text = ([save.title, save.summary ?? ""] + save.tags + save.labels)
+            .filter { !$0.isEmpty }.joined(separator: ". ")
+        guard !text.isEmpty, let vector = embedding.vector(for: String(text.prefix(500))) else { return nil }
+        cache[save.id] = (save.updatedAt, vector)
+        return vector
+    }
+
+    private static func cosine(_ a: [Double], _ b: [Double]) -> Double {
+        guard a.count == b.count else { return 0 }
+        var dot = 0.0, na = 0.0, nb = 0.0
+        for index in a.indices {
+            dot += a[index] * b[index]
+            na += a[index] * a[index]
+            nb += b[index] * b[index]
+        }
+        return na > 0 && nb > 0 ? dot / (na.squareRoot() * nb.squareRoot()) : 0
+    }
 }
 
 @MainActor
 final class SearchEngine {
-    private var embeddingCache: [String: (stamp: Date, vector: [Double])] = [:]
-    private let embedding = NLEmbedding.sentenceEmbedding(for: .english)
+    let index = EmbeddingIndex()
 
     func run(_ raw: String, kind: SaveKind?, in saves: [Save]) -> SearchResult {
         var query = SearchQuery(raw)
         if query.kind == nil { query.kind = kind }
-        guard !query.isEmpty else { return SearchResult(matches: saves, related: []) }
+        guard !query.isEmpty else { return SearchResult(matches: saves, pending: nil) }
 
         let colorOnly = query.color != nil
         var matches: [Save] = []
@@ -78,24 +127,16 @@ final class SearchEngine {
             if query.words.allSatisfy(hay.contains) { matches.append(save) }
         }
 
-        var related: [Save] = []
-        if !query.words.isEmpty, !colorOnly, matches.count < 12, let embedding {
-            let sentence = query.words.joined(separator: " ")
-            if let target = embedding.vector(for: sentence) {
-                let matchedIDs = Set(matches.map(\.id))
-                let scored = saves.lazy
-                    .filter { !matchedIDs.contains($0.id) && Self.passesFilters($0, query) }
-                    .compactMap { save -> (Save, Double)? in
-                        guard let vector = self.vector(for: save, embedding: embedding) else { return nil }
-                        return (save, Self.cosine(target, vector))
-                    }
-                related = scored.filter { $0.1 > 0.55 }.sorted { $0.1 > $1.1 }.prefix(24).map(\.0)
-            }
+        var pending: PendingRelated?
+        if !query.words.isEmpty, !colorOnly, matches.count < 12 {
+            let matchedIDs = Set(matches.map(\.id))
+            let candidates = saves.filter { !matchedIDs.contains($0.id) && Self.passesFilters($0, query) }
+            pending = PendingRelated(sentence: query.words.joined(separator: " "), candidates: candidates)
         }
-        return SearchResult(matches: matches, related: related)
+        return SearchResult(matches: matches, pending: pending)
     }
 
-    private static func passesFilters(_ save: Save, _ query: SearchQuery) -> Bool {
+    nonisolated private static func passesFilters(_ save: Save, _ query: SearchQuery) -> Bool {
         if let kind = query.kind, save.kind != kind { return false }
         if let host = query.host, !(save.host ?? save.source ?? "").contains(host) { return false }
         if !query.tags.isEmpty {
@@ -105,31 +146,11 @@ final class SearchEngine {
         return true
     }
 
-    private static func colorMatch(_ save: Save, _ color: SIMD3<Float>) -> Bool {
+    nonisolated static func colorMatch(_ save: Save, _ color: SIMD3<Float>) -> Bool {
         save.palette.prefix(3).contains { hex in
             guard let rgb = Palette.rgb(hex) else { return false }
             let delta = rgb - color
             return (delta * delta).sum().squareRoot() < 70
         }
-    }
-
-    private func vector(for save: Save, embedding: NLEmbedding) -> [Double]? {
-        if let cached = embeddingCache[save.id], cached.stamp == save.updatedAt { return cached.vector }
-        let text = ([save.title, save.summary ?? ""] + save.tags + save.labels)
-            .filter { !$0.isEmpty }.joined(separator: ". ")
-        guard !text.isEmpty, let vector = embedding.vector(for: String(text.prefix(500))) else { return nil }
-        embeddingCache[save.id] = (save.updatedAt, vector)
-        return vector
-    }
-
-    private static func cosine(_ a: [Double], _ b: [Double]) -> Double {
-        guard a.count == b.count else { return 0 }
-        var dot = 0.0, na = 0.0, nb = 0.0
-        for index in a.indices {
-            dot += a[index] * b[index]
-            na += a[index] * a[index]
-            nb += b[index] * b[index]
-        }
-        return na > 0 && nb > 0 ? dot / (na.squareRoot() * nb.squareRoot()) : 0
     }
 }

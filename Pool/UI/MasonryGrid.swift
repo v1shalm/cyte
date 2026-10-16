@@ -8,7 +8,7 @@ struct MasonryLayout {
     var columnWidth: CGFloat = 0
     var relatedHeader: CGFloat?
 
-    static func make(saves: [Save], related: [Save], width: CGFloat, target: CGFloat, leading: CGFloat = 0) -> MasonryLayout {
+    static func make(saves: [Save], related: [Save], width: CGFloat, target: CGFloat, leading: CGFloat = 0, top: CGFloat = Theme.topInset) -> MasonryLayout {
         var layout = MasonryLayout()
         let usable = max(0, width - leading - Theme.sideInset * 2)
         guard usable > 0 else { return layout }
@@ -16,7 +16,7 @@ struct MasonryLayout {
         let columnWidth = floor((usable - Theme.gap * CGFloat(columns - 1)) / CGFloat(columns))
         layout.columnWidth = columnWidth
 
-        var heights = [CGFloat](repeating: Theme.topInset, count: columns)
+        var heights = [CGFloat](repeating: top, count: columns)
         func place(_ list: [Save]) {
             for save in list {
                 let column = heights.indices.min { heights[$0] < heights[$1] } ?? 0
@@ -30,9 +30,9 @@ struct MasonryLayout {
 
         place(saves)
         if !related.isEmpty {
-            let top = (heights.max() ?? Theme.topInset) + (saves.isEmpty ? 0 : 24)
-            layout.relatedHeader = top
-            heights = [CGFloat](repeating: top + 44, count: columns)
+            let belowMain = (heights.max() ?? top) + (saves.isEmpty ? 0 : 24)
+            layout.relatedHeader = belowMain
+            heights = [CGFloat](repeating: belowMain + 44, count: columns)
             place(related)
         }
         layout.height = (heights.max() ?? 0) + 80
@@ -64,22 +64,23 @@ struct MasonryLayout {
 final class ScrollProbe {
     var minY: CGFloat = 0
     private var key = 0
-    private var layout = MasonryLayout()
+    private(set) var layout = MasonryLayout()
+    var viewport: CGFloat = 0
     private var lookup: [String: Save] = [:]
 
-    func resolve(saves: [Save], related: [Save], width: CGFloat, target: CGFloat, leading: CGFloat) -> (MasonryLayout, [String: Save]) {
+    func resolve(saves: [Save], related: [Save], width: CGFloat, target: CGFloat, leading: CGFloat, top: CGFloat) -> (MasonryLayout, [String: Save]) {
         var hasher = Hasher()
         hasher.combine(width)
         hasher.combine(target)
         hasher.combine(leading)
-        hasher.combine(Theme.topInset)
+        hasher.combine(top)
         for save in saves { Self.combine(save, into: &hasher) }
         hasher.combine(-1)
         for save in related { Self.combine(save, into: &hasher) }
         let next = hasher.finalize()
         if next != key {
             key = next
-            layout = MasonryLayout.make(saves: saves, related: related, width: width, target: target, leading: leading)
+            layout = MasonryLayout.make(saves: saves, related: related, width: width, target: target, leading: leading, top: top)
             lookup = Dictionary(saves.map { ($0.id, $0) } + related.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
         } else {
             for save in saves + related where lookup[save.id] != save { lookup[save.id] = save }
@@ -119,7 +120,8 @@ struct MasonryGrid: View {
     @State private var pinchStart: Double?
 
     var body: some View {
-        let (layout, lookup) = probe.resolve(saves: model.results, related: model.related, width: width, target: model.columnWidth, leading: model.contentLeading)
+        let (layout, lookup) = probe.resolve(saves: model.results, related: model.related, width: width, target: model.columnWidth, leading: model.contentLeading, top: model.topInset)
+        let _ = { if layout.columnWidth > 0 { model.tileWidth = layout.columnWidth } }()
         let window = CGRect(x: -10_000, y: CGFloat(bucket) * Self.step - 900, width: 100_000, height: max(viewport, 1600) + 1800 + Self.step)
         let visibleIDs = layout.order.filter { layout.frames[$0]?.intersects(window) ?? false }
 
@@ -157,8 +159,22 @@ struct MasonryGrid: View {
         .scrollIndicators(.automatic)
         .onScrollGeometryChange(for: Int.self, of: { Int(floor($0.visibleRect.minY / MasonryGrid.step)) }, action: { _, next in bucket = next })
         .onScrollGeometryChange(for: CGFloat.self, of: { $0.visibleRect.minY }, action: { _, y in probe.minY = y })
-        .onScrollGeometryChange(for: CGFloat.self, of: { $0.visibleRect.height }, action: { _, h in viewport = h })
-        .onAppear { model.tileFrames = { [probe] in probe.frames() } }
+        .onScrollGeometryChange(for: CGFloat.self, of: { $0.visibleRect.height }, action: { _, h in viewport = h; probe.viewport = h })
+        .onAppear {
+            model.tileFrames = { [probe] in probe.frames() }
+            model.layoutFrames = { [probe] in probe.layout.frames }
+            let scroll = $position
+            model.scrollToTile = { [probe] id in
+                guard let frame = probe.layout.frames[id] else { return }
+                let top = probe.minY + model.topInset - 24
+                let bottom = probe.minY + probe.viewport - 120
+                if frame.minY < top {
+                    withAnimation(Theme.open) { scroll.wrappedValue.scrollTo(y: max(0, frame.minY - model.topInset + 24)) }
+                } else if frame.maxY > bottom {
+                    withAnimation(Theme.open) { scroll.wrappedValue.scrollTo(y: frame.maxY - probe.viewport + 120) }
+                }
+            }
+        }
         .onGeometryChange(for: CGFloat.self, of: { $0.size.width }, action: { width = $0 })
         .simultaneousGesture(
             MagnifyGesture()
@@ -170,13 +186,13 @@ struct MasonryGrid: View {
         )
         .onChange(of: model.feedback.focusID) { _, id in
             guard let id, let frame = layout.frames[id] else { return }
-            withAnimation(Theme.open) { position.scrollTo(y: max(0, frame.minY - Theme.topInset)) }
+            withAnimation(Theme.open) { position.scrollTo(y: max(0, frame.minY - model.topInset)) }
             model.feedback.focusID = nil
         }
         .onChange(of: model.query) { _, _ in position.scrollTo(edge: .top) }
     }
 
     private var reflowKey: String {
-        "\(model.kind?.rawValue ?? "all")-\(model.folderID ?? "")-\(model.sidebarShown)-\(model.store.saves.count)-\(model.store.saves.first?.id ?? "")"
+        "\(model.kind?.rawValue ?? "all")-\(model.filterCount)-\(model.folderID ?? "")-\(model.sidebarShown)-\(model.store.saves.count)-\(model.store.saves.first?.id ?? "")"
     }
 }

@@ -92,11 +92,20 @@ final class LibraryStore {
 
     func folder(id: String) -> Folder? { folders.first { $0.id == id } }
 
-    func count(in folder: Folder) -> Int { saves.reduce(0) { $0 + ($1.folders.contains(folder.id) ? 1 : 0) } }
+    func members(of folder: Folder) -> [Save] {
+        if let rule = folder.rule { return saves.filter { $0.source != "x" && rule.matches($0) } }
+        return saves.filter { $0.folders.contains(folder.id) }
+    }
+
+    func count(in folder: Folder) -> Int {
+        if let rule = folder.rule { return saves.reduce(0) { $0 + ($1.source != "x" && rule.matches($1) ? 1 : 0) } }
+        return saves.reduce(0) { $0 + ($1.folders.contains(folder.id) ? 1 : 0) }
+    }
 
     @discardableResult
-    func createFolder(named name: String) -> Folder {
-        let folder = Folder(name: name, position: (folders.map(\.position).max() ?? 0) + 1)
+    func createFolder(named name: String, rule: SmartRule? = nil) -> Folder {
+        var folder = Folder(name: name, position: (folders.map(\.position).max() ?? 0) + 1)
+        folder.rule = rule
         folders.append(folder)
         persist(folder)
         return folder

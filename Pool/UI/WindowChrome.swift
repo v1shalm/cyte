@@ -68,9 +68,9 @@ struct SidebarToggle: View {
         } label: {
             Image(systemName: "sidebar.left")
                 .font(.system(size: 13, weight: .regular))
-                .foregroundStyle(onPanel ? (hovering ? Theme.sideInk : Theme.sideTertiary) : (hovering ? Theme.ink : (Theme.bold ? Theme.secondary : Theme.tertiary)))
+                .foregroundStyle(onPanel ? (hovering ? Theme.sideInk : Theme.sideTertiary) : (hovering ? Theme.ink : Theme.tertiary))
                 .frame(width: 28, height: 28)
-                .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(hovering ? (onPanel ? Theme.sideHover : (Theme.bold ? Theme.ink.opacity(0.06) : .white)) : .clear).shadow(color: .black.opacity(hovering && !Theme.bold ? 0.07 : 0), radius: 4, y: 1))
+                .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(hovering ? (onPanel ? Theme.sideHover : .white) : .clear).shadow(color: .black.opacity(hovering ? 0.07 : 0), radius: 4, y: 1))
                 .contentShape(Rectangle())
         }
         .buttonStyle(PressStyle(scale: 0.9))

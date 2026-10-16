@@ -20,7 +20,18 @@ final class AppModel {
     var folderID: String? {
         didSet {
             guard folderID != oldValue else { return }
-            if folderID != nil, bookmarksOnly { bookmarksOnly = false }
+            if folderID != nil {
+                if bookmarksOnly { bookmarksOnly = false }
+                if foldersPage { foldersPage = false }
+            }
+            refresh()
+        }
+    }
+    var foldersPage = false {
+        didSet {
+            guard foldersPage != oldValue, foldersPage else { return }
+            if folderID != nil { folderID = nil }
+            if bookmarksOnly { bookmarksOnly = false }
             refresh()
         }
     }
@@ -53,11 +64,18 @@ final class AppModel {
         }
         refresh()
     }
-    private(set) var tagRow: [(tag: String, count: Int)] = []
+    var filterOpen = false
+    var viewOpen = false
+    var kindCounts: [SaveKind: Int] = [:]
+    var similarFilter: (title: String, ids: Set<String>)? { didSet { refresh() } }
+    var activeColor: String? { didSet { if activeColor != oldValue { refresh() } } }
+    var activeHost: String? { didSet { if activeHost != oldValue { refresh() } } }
+    var activeRange: DateRange = .any { didSet { if activeRange != oldValue { refresh() } } }
     var bookmarksOnly = false {
         didSet {
             guard bookmarksOnly != oldValue else { return }
             if bookmarksOnly, folderID != nil { folderID = nil }
+            if bookmarksOnly, foldersPage { foldersPage = false }
             refresh()
         }
     }
@@ -65,12 +83,21 @@ final class AppModel {
     var sidebarShown: Bool = UserDefaults.standard.object(forKey: "pool.sidebar") as? Bool ?? true {
         didSet { UserDefaults.standard.set(sidebarShown, forKey: "pool.sidebar") }
     }
-    static let sidebarWidth: CGFloat = 244
+    @ObservationIgnored var tileWidth: CGFloat = 248
+    var topInset: CGFloat { Theme.topInset + (filterCount > 0 ? 52 : 0) }
+    var tilePixels: Int { Int(ceil(tileWidth * 2 / 64)) * 64 }
+    static let railWidth: CGFloat = 72
     static let saveType = "in.tistmedia.pool.save"
     private(set) var results: [Save] = []
     private(set) var related: [Save] = []
 
     var selectedID: String?
+    var selection: Set<String> = []
+    var focusedID: String?
+    var barPopover: BarPopover?
+    @ObservationIgnored var anchorID: String?
+    @ObservationIgnored var layoutFrames: () -> [String: CGRect] = { [:] }
+    @ObservationIgnored var scrollToTile: (String) -> Void = { _ in }
     var genie: GenieRequest?
     @ObservationIgnored var tileFrames: () -> [String: CGRect] = { [:] }
     @ObservationIgnored var hoveredID: String?
@@ -91,6 +118,7 @@ final class AppModel {
     }
 
     @ObservationIgnored private let search = SearchEngine()
+    @ObservationIgnored private var relatedTask: Task<Void, Never>?
     @ObservationIgnored private var screenshots: ScreenshotWatcher?
     @ObservationIgnored private var hotKey: HotKey?
     @ObservationIgnored private var paletteKey: HotKey?
@@ -115,6 +143,7 @@ final class AppModel {
         refresh()
         enricher.enrichMissing()
         ingestor.processInbox()
+        warmEmbeddings()
         if ScreenshotWatcher.enabled { startScreenshots() }
         hotKey = HotKey(keyCode: kVK_ANSI_P, modifiers: optionKey | cmdKey) { [weak self] in
             self?.quickSave()
@@ -123,6 +152,12 @@ final class AppModel {
             guard let self else { return }
             FloatingPalette.shared.toggle(model: self)
         }
+    }
+
+    private func warmEmbeddings() {
+        let saves = store.saves
+        let index = search.index
+        Task.detached(priority: .utility) { await index.warm(saves) }
     }
 
     func reopenLibrary(at root: URL) async {
@@ -134,7 +169,7 @@ final class AppModel {
 
     func refresh() {
         if let folderID, store.folder(id: folderID) == nil { self.folderID = nil }
-        var base = folderID.map { id in store.saves.filter { $0.folders.contains(id) } } ?? store.saves
+        var base = folderID.flatMap { id in store.folder(id: id).map { store.members(of: $0) } } ?? store.saves
         if bookmarksOnly {
             base = base.filter { $0.source == "x" }
         } else if folderID == nil {
@@ -146,13 +181,38 @@ final class AppModel {
                 return activeTags.allSatisfy { own.contains($0) }
             }
         }
-        let index = tagIndex
-        var row = Array(index.mine.prefix(10)) + Array(index.found.prefix(8))
-        for tag in activeTags where !row.contains(where: { $0.tag == tag }) { row.insert((tag: tag, count: 0), at: 0) }
-        tagRow = row
+        if let activeColor, let hex = SearchQuery.colorNames[activeColor], let rgb = Palette.rgb(hex) {
+            base = base.filter { SearchEngine.colorMatch($0, rgb) }
+        }
+        if let activeHost {
+            base = base.filter { ($0.host ?? $0.source ?? "") == activeHost }
+        }
+        if let since = activeRange.since {
+            base = base.filter { $0.createdAt >= since }
+        }
+        if let similarFilter { base = base.filter { similarFilter.ids.contains($0.id) } }
+        var counts: [SaveKind: Int] = [:]
+        for save in base { counts[save.kind, default: 0] += 1 }
+        kindCounts = counts
         let result = search.run(query, kind: kind, in: base)
         results = ordered(result.matches)
-        related = result.related
+        if !selection.isEmpty {
+            let live = Set(results.map(\.id))
+            selection = selection.filter { live.contains($0) }
+        }
+        relatedTask?.cancel()
+        if let pending = result.pending {
+            let index = search.index
+            relatedTask = Task {
+                try? await Task.sleep(for: .milliseconds(150))
+                guard !Task.isCancelled else { return }
+                let found = await index.related(pending)
+                guard !Task.isCancelled else { return }
+                related = found
+            }
+        } else if !related.isEmpty {
+            related = []
+        }
     }
 
     private func ordered(_ saves: [Save]) -> [Save] {
@@ -171,7 +231,7 @@ final class AppModel {
 
     func searchSaves(_ query: String) -> [Save] {
         let result = search.run(query, kind: nil, in: store.saves)
-        return result.matches + result.related
+        return result.matches
     }
 
     func saveID(forFile url: URL) -> String? {
@@ -239,13 +299,80 @@ final class AppModel {
     }
 
     func file(_ ids: [String], into folder: Folder) {
+        let added = ids.filter { id in store.save(id: id).map { !$0.folders.contains(folder.id) } ?? false }
         store.add(ids, to: folder)
         SoundEngine.shared.play(.drop, volume: 0.7)
-        feedback.toast(L.Folders.added(folder.name))
+        feedback.toast(L.Folders.added(folder.name), actionTitle: added.isEmpty ? nil : L.Toast.undo, action: added.isEmpty ? nil : { [weak self] in
+            guard let self else { return }
+            for id in added { self.store.remove(id, from: folder) }
+            self.refresh()
+            self.feedback.dismissToast()
+        })
         refresh()
     }
 
-    var contentLeading: CGFloat { sidebarShown ? Self.sidebarWidth + 10 : 0 }
+    func saveSmartFolder() {
+        var rule = SmartRule()
+        rule.tags = activeTags.sorted()
+        rule.kind = kind
+        rule.host = activeHost
+        rule.color = activeColor
+        switch activeRange {
+        case .any: break
+        case .today: rule.days = 1
+        case .week: rule.days = 7
+        case .month: rule.days = 30
+        }
+        guard !rule.isEmpty else { return }
+        var parts: [String] = []
+        parts += rule.tags
+        if let host = rule.host { parts.append(host) }
+        if let color = rule.color { parts.append(color) }
+        if let kind = rule.kind { parts.append(kind.rawValue + "s") }
+        let name = parts.isEmpty ? L.Folders.untitled : parts.joined(separator: " · ").capitalized
+        let folder = store.createFolder(named: name, rule: rule)
+        filterOpen = false
+        clearFilters()
+        kind = nil
+        foldersPage = true
+        editingFolderID = folder.id
+    }
+
+    func findSimilar(to save: Save) {
+        Task {
+            let ids = await enricher.similar(to: save, limit: 40)
+            guard !ids.isEmpty else {
+                feedback.toast(L.Toast.noSimilar)
+                return
+            }
+            selectedID = nil
+            foldersPage = false
+            folderID = nil
+            bookmarksOnly = false
+            similarFilter = (save.displayTitle, Set(ids + [save.id]))
+        }
+    }
+
+    var contentLeading: CGFloat {
+        sidebarShown ? Self.railWidth : 0
+    }
+
+    func goHome() {
+        foldersPage = false
+        folderID = nil
+        bookmarksOnly = false
+        kind = nil
+        query = ""
+        clearFilters()
+    }
+
+    func clearFilters() {
+        similarFilter = nil
+        activeTags = []
+        activeColor = nil
+        activeHost = nil
+        activeRange = .any
+    }
 
     func startScreenshots() {
         ScreenshotWatcher.enabled = true

@@ -34,10 +34,28 @@ struct RootView: View {
                         }
                         .transition(.opacity)
                 }
+                if model.filterOpen {
+                    FilterOverlay()
+                        .zIndex(1.5)
+                }
+                if model.viewOpen {
+                    ViewOverlay()
+                        .zIndex(1.5)
+                }
                 RadialAdd()
                     .padding(.leading, model.contentLeading)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+                    .opacity(model.selecting || model.selectedID != nil ? 0 : 1)
+                    .allowsHitTesting(!model.selecting && model.selectedID == nil)
+                    .animation(Theme.settle, value: model.selecting)
                     .zIndex(2)
+                if model.selecting {
+                    SelectionBar()
+                        .padding(.leading, model.contentLeading)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+                        .transition(.opacity.combined(with: .offset(y: 24)))
+                        .zIndex(2.2)
+                }
                 TopBar()
                     .padding(.leading, model.contentLeading)
                 if model.linkEntryShown {
@@ -52,17 +70,15 @@ struct RootView: View {
             .ignoresSafeArea()
 
             if model.sidebarShown {
-                Sidebar()
-                    .frame(width: AppModel.sidebarWidth)
-                    .padding(.vertical, 10)
-                    .padding(.leading, 10)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-                    .ignoresSafeArea()
-                    .transition(.asymmetric(
-                        insertion: .offset(x: -24).combined(with: .opacity),
-                        removal: .offset(x: -24).combined(with: .opacity)
-                    ))
-                    .zIndex(1)
+                Rail()
+                    .frame(width: AppModel.railWidth)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                .ignoresSafeArea()
+                .transition(.asymmetric(
+                    insertion: .offset(x: -24).combined(with: .opacity),
+                    removal: .offset(x: -24).combined(with: .opacity)
+                ))
+                .zIndex(1)
             }
 
             if let id = model.selectedID, let save = model.store.save(id: id) {
@@ -117,12 +133,25 @@ struct RootView: View {
             }
         }
         .onKeyPress(.escape) {
+            if model.barPopover != nil {
+                withAnimation(Theme.settle) { model.barPopover = nil }
+                return .handled
+            }
+            if model.selecting {
+                model.clearSelection()
+                return .handled
+            }
+            if model.filterOpen || model.viewOpen {
+                withAnimation(.spring(duration: 0.35, bounce: 0)) { model.filterOpen = false; model.viewOpen = false }
+                return .handled
+            }
             guard model.addMenuOpen else { return .ignored }
             withAnimation(.easeOut(duration: 0.2)) { model.addMenuOpen = false }
             return .handled
         }
         .preferredColorScheme(.light)
         .background(WindowChrome())
+        .background(KeyboardNav(model: model))
         .onDrop(of: [.fileURL, .url, .image, .plainText], delegate: LibraryDrop(model: model))
         .onPasteCommand(of: [.fileURL, .url, .image, .png, .tiff, .plainText]) { _ in
             model.ingestor.pasteFromClipboard()
@@ -133,11 +162,20 @@ struct RootView: View {
     @ViewBuilder private var content: some View {
         if !model.store.isLoaded {
             Color.clear
+        } else if model.foldersPage {
+            FoldersPage()
+                .padding(.leading, model.contentLeading)
         } else if model.store.saves.isEmpty {
             EmptyLibrary()
                 .padding(.leading, model.contentLeading)
-        } else if model.results.isEmpty && model.related.isEmpty && model.folderID != nil && !model.isSearching && model.kind == nil {
+        } else if model.results.isEmpty && model.related.isEmpty && model.folderID != nil && !model.isSearching && model.kind == nil && model.filterCount == 0 {
             EmptyFolder()
+                .padding(.leading, model.contentLeading)
+        } else if model.results.isEmpty && model.related.isEmpty && model.bookmarksOnly && !model.isSearching && model.kind == nil && model.filterCount == 0 {
+            EmptyBookmarks()
+                .padding(.leading, model.contentLeading)
+        } else if model.results.isEmpty && model.related.isEmpty && model.filterCount > 0 && !model.isSearching {
+            EmptyFilters()
                 .padding(.leading, model.contentLeading)
         } else if model.results.isEmpty && model.related.isEmpty {
             EmptySearch()
@@ -179,7 +217,7 @@ private struct LinkEntry: View {
                 .padding(.trailing, 12)
                 .frame(width: 360, height: 50)
                 .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(.white))
-                .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(Color.black.opacity(0.07)))
+                .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(Theme.hairline))
                 .shadow(color: .black.opacity(0.05), radius: 2, y: 1)
                 .shadow(color: .black.opacity(0.1), radius: 24, y: 12)
                 if invalid {
@@ -267,23 +305,27 @@ struct TopBar: View {
             }
             .frame(height: 40)
 
-            ZStack {
-                filters
-                    .opacity(model.addingFocus ? 0.35 : 1)
-                    .animation(.easeOut(duration: 0.15), value: model.addingFocus)
-                HStack(spacing: 18) {
-                    Spacer()
-                    SortMenu()
-                        .opacity(model.addingFocus ? 0 : 1)
+            if !model.foldersPage {
+                ZStack {
+                    filters
+                        .opacity(model.addingFocus ? 0.35 : 1)
                         .animation(.easeOut(duration: 0.15), value: model.addingFocus)
+                    HStack(spacing: 18) {
+                        FolderCrumb()
+                        Spacer()
+                        ViewButton()
+                            .opacity(model.addingFocus ? 0 : 1)
+                            .animation(.easeOut(duration: 0.15), value: model.addingFocus)
+                    }
+                    .padding(.horizontal, Theme.sideInset)
                 }
-                .padding(.horizontal, Theme.sideInset)
-            }
 
-            if !model.tagRow.isEmpty {
-                TagRow()
-                    .opacity(model.addingFocus ? 0.35 : 1)
-                    .animation(.easeOut(duration: 0.15), value: model.addingFocus)
+                if model.filterCount > 0 {
+                    FilterBar()
+                        .opacity(model.addingFocus ? 0.35 : 1)
+                        .animation(.easeOut(duration: 0.15), value: model.addingFocus)
+                        .transition(.opacity.combined(with: .offset(y: -6)))
+                }
             }
         }
         .padding(.top, (Chrome.barHeight - 40) / 2)
@@ -291,26 +333,11 @@ struct TopBar: View {
         .frame(maxWidth: .infinity)
         .background {
             Group {
-                if Theme.bold {
-                    LinearGradient(stops: [
-                        .init(color: Theme.canvas, location: 0),
-                        .init(color: Theme.canvas, location: 0.42),
-                        .init(color: Theme.canvas.opacity(0.94), location: 0.52),
-                        .init(color: Theme.canvas.opacity(0.8), location: 0.62),
-                        .init(color: Theme.canvas.opacity(0.58), location: 0.72),
-                        .init(color: Theme.canvas.opacity(0.34), location: 0.82),
-                        .init(color: Theme.canvas.opacity(0.14), location: 0.91),
-                        .init(color: Theme.canvas.opacity(0.04), location: 0.97),
-                        .init(color: Theme.canvas.opacity(0), location: 1),
-                    ], startPoint: .top, endPoint: .bottom)
-                    .padding(.bottom, -18)
-                } else {
-                    LinearGradient(stops: [
-                        .init(color: Theme.canvas, location: 0),
-                        .init(color: Theme.canvas, location: 0.72),
-                        .init(color: Theme.canvas.opacity(0), location: 1),
-                    ], startPoint: .top, endPoint: .bottom)
-                }
+                LinearGradient(stops: [
+                    .init(color: Theme.canvas, location: 0),
+                    .init(color: Theme.canvas, location: 0.72),
+                    .init(color: Theme.canvas.opacity(0), location: 1),
+                ], startPoint: .top, endPoint: .bottom)
             }
             .allowsHitTesting(false)
         }
@@ -319,12 +346,49 @@ struct TopBar: View {
 
     private var filters: some View {
         @Bindable var model = model
+        let counts = model.kindCounts
+        let total = counts.values.reduce(0, +)
         return GooeyTabs(items: [
             (L.Filter.all, nil),
             (L.Filter.images, SaveKind.image),
             (L.Filter.links, SaveKind.link),
             (L.Filter.notes, SaveKind.note),
-        ], selection: $model.kind)
+        ], selection: $model.kind, counts: [nil: total, .image: counts[.image] ?? 0, .link: counts[.link] ?? 0, .note: counts[.note] ?? 0])
+    }
+}
+
+struct SearchFilterButton: View {
+    @Environment(AppModel.self) private var model
+    @State private var hovering = false
+
+    var body: some View {
+        let count = model.filterCount
+        Button {
+            withAnimation(.spring(duration: 0.4, bounce: 0.15)) { model.viewOpen = false; model.filterOpen.toggle() }
+        } label: {
+            HStack(spacing: 5) {
+                Image(systemName: "line.3.horizontal.decrease")
+                    .font(.system(size: 12, weight: .medium))
+                if count > 0 {
+                    Text("\(count)")
+                        .font(Theme.ui(10.5, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .frame(minWidth: 17, minHeight: 17)
+                        .background(Circle().fill(Theme.ink))
+                        .transition(.scale.combined(with: .opacity))
+                }
+            }
+            .foregroundStyle(count > 0 || model.filterOpen ? Theme.ink : Theme.controlMuted)
+            .padding(.horizontal, 8)
+            .frame(height: 26)
+            .background(Capsule().fill(model.filterOpen || hovering ? Theme.softFillStrong : .clear))
+            .contentShape(Capsule())
+        }
+        .buttonStyle(PressStyle(scale: 0.94))
+        .onHover { hovering = $0 }
+        .animation(Theme.hover, value: hovering)
+        .animation(Theme.settle, value: count)
+        .help(L.Filter.title)
     }
 }
 
@@ -348,14 +412,14 @@ struct SearchTrigger: View {
                     .lineLimit(1)
             }
             Spacer(minLength: 8)
+            SearchFilterButton()
             if model.query.isEmpty {
                 Text("⌘K")
                     .font(Theme.ui(11, weight: .medium))
                     .foregroundStyle(Theme.controlMuted)
                     .padding(.horizontal, 6)
                     .frame(height: 20)
-                    .background(RoundedRectangle(cornerRadius: 5, style: .continuous).fill(Theme.controlChip))
-                    .lifted(RoundedRectangle(cornerRadius: 5, style: .continuous), shadow: 0)
+                    .background(RoundedRectangle(cornerRadius: 5, style: .continuous).fill(Color.white))
             } else {
                 Button {
                     model.query = ""
@@ -369,8 +433,7 @@ struct SearchTrigger: View {
         }
         .padding(.horizontal, 14)
         .frame(width: 460, height: 40)
-        .background(Capsule().fill(hovering ? Theme.controlHover : Theme.control).shadow(color: .black.opacity(Theme.controlShadow * (hovering ? 1.8 : 1)), radius: hovering ? 10 : 6, y: 2))
-        .overlay(Capsule().strokeBorder(Theme.bold ? .clear : Theme.hairline))
+        .background(Capsule().fill(hovering ? Theme.softTarget : Theme.softHover))
         .borderBeam(size: .sm, active: model.voiceSearch.isListening, cornerRadius: 18, duration: 1.6)
         .contentShape(Capsule())
         .onTapGesture { model.paletteShown = true }
@@ -405,49 +468,6 @@ struct LibraryDrop: DropDelegate {
     }
 }
 
-struct SortMenu: View {
-    @Environment(AppModel.self) private var model
-
-    var body: some View {
-        Menu { options } label: {
-            HStack(spacing: 6) {
-                Image(systemName: symbol)
-                    .font(.system(size: 10, weight: .semibold))
-                Text(title)
-                    .font(Theme.ui(12, weight: .medium))
-            }
-            .foregroundStyle(.white)
-            .padding(.horizontal, 14)
-            .frame(height: 34)
-            .background(Capsule().fill(Theme.ink).shadow(color: .black.opacity(Theme.controlShadow), radius: 6, y: 2))
-            .contentShape(Capsule())
-        }
-        .menuStyle(.button)
-        .buttonStyle(.plain)
-        .menuIndicator(.hidden)
-        .fixedSize()
-    }
-
-    private var options: some View {
-        Picker(L.Sort.label, selection: Bindable(model).sort) {
-            Label(L.Sort.newest, systemImage: "arrow.down").tag(SortOrder.newest)
-            Label(L.Sort.oldest, systemImage: "arrow.up").tag(SortOrder.oldest)
-            Label(L.Sort.shuffle, systemImage: "shuffle").tag(SortOrder.shuffle)
-        }
-        .pickerStyle(.inline)
-    }
-
-    private var symbol: String { model.sort == .shuffle ? "shuffle" : "arrow.up.arrow.down" }
-
-    private var title: String {
-        switch model.sort {
-        case .newest: L.Sort.newest
-        case .oldest: L.Sort.oldest
-        case .shuffle: L.Sort.shuffle
-        }
-    }
-}
-
 struct EmptyLibrary: View {
     var body: some View {
         VStack(spacing: 0) {
@@ -467,50 +487,6 @@ struct EmptyLibrary: View {
     }
 }
 
-struct EmptyFolder: View {
-    var body: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "folder")
-                .font(.system(size: 24, weight: .light))
-                .foregroundStyle(Theme.tertiary)
-                .padding(.bottom, 4)
-            Text(L.Folders.emptyTitle)
-                .font(Theme.serif(26))
-                .foregroundStyle(Theme.ink)
-            Text(L.Folders.emptyBody)
-                .font(Theme.ui(13))
-                .foregroundStyle(Theme.secondary)
-                .multilineTextAlignment(.center)
-                .frame(maxWidth: 340)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-}
-
-struct EmptySearch: View {
-    @Environment(AppModel.self) private var model
-
-    var body: some View {
-        VStack(spacing: 12) {
-            Text(L.Search.emptyTitle(model.query.isEmpty ? (model.kind?.rawValue ?? "") : model.query))
-                .font(Theme.serif(24))
-                .foregroundStyle(Theme.ink)
-                .multilineTextAlignment(.center)
-            Text(L.Search.emptyBody)
-                .font(Theme.ui(13))
-                .foregroundStyle(Theme.secondary)
-            Button(L.Search.emptyPrimary) {
-                model.query = ""
-                model.kind = nil
-            }
-            .poolSecondary()
-            .padding(.top, 8)
-        }
-        .padding(.horizontal, 40)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-}
-
 struct DropOverlay: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var shown = false
@@ -526,7 +502,7 @@ struct DropOverlay: View {
                     .font(.system(size: 20, weight: .medium))
                     .foregroundStyle(Theme.actionIcon)
                     .frame(width: 56, height: 56)
-                    .background(Circle().fill(Theme.bold ? Theme.ink : Theme.surface))
+                    .background(Circle().fill(Theme.surface))
                     .overlay(Circle().strokeBorder(Theme.hairline))
                     .shadow(color: .black.opacity(0.08), radius: 14, y: 6)
                 Text(L.dropOverlay)
@@ -629,16 +605,18 @@ struct NoteComposer: View {
                         .font(Theme.ui(11, weight: .medium))
                         .foregroundStyle(Theme.tertiary)
                     Spacer()
-                    Button(L.Note.cancel) { requestClose() }
-                        .poolSecondary()
-                        .keyboardShortcut(.cancelAction)
-                    Button(L.Note.save) {
-                        model.ingestor.addNote(text)
-                        close()
+                    HStack(spacing: 2) {
+                        Button(L.Note.cancel) { requestClose() }
+                            .poolSecondary(.first)
+                            .keyboardShortcut(.cancelAction)
+                        Button(L.Note.save) {
+                            model.ingestor.addNote(text)
+                            close()
+                        }
+                        .poolPrimary(.last)
+                        .keyboardShortcut(.return, modifiers: .command)
+                        .disabled(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                     }
-                    .poolPrimary()
-                    .keyboardShortcut(.return, modifiers: .command)
-                    .disabled(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
@@ -674,75 +652,5 @@ struct NoteComposer: View {
     private func close() {
         text = ""
         model.composingNote = false
-    }
-}
-
-struct TagRow: View {
-    @Environment(AppModel.self) private var model
-    @State private var width: CGFloat = 0
-
-    var body: some View {
-        ScrollView(.horizontal) {
-            HStack(spacing: 8) {
-                ForEach(model.tagRow, id: \.tag) { item in
-                    TagPill(title: item.tag, active: model.activeTags.contains(item.tag)) {
-                        withAnimation(Theme.settle) { model.toggleTag(item.tag) }
-                    }
-                }
-                if !model.activeTags.isEmpty {
-                    Button {
-                        withAnimation(Theme.settle) { model.activeTags = [] }
-                    } label: {
-                        HStack(spacing: 5) {
-                            Image(systemName: "xmark").font(.system(size: 9, weight: .semibold))
-                            Text(L.Filter.clear).font(Theme.ui(12.5, weight: .medium))
-                        }
-                        .foregroundStyle(Theme.secondary)
-                        .padding(.horizontal, 12)
-                        .frame(height: 30)
-                        .contentShape(Capsule())
-                    }
-                    .buttonStyle(PressStyle(scale: 0.96))
-                    .transition(.opacity)
-                }
-            }
-            .padding(.horizontal, Theme.sideInset)
-            .frame(minWidth: width, alignment: .center)
-        }
-        .scrollIndicators(.never)
-        .scrollBounceBehavior(.basedOnSize)
-        .onGeometryChange(for: CGFloat.self, of: { $0.size.width }, action: { width = $0 })
-        .mask(
-            HStack(spacing: 0) {
-                LinearGradient(colors: [.clear, .black], startPoint: .leading, endPoint: .trailing).frame(width: 24)
-                Rectangle()
-                LinearGradient(colors: [.black, .clear], startPoint: .leading, endPoint: .trailing).frame(width: 24)
-            }
-        )
-        .frame(height: 34)
-    }
-}
-
-private struct TagPill: View {
-    let title: String
-    let active: Bool
-    let action: () -> Void
-    @State private var hovering = false
-
-    var body: some View {
-        Button(action: action) {
-            Text(title)
-                .font(Theme.ui(12.5, weight: .medium))
-                .foregroundStyle(active ? Color.white : (hovering ? Theme.ink : Theme.secondary))
-                .padding(.horizontal, 14)
-                .frame(height: 30)
-                .background(Capsule().fill(active ? Theme.ink : (hovering ? Theme.softFill : Color.white)))
-                .overlay(Capsule().strokeBorder(active ? Color.clear : Theme.hairline))
-                .contentShape(Capsule())
-        }
-        .buttonStyle(PressStyle(scale: 0.96))
-        .onHover { hovering = $0 }
-        .animation(Theme.hover, value: hovering)
-        .animation(Theme.hover, value: active)
     }
 }

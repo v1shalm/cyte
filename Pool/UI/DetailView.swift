@@ -22,10 +22,18 @@ struct DetailView: View {
                 media
                     .padding(.horizontal, 56)
                     .padding(.top, 64)
-                    .padding(.bottom, 48)
+                    .padding(.bottom, model.orderedIDs.count > 1 ? 120 : 48)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .contentShape(Rectangle())
                     .onTapGesture { close(animated: true) }
+                    .overlay(alignment: .bottom) {
+                        if model.orderedIDs.count > 1 {
+                            Filmstrip(currentID: save.id)
+                                .padding(.bottom, 28)
+                        }
+                    }
+                    .overlay(alignment: .leading) { NavArrow(forward: false).padding(.leading, 14) }
+                    .overlay(alignment: .trailing) { NavArrow(forward: true).padding(.trailing, 14) }
 
                 Inspector(save: save)
                     .frame(width: 340)
@@ -177,7 +185,7 @@ private struct Inspector: View {
                             .frame(maxWidth: .infinity, minHeight: 36, alignment: .leading)
                             .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Theme.fill))
                             .lifted(RoundedRectangle(cornerRadius: 10, style: .continuous), shadow: 0.03)
-                            .borderBeam(size: .sm, palette: Theme.bold ? .accent : .silver, cornerRadius: 10, duration: 1.8)
+                            .borderBeam(size: .sm, palette: .silver, cornerRadius: 10, duration: 1.8)
                     }
                     if let summary = save.summary, !summary.isEmpty {
                         section(L.Detail.summary) {
@@ -195,7 +203,7 @@ private struct Inspector: View {
                     if !similar.isEmpty { similarGrid }
                 }
                 .padding(.horizontal, 24)
-                .padding(.top, Theme.bold ? 28 : 60)
+                .padding(.top, 60)
                 .padding(.bottom, 24)
             }
             .scrollIndicators(.never)
@@ -256,7 +264,7 @@ private struct Inspector: View {
                 } label: {
                     Circle()
                         .fill(Theme.color(hex: hex))
-                        .frame(width: 22, height: 22)
+                        .frame(width: 28, height: 28)
                         .overlay(Circle().strokeBorder(Theme.hairline))
                 }
                 .buttonStyle(PressStyle(scale: 0.9))
@@ -376,6 +384,9 @@ private struct Inspector: View {
             if let url = save.url {
                 ActionButton(symbol: "arrow.up.right", title: L.Detail.openLink) { NSWorkspace.shared.open(url) }
             }
+            if save.kind != .note {
+                ActionButton(symbol: "square.on.square.dashed", title: L.Similar.find) { model.findSimilar(to: save) }
+            }
             ActionButton(symbol: "doc.on.doc", title: L.Detail.copy) {
                 Clipboard.copy(save, store: model.store)
                 model.feedback.toast(L.Toast.copied)
@@ -437,16 +448,8 @@ private struct TagChip: View {
 
 private struct InspectorChrome: ViewModifier {
     func body(content: Content) -> some View {
-        if Theme.bold {
-            content
-                .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(Theme.hairline))
-                .shadow(color: .black.opacity(0.08), radius: 24, y: 10)
-                .padding(10)
-        } else {
-            content
-                .overlay(alignment: .leading) { Rectangle().fill(Theme.hairline).frame(width: 1) }
-        }
+        content
+            .overlay(alignment: .leading) { Rectangle().fill(Theme.hairline).frame(width: 1) }
     }
 }
 
@@ -467,5 +470,68 @@ private struct ActionButton: View {
         .buttonStyle(PressStyle(scale: 0.92))
         .help(title)
         .accessibilityLabel(title)
+    }
+}
+
+private struct NavArrow: View {
+    @Environment(AppModel.self) private var model
+    let forward: Bool
+    @State private var hovering = false
+
+    var body: some View {
+        let ids = model.orderedIDs
+        let index = model.selectedID.flatMap { ids.firstIndex(of: $0) }
+        let enabled = index.map { forward ? $0 < ids.count - 1 : $0 > 0 } ?? false
+        if enabled {
+            Button { model.select(offset: forward ? 1 : -1) } label: {
+                Image(systemName: forward ? "chevron.right" : "chevron.left")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(Theme.ink)
+                    .frame(width: 38, height: 38)
+                    .background(Circle().fill(.white))
+                    .overlay(Circle().strokeBorder(Theme.hairline))
+                    .shadow(color: .black.opacity(hovering ? 0.14 : 0.07), radius: hovering ? 10 : 5, y: 2)
+                    .contentShape(Circle())
+            }
+            .buttonStyle(PressStyle(scale: 0.92))
+            .onHover { hovering = $0 }
+            .animation(Theme.hover, value: hovering)
+            .accessibilityLabel(forward ? "Next save" : "Previous save")
+        }
+    }
+}
+
+private struct Filmstrip: View {
+    @Environment(AppModel.self) private var model
+    let currentID: String
+
+    var body: some View {
+        let ids = model.orderedIDs
+        if let index = ids.firstIndex(of: currentID) {
+            let range = max(0, index - 5)...min(ids.count - 1, index + 5)
+            VStack(spacing: 10) {
+                HStack(spacing: 8) {
+                    ForEach(Array(ids[range]), id: \.self) { id in
+                        if let other = model.store.save(id: id) {
+                            let current = id == currentID
+                            Button { withAnimation(Theme.settle) { model.selectedID = id } } label: {
+                                Thumb(url: model.store.url(for: other, file: other.thumbnail), maxPixel: 160, tint: other.tint)
+                                    .frame(width: 46, height: 46)
+                                    .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
+                                    .overlay(RoundedRectangle(cornerRadius: 9, style: .continuous).strokeBorder(Theme.ink, lineWidth: current ? 2 : 0))
+                                    .opacity(current ? 1 : 0.62)
+                                    .scaleEffect(current ? 1.06 : 1)
+                            }
+                            .buttonStyle(PressStyle(scale: 0.94))
+                        }
+                    }
+                }
+                .animation(Theme.settle, value: currentID)
+                Text("\(index + 1) of \(ids.count)")
+                    .font(Theme.ui(11.5, weight: .medium))
+                    .foregroundStyle(Theme.tertiary)
+                    .monospacedDigit()
+            }
+        }
     }
 }

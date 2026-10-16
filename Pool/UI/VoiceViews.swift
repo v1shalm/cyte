@@ -72,12 +72,12 @@ struct VoiceNoteOverlay: View {
                 .frame(maxWidth: 640)
                 .fixedSize(horizontal: false, vertical: true)
 
-                HStack(spacing: 12) {
+                HStack(spacing: 2) {
                     Button(L.Voice.discard, action: discard)
-                        .poolSecondary()
+                        .poolSecondary(.first)
                         .keyboardShortcut(.cancelAction)
                     Button(L.Voice.save, action: save)
-                        .poolPrimary()
+                        .poolPrimary(.last)
                         .keyboardShortcut(.defaultAction)
                         .disabled(voice.transcript.trimmingCharacters(in: .whitespaces).isEmpty)
                 }

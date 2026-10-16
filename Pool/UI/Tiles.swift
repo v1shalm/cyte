@@ -13,39 +13,61 @@ struct Tile: View {
     @State private var beamDone = false
 
     private var working: Bool { save.pending || model.enricher.activeID == save.id }
-    private var beaming: Bool { Theme.bold ? fresh && (!beamDone || working) : fresh && !beamDone }
+    private var beaming: Bool { fresh && !beamDone }
 
     var body: some View {
         let selected = model.selectedID == save.id
+        let picked = model.selection.contains(save.id)
         Button {
-            withAnimation(reduceMotion ? Theme.fade : Theme.open) { model.selectedID = save.id }
+            let flags = NSApp.currentEvent?.modifierFlags ?? []
+            model.tap(save.id, shift: flags.contains(.shift), command: flags.contains(.command)) {
+                withAnimation(reduceMotion ? Theme.fade : Theme.open) { model.selectedID = save.id }
+            }
         } label: {
             TileFace(save: save, hovering: hovering)
-                .overlay(RoundedRectangle(cornerRadius: Theme.tileRadius, style: .continuous).strokeBorder(Color.black.opacity(0.08)))
+                .overlay(RoundedRectangle(cornerRadius: Theme.tileRadius, style: .continuous).strokeBorder(Theme.hairline))
                 .contentShape(RoundedRectangle(cornerRadius: Theme.tileRadius, style: .continuous))
         }
         .buttonStyle(PressStyle(scale: 0.985))
+        .overlay {
+            RoundedRectangle(cornerRadius: Theme.tileRadius, style: .continuous)
+                .strokeBorder(Theme.ink, lineWidth: picked ? 2.5 : 0)
+                .opacity(picked ? 1 : 0)
+                .allowsHitTesting(false)
+            RoundedRectangle(cornerRadius: Theme.tileRadius, style: .continuous)
+                .strokeBorder(Theme.ink.opacity(0.55), lineWidth: 1.5)
+                .padding(-3)
+                .opacity(model.focusedID == save.id && !picked ? 1 : 0)
+                .allowsHitTesting(false)
+        }
+        .overlay(alignment: .topLeading) {
+            if (hovering || model.selecting) && !selected {
+                SelectDot(on: picked)
+                    .padding(10)
+                    .onTapGesture { model.toggle(save.id) }
+                    .transition(.opacity.combined(with: .scale(scale: 0.8)))
+            }
+        }
         .overlay(alignment: .topTrailing) {
-            if hovering && !selected {
+            if hovering && !selected && !model.selecting {
                 TileActions(save: save)
                     .padding(8)
                     .transition(.opacity.combined(with: .scale(scale: 0.94, anchor: .topTrailing)))
             }
         }
-        .borderBeam(active: beaming, cornerRadius: Theme.tileRadius, duration: Theme.bold ? 1.6 : 1.5, laps: Theme.bold ? nil : 1.15)
+        .borderBeam(active: beaming, cornerRadius: Theme.tileRadius, duration: 1.5, laps: 1.15)
         .task(id: fresh) {
             guard fresh else { return }
-            try? await Task.sleep(for: .seconds(Theme.bold ? 3 : 1.9))
+            try? await Task.sleep(for: .seconds(1.9))
             beamDone = true
-            if !Theme.bold || !working { model.store.clearFresh(save.id) }
+            if !working { model.store.clearFresh(save.id) }
         }
         .onChange(of: working) { _, busy in
             if !busy, beamDone { model.store.clearFresh(save.id) }
         }
         .matchedGeometryEffect(id: save.id, in: namespace, isSource: !selected)
         .opacity(selected ? 0 : 1)
-        .shadow(color: .black.opacity(hovering ? 0.06 : (Theme.bold ? 0 : 0.04)), radius: hovering ? 2 : (Theme.bold ? 0 : 1), y: 0)
-        .shadow(color: .black.opacity(hovering ? 0.1 : (Theme.bold ? 0 : 0.05)), radius: hovering ? 18 : (Theme.bold ? 0 : 7), y: hovering ? 8 : (Theme.bold ? 0 : 2))
+        .cardShadow(hovering: hovering)
         .animation(Theme.hover, value: hovering)
         .onHover { inside in
             hovering = inside
@@ -213,7 +235,7 @@ struct ImageTile: View {
     let hovering: Bool
 
     var body: some View {
-        Thumb(url: model.store.url(for: save, file: save.thumbnail), maxPixel: 900)
+        Thumb(url: model.store.url(for: save, file: save.thumbnail), maxPixel: model.tilePixels, tint: save.tint)
             .overlay(alignment: .bottomLeading) {
                 ZStack(alignment: .bottomLeading) {
                     LinearGradient(colors: [.black.opacity(0), .black.opacity(0.42)], startPoint: .top, endPoint: .bottom)
@@ -240,17 +262,29 @@ struct LinkTile: View {
     var body: some View {
         VStack(spacing: 0) {
             if save.thumbnail != nil {
-                Thumb(url: model.store.url(for: save, file: save.thumbnail), maxPixel: 900)
+                Thumb(url: model.store.url(for: save, file: save.thumbnail), maxPixel: model.tilePixels, tint: save.tint)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .clipped()
             } else {
-                ZStack(alignment: .bottomLeading) {
+                ZStack(alignment: .topLeading) {
                     Theme.fill
-                    Text(save.pending ? "" : save.displayTitle)
-                        .font(Theme.serif(19))
-                        .foregroundStyle(Theme.ink)
-                        .lineLimit(4)
-                        .padding(16)
+                    (save.tint ?? Theme.ink).opacity(0.07)
+                    VStack(alignment: .leading, spacing: 0) {
+                        if let favicon = model.store.url(for: save, file: save.favicon) {
+                            Thumb(url: favicon, maxPixel: 96, contentMode: .fit)
+                                .frame(width: 30, height: 30)
+                                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                                .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).strokeBorder(Theme.hairline))
+                        }
+                        Spacer(minLength: 8)
+                        Text(save.pending ? "" : save.displayTitle)
+                            .font(Theme.serif(19))
+                            .foregroundStyle(Theme.ink)
+                            .lineLimit(4)
+                            .multilineTextAlignment(.leading)
+                    }
+                    .padding(16)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .shimmer(save.pending)
@@ -324,6 +358,10 @@ struct TileMenu: View {
     var body: some View {
         if let url = save.url {
             Button(L.Detail.openLink) { NSWorkspace.shared.open(url) }
+        }
+        Button(model.selection.contains(save.id) ? "Deselect" : L.Similar.select) { model.toggle(save.id) }
+        if save.kind != .note {
+            Button(L.Similar.find) { model.findSimilar(to: save) }
         }
         Button(L.Detail.copy) { Clipboard.copy(save, store: model.store) }
         Button(L.Detail.reveal) {

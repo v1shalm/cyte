@@ -1,30 +1,34 @@
 import SwiftUI
 
 struct PillSoftStyle: ButtonStyle {
+    var segment: Segment = .first
+
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(Theme.ui(13, weight: .medium))
             .foregroundStyle(.white)
             .padding(.horizontal, 16)
             .frame(height: 32)
-            .background(RoundedRectangle(cornerRadius: 11, style: .continuous).fill(.white.opacity(configuration.isPressed ? 0.3 : 0.2)))
+            .background(segment.shape(16).fill(.white.opacity(configuration.isPressed ? 0.3 : 0.2)))
             .scaleEffect(configuration.isPressed ? 0.96 : 1)
             .animation(Theme.press, value: configuration.isPressed)
-            .contentShape(RoundedRectangle(cornerRadius: 11, style: .continuous))
+            .contentShape(segment.shape(16))
     }
 }
 
 struct PillSolidStyle: ButtonStyle {
+    var segment: Segment = .alone
+
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(Theme.ui(13, weight: .medium))
             .foregroundStyle(Theme.ink)
             .padding(.horizontal, 18)
             .frame(height: 32)
-            .background(Capsule().fill(.white.opacity(configuration.isPressed ? 0.85 : 1)))
+            .background(segment.shape(16).fill(.white.opacity(configuration.isPressed ? 0.85 : 1)))
             .scaleEffect(configuration.isPressed ? 0.96 : 1)
             .animation(Theme.press, value: configuration.isPressed)
-            .contentShape(Capsule())
+            .contentShape(segment.shape(16))
     }
 }
 
@@ -44,11 +48,11 @@ struct QuestionPill: View {
                 .font(Theme.ui(14))
                 .foregroundStyle(.white)
                 .padding(.leading, 10)
-            HStack(spacing: 6) {
+            HStack(spacing: 2) {
                 if let soft {
-                    Button(soft, action: onSoft).buttonStyle(PillSoftStyle())
+                    Button(soft, action: onSoft).buttonStyle(PillSoftStyle(segment: .first))
                 }
-                Button(solid, action: onSolid).buttonStyle(PillSolidStyle())
+                Button(solid, action: onSolid).buttonStyle(PillSolidStyle(segment: soft == nil ? .alone : .last))
             }
         }
         .fixedSize()

@@ -1,155 +1,178 @@
+import AppKit
+import ServiceManagement
 import SwiftUI
 
 struct SettingsView: View {
-    private let store = ThemeStore.shared
+    @Environment(AppModel.self) private var model
+    @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
+    @State private var sounds = SoundEngine.shared.enabled
+    @State private var screenshots = ScreenshotWatcher.enabled
+    @State private var libraryPath = LibraryLocation.current.path(percentEncoded: false)
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Text(L.Appearance.title)
-                .font(Theme.serif(28))
-                .foregroundStyle(Theme.ink)
-            Text(L.Appearance.body)
-                .font(Theme.ui(13))
-                .foregroundStyle(Theme.secondary)
-                .padding(.top, 6)
-            HStack(spacing: 18) {
-                ForEach(ThemeKind.allCases) { kind in
-                    ThemeCard(kind: kind, selected: store.kind == kind) { store.set(kind) }
+        ScrollView {
+            VStack(alignment: .leading, spacing: 28) {
+                Text(L.Settings.title)
+                    .font(Theme.serif(34))
+                    .foregroundStyle(Theme.ink)
+
+                group(L.Settings.library) {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text(L.Settings.libraryBody)
+                            .font(Theme.ui(12.5))
+                            .foregroundStyle(Theme.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                        Text(tildePath)
+                            .font(Theme.ui(12.5, weight: .medium))
+                            .foregroundStyle(Theme.ink)
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                            .padding(.horizontal, 12)
+                            .frame(height: 36)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(.white))
+                        HStack(spacing: 2) {
+                            Button(L.Settings.change, action: chooseLibrary).poolSecondary(.first)
+                            Button(L.Settings.show) { NSWorkspace.shared.activateFileViewerSelecting([LibraryLocation.current]) }.poolSecondary(.last)
+                        }
+                    }
+                    .padding(16)
                 }
+
+                group(L.Settings.general) {
+                    row(L.Settings.login, L.Settings.loginBody, isOn: $launchAtLogin) { on in
+                        do { if on { try SMAppService.mainApp.register() } else { try SMAppService.mainApp.unregister() } } catch {
+                            launchAtLogin = SMAppService.mainApp.status == .enabled
+                        }
+                    }
+                    Divider().padding(.leading, 16)
+                    row(L.Settings.sounds, L.Settings.soundsBody, isOn: $sounds) { SoundEngine.shared.enabled = $0 }
+                    Divider().padding(.leading, 16)
+                    row(L.Settings.screenshots, L.Settings.screenshotsBody, isOn: $screenshots) { on in
+                        if on { model.startScreenshots() } else { ScreenshotWatcher.enabled = false }
+                    }
+                }
+
+                group(L.Settings.x) {
+                    VStack(alignment: .leading, spacing: 14) {
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text(model.xImport.connected ? L.Settings.xConnected : L.Settings.xOff)
+                                .font(Theme.ui(13.5, weight: .medium))
+                                .foregroundStyle(Theme.ink)
+                            if model.xImport.importedCount > 0 {
+                                Text(L.Viewing.saves(model.xImport.importedCount))
+                                    .font(Theme.ui(12)).foregroundStyle(Theme.tertiary)
+                            }
+                        }
+                        if model.xImport.connected {
+                            HStack(spacing: 2) {
+                                Button(L.X.syncNow) { model.xImport.open() }.poolSecondary(.first)
+                                Button(L.X.disconnect) { model.xImport.disconnect() }.poolSecondary(.last)
+                            }
+                        } else {
+                            Button(L.X.connect) { model.xImport.open() }.poolPrimary()
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(16)
+                }
+
+                group(L.Settings.shortcuts) {
+                    ForEach(Array(Self.shortcuts.enumerated()), id: \.offset) { index, item in
+                        if index > 0 { Divider().padding(.leading, 16) }
+                        HStack {
+                            Text(item.0).font(Theme.ui(13.5)).foregroundStyle(Theme.ink)
+                            Spacer()
+                            Text(item.1)
+                                .font(Theme.ui(12, weight: .medium))
+                                .foregroundStyle(Theme.secondary)
+                                .padding(.horizontal, 9)
+                                .frame(height: 24)
+                                .background(RoundedRectangle(cornerRadius: 7, style: .continuous).fill(.white))
+                        }
+                        .padding(.horizontal, 16)
+                        .frame(height: 44)
+                    }
+                }
+
+                Text("Cyte \(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0")")
+                    .font(Theme.ui(12))
+                    .foregroundStyle(Theme.tertiary)
             }
-            .padding(.top, 24)
+            .padding(32)
         }
-        .padding(30)
-        .frame(width: 780)
-        .background(Theme.surface)
+        .scrollIndicators(.never)
+        .frame(width: 560, height: 680)
+        .background(Color.white)
         .preferredColorScheme(.light)
     }
-}
 
-private struct ThemeCard: View {
-    let kind: ThemeKind
-    let selected: Bool
-    let choose: () -> Void
-    @State private var hovering = false
+    private static let shortcuts: [(String, String)] = [
+        ("Save from browser", "⌥⌘P"),
+        ("Open search anywhere", "⌃⌥Space"),
+        ("Search", "⌘K"),
+        ("Select all", "⌘A"),
+        ("Tag the focused save", "T"),
+        ("Add to folder", "F"),
+        ("Select the focused save", "X"),
+        ("Open the focused save", "Space"),
+    ]
 
-    var body: some View {
-        Button(action: choose) {
-            VStack(alignment: .leading, spacing: 12) {
-                ThemePreview(kind: kind)
-                    .frame(height: 150)
-                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                    .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(Theme.hairline))
-                    .padding(4)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 18, style: .continuous)
-                            .strokeBorder(selected ? Theme.ink : (hovering ? Theme.ink.opacity(0.15) : .clear), lineWidth: 2)
-                    )
-                    .overlay(alignment: .topTrailing) {
-                        if selected {
-                            Image(systemName: "checkmark")
-                                .font(.system(size: 10, weight: .bold))
-                                .foregroundStyle(.white)
-                                .frame(width: 22, height: 22)
-                                .background(Circle().fill(Theme.ink))
-                                .offset(x: 6, y: -6)
-                                .transition(.scale(scale: 0.6).combined(with: .opacity))
-                        }
-                    }
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(kind.name)
-                        .font(Theme.ui(14, weight: .medium))
-                        .foregroundStyle(Theme.ink)
-                    Text(L.Appearance.description(kind))
-                        .font(Theme.ui(12))
-                        .foregroundStyle(Theme.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                .padding(.horizontal, 4)
-            }
-            .contentShape(Rectangle())
+    private var tildePath: String {
+        libraryPath.replacingOccurrences(of: NSHomeDirectory(), with: "~")
+    }
+
+    private func chooseLibrary() {
+        let panel = NSOpenPanel()
+        panel.canChooseDirectories = true
+        panel.canChooseFiles = false
+        panel.canCreateDirectories = true
+        panel.prompt = L.Settings.change
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        let root = url.lastPathComponent == "Pool" ? url : url.appending(path: "Pool", directoryHint: .isDirectory)
+        libraryPath = root.path(percentEncoded: false)
+        Task { await model.reopenLibrary(at: root) }
+    }
+
+    private func group<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(title)
+                .font(Theme.ui(11, weight: .medium))
+                .foregroundStyle(Theme.tertiary)
+                .padding(.leading, 4)
+            VStack(spacing: 0, content: content)
+                .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Theme.softFill))
         }
-        .buttonStyle(PressStyle(scale: 0.98))
-        .onHover { hovering = $0 }
-        .animation(.easeOut(duration: 0.18), value: hovering)
-        .animation(.spring(duration: 0.3, bounce: 0.2), value: selected)
-        .accessibilityLabel(kind.name)
-        .accessibilityAddTraits(selected ? .isSelected : [])
+    }
+
+    private func row(_ title: String, _ detail: String, isOn: Binding<Bool>, change: @escaping (Bool) -> Void) -> some View {
+        HStack(spacing: 16) {
+            VStack(alignment: .leading, spacing: 3) {
+                Text(title).font(Theme.ui(13.5, weight: .medium)).foregroundStyle(Theme.ink)
+                Text(detail).font(Theme.ui(12)).foregroundStyle(Theme.secondary).fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer()
+            SoftToggle(isOn: isOn)
+                .onChange(of: isOn.wrappedValue) { _, value in change(value) }
+        }
+        .padding(16)
     }
 }
 
-private struct ThemePreview: View {
-    let kind: ThemeKind
-
-    private var bold: Bool { kind != .white }
-    private var canvas: Color { Theme.accent(for: kind) }
-    private var control: Color { bold ? Theme.ink(for: kind) : .white }
-    private var side: Color { bold ? Theme.ink(for: kind) : .white }
+struct SoftToggle: View {
+    @Binding var isOn: Bool
 
     var body: some View {
-        GeometryReader { proxy in
-            let width = proxy.size.width
-            let sideWidth: CGFloat = 46
-            let gridX = sideWidth + 16
-            let gridWidth = width - gridX - 10
-            let column = (gridWidth - 12) / 3
-            ZStack(alignment: .topLeading) {
-                canvas
-                RoundedRectangle(cornerRadius: 7, style: .continuous)
-                    .fill(side)
-                    .overlay(RoundedRectangle(cornerRadius: 7, style: .continuous).strokeBorder(bold ? .clear : Theme.hairline))
-                    .frame(width: sideWidth, height: proxy.size.height - 12)
-                    .overlay(alignment: .topLeading) {
-                        VStack(alignment: .leading, spacing: 5) {
-                            Capsule().fill(bold ? Color.white.opacity(0.3) : Theme.ink.opacity(0.15)).frame(width: 18, height: 3)
-                            RoundedRectangle(cornerRadius: 3).fill(bold ? canvas : .white).frame(width: 34, height: 8)
-                                .shadow(color: .black.opacity(bold ? 0 : 0.08), radius: 2, y: 1)
-                            Capsule().fill(bold ? Color.white.opacity(0.3) : Theme.ink.opacity(0.15)).frame(width: 24, height: 3)
-                        }
-                        .padding(.top, 18)
-                        .padding(.leading, 6)
-                    }
-                    .offset(x: 6, y: 6)
-
-                Capsule().fill(control).overlay(Capsule().strokeBorder(bold ? .clear : Theme.hairline)).frame(width: gridWidth * 0.5, height: 9)
-                    .offset(x: gridX + gridWidth * 0.25, y: 10)
-                HStack(spacing: 2) {
-                    Capsule().fill(bold ? canvas : .white).frame(width: 16, height: 5)
-                        .shadow(color: .black.opacity(bold ? 0 : 0.1), radius: 1)
-                    Capsule().fill(bold ? Color.white.opacity(0.35) : Theme.ink.opacity(0.2)).frame(width: 10, height: 3)
-                    Capsule().fill(bold ? Color.white.opacity(0.35) : Theme.ink.opacity(0.2)).frame(width: 10, height: 3)
-                }
-                .padding(2)
-                .background(Capsule().fill(control).overlay(Capsule().strokeBorder(bold ? .clear : Theme.hairline)))
-                .offset(x: gridX + gridWidth * 0.5 - 22, y: 24)
-                Capsule().fill(Theme.ink(for: kind)).frame(width: 22, height: 9)
-                    .offset(x: width - 32, y: 10)
-
-                HStack(alignment: .top, spacing: 6) {
-                    tiles([46, 30, 40], width: column, shade: 0)
-                    tiles([30, 52, 26], width: column, shade: 1)
-                    tiles([38, 34, 44], width: column, shade: 2)
-                }
-                .offset(x: gridX, y: 40)
+        Button { withAnimation(.spring(duration: 0.28, bounce: 0.2)) { isOn.toggle() } } label: {
+            ZStack(alignment: isOn ? .trailing : .leading) {
+                Capsule().fill(isOn ? Theme.ink : Color.black.opacity(0.14)).frame(width: 42, height: 26)
+                Circle().fill(.white).frame(width: 20, height: 20).padding(3)
+                    .shadow(color: .black.opacity(0.15), radius: 2, y: 1)
             }
+            .contentShape(Capsule())
         }
-    }
-
-    private func tiles(_ heights: [CGFloat], width: CGFloat, shade: Int) -> some View {
-        VStack(spacing: 6) {
-            ForEach(Array(heights.enumerated()), id: \.offset) { index, height in
-                RoundedRectangle(cornerRadius: 4, style: .continuous)
-                    .fill(tone(shade + index))
-                    .overlay(RoundedRectangle(cornerRadius: 4, style: .continuous).strokeBorder(Theme.hairline))
-                    .frame(width: width, height: height)
-            }
-        }
-    }
-
-    private func tone(_ index: Int) -> Color {
-        let tones: [Color] = [
-            Color(white: 0.2), .white, Color(red: 0.78, green: 0.8, blue: 0.86),
-            Color(red: 0.86, green: 0.82, blue: 0.76), .white, Color(white: 0.35),
-        ]
-        return tones[index % tones.count]
+        .buttonStyle(.plain)
+        .accessibilityValue(isOn ? "On" : "Off")
+        .accessibilityAddTraits(.isToggle)
     }
 }

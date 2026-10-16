@@ -45,6 +45,59 @@ enum L {
         static let nothingToPaste = "Your clipboard has no image, link or text"
         static let copied = "Copied"
         static let duplicate = "You already saved this link"
+        static let noSimilar = "Nothing in your library looks like this yet"
+        static let duplicateImage = "You already saved this image"
+    }
+
+    enum Select {
+        static func count(_ n: Int) -> String { "\(n) selected" }
+        static let folder = "Add to folder"
+        static let tag = "Tag"
+        static let delete = "Delete"
+        static let clear = "Clear selection"
+        static let newFolder = "New folder"
+        static let tagPlaceholder = "Add a tag"
+        static let noFolders = "No folders yet"
+        static func deletedMany(_ n: Int) -> String { "\(n) saves moved to trash" }
+        static func tagged(_ tag: String, _ n: Int) -> String { n == 1 ? "Tagged #\(tag)" : "Tagged \(n) saves #\(tag)" }
+    }
+
+    enum EmptyState {
+        static let folderTitle = "This folder is empty"
+        static let folderBody = "Drag saves onto it, or select tiles and choose Add to folder."
+        static let smartBody = "Saves that match this smart folder show up here on their own."
+        static let browse = "Browse everything"
+        static let filterTitle = "No saves match these filters"
+        static let filterBody = "Widen the date range or remove a tag to see more."
+        static let bookmarksTitle = "No X bookmarks yet"
+        static let bookmarksBody = "Import your X bookmarks and the posts with images or videos land here."
+    }
+
+    enum Viewing {
+        static let title = "View"
+        static let sort = "Sort"
+        static let size = "Tile size"
+        static func saves(_ n: Int) -> String { n == 1 ? "1 save" : "\(n) saves" }
+    }
+
+    enum Settings {
+        static let title = "Settings"
+        static let library = "Library"
+        static let libraryBody = "Everything you save lives in this folder. Put it in iCloud Drive to reach it from other devices."
+        static let change = "Change"
+        static let show = "Show in Finder"
+        static let general = "General"
+        static let login = "Open Cyte at login"
+        static let loginBody = "Cyte starts in the menu bar so saving is always one shortcut away."
+        static let sounds = "Sounds"
+        static let soundsBody = "Soft cues when you save, delete or drop."
+        static let screenshots = "Save screenshots"
+        static let screenshotsBody = "New screenshots on your Mac land in Cyte as they are taken."
+        static let x = "X bookmarks"
+        static let xConnected = "Connected through your browser login"
+        static let xOff = "Not connected"
+        static let shortcuts = "Shortcuts"
+        static let about = "About"
     }
 
     enum Detail {
@@ -71,6 +124,13 @@ enum L {
         static let links = "Links"
         static let notes = "Notes"
         static let title = "Filter"
+        static let added = "Added"
+        static let anyTime = "Any time"
+        static let today = "Today"
+        static let thisWeek = "This week"
+        static let thisMonth = "This month"
+        static let colour = "Colour"
+        static let sites = "Sites"
         static let tags = "Tags"
         static let yourTags = "Your tags"
         static let autoTags = "Found in images"
@@ -81,6 +141,13 @@ enum L {
         static let newTagPrompt = "Name the tag"
         static let create = "Add tag"
         static let cancel = "Cancel"
+    }
+
+    enum Similar {
+        static func chip(_ title: String) -> String { "Similar to \(title.prefix(22))" }
+        static let save = "Save as smart folder"
+        static let find = "Find similar"
+        static let select = "Select"
     }
 
     enum Menu {
@@ -158,6 +225,8 @@ enum L {
         static let emptyBody = "Drag saves onto the folder in the sidebar, or choose Add to folder on any save."
         static let showSidebar = "Show sidebar"
         static let hideSidebar = "Hide sidebar"
+        static let everything = "Everything"
+        static let allFolders = "Folders"
         static func added(_ name: String) -> String { "Added to \(name)" }
     }
 
@@ -212,20 +281,6 @@ enum L {
         static let failedNoPage = "Your bookmarks page didn't load in time. Try again, and sign in once more if X asks."
         static let tryAgain = "Try again"
         static let close = "Close"
-    }
-
-    enum Appearance {
-        static let title = "Appearance"
-        static let body = "Pick a theme for Cyte. It changes every screen at once."
-        static let menu = "Theme"
-        static func description(_ kind: ThemeKind) -> String {
-            switch kind {
-            case .vishal: "Yellow canvas with a black sidebar and black controls."
-            case .cyan: "Cyan canvas with a navy sidebar, navy controls and a flowing cyan glow."
-            case .white: "An all-white canvas where soft shadows set every card apart."
-            }
-        }
-        static func switchTo(_ name: String) -> String { "Switch to the \(name) theme" }
     }
 
     static let dropOverlay = "Drop to save"

@@ -61,6 +61,7 @@ struct GenieOverlay: View {
 struct GooeyTabs<Value: Hashable>: View {
     let items: [(title: String, value: Value)]
     @Binding var selection: Value
+    var counts: [Value: Int] = [:]
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @State private var frames: [Int: CGRect] = [:]
@@ -73,10 +74,17 @@ struct GooeyTabs<Value: Hashable>: View {
                     Button {
                         selection = item.value
                     } label: {
-                        Text(item.title)
-                            .font(Theme.ui(12, weight: .medium))
-                            .foregroundStyle(selection == item.value ? Theme.ink : Theme.tabIdle)
-                            .animation(Theme.bold ? .easeOut(duration: 0.18) : nil, value: selection)
+                        HStack(spacing: 5) {
+                            Text(item.title)
+                                .font(Theme.ui(12, weight: .medium))
+                                .foregroundStyle(selection == item.value ? Theme.ink : Theme.tabIdle)
+                            if let count = counts[item.value], count > 0 {
+                                Text(count.formatted())
+                                    .font(Theme.ui(10.5, weight: .medium))
+                                    .foregroundStyle(Theme.tertiary)
+                                    .monospacedDigit()
+                            }
+                        }
                             .padding(.horizontal, 12)
                             .frame(height: 26)
                             .contentShape(Capsule())
@@ -84,7 +92,7 @@ struct GooeyTabs<Value: Hashable>: View {
                     .buttonStyle(.plain)
                     .onGeometryChange(for: CGRect.self, of: { $0.frame(in: .named("tabs")) }) { frame in
                         frames[index] = frame
-                        if item.value == selection, lead == .zero { lead = frame; trail = frame }
+                        if item.value == selection, lead == .zero || lead.minX == frame.minX || lead.width != frame.width, lead.height == frame.height || lead == .zero { lead = frame; trail = frame }
                     }
                 }
         }
@@ -106,8 +114,8 @@ struct GooeyTabs<Value: Hashable>: View {
         }
         .coordinateSpace(.named("tabs"))
         .padding(3)
-        .background(Capsule().fill(Theme.bold ? Theme.control : Theme.softFillStrong))
-        .overlay(Capsule().strokeBorder(Theme.bold ? .clear : Theme.hairline))
+        .background(Capsule().fill(Theme.softFillStrong))
+        .overlay(Capsule().strokeBorder(Theme.hairline))
         .onChange(of: selection) { _, value in
             guard let index = items.firstIndex(where: { $0.value == value }), let frame = frames[index] else { return }
             lead = frame

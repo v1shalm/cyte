@@ -21,6 +21,7 @@ struct PoolApp: App {
 
         Settings {
             SettingsView()
+                .environment(model)
         }
 
         MenuBarExtra {
@@ -65,10 +66,6 @@ struct PoolCommands: Commands {
                 .keyboardShortcut("+")
             Button("Smaller tiles") { model.columnWidth = max(150, model.columnWidth - 40) }
                 .keyboardShortcut("-")
-            Divider()
-            Picker(L.Appearance.menu, selection: Binding(get: { ThemeStore.shared.kind }, set: { ThemeStore.shared.set($0) })) {
-                ForEach(ThemeKind.allCases) { Text($0.name).tag($0) }
-            }
             Divider()
         }
         CommandGroup(replacing: .help) {

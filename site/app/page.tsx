@@ -24,7 +24,7 @@ export default function Home() {
           Cyte keeps the images, links, notes and X bookmarks you collect on your Mac. It reads
           each one on the device, so search finds a poster by the words printed on it.
         </p>
-        <a className={styles.download} href="/downloads/Pool.dmg" download>
+        <a className={styles.download} href="/downloads/Cyte.dmg" download>
           <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
             <path
               d="M8 2v8.2m0 0L4.6 6.8M8 10.2l3.4-3.4M3 13.5h10"

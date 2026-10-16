@@ -98,7 +98,7 @@ struct CommandPalette: View {
         .frame(width: 640)
         .background(Color.white)
         .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).strokeBorder(Color.black.opacity(0.06)))
+        .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).strokeBorder(Theme.hairline))
         .borderBeam(strength: 0.45 + voice.level * 0.55, active: voice.isListening, cornerRadius: 22, duration: 1.8)
         .shadow(color: .black.opacity(0.06), radius: 2, y: 1)
         .shadow(color: .black.opacity(0.12), radius: 40, y: 20)
@@ -193,11 +193,6 @@ struct CommandPalette: View {
             if floating { model.showMainWindow() }
             model.xImport.open()
         })
-        let other = ThemeStore.shared.kind.next
-        actions.append(PaletteItem(id: "a-theme", kind: .action, title: L.Appearance.switchTo(other.name), detail: nil, symbol: "paintpalette") {
-            close()
-            ThemeStore.shared.set(other)
-        })
         actions.append(PaletteItem(id: "a-folder", kind: .action, title: L.Folders.new, detail: nil, symbol: "folder.badge.plus") {
             model.newFolder()
             reveal()
@@ -285,7 +280,7 @@ private struct PaletteRow: View {
                 .font(.system(size: 14, weight: .regular))
                 .foregroundStyle(Theme.secondary)
                 .frame(width: 34, height: 34)
-                .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Theme.bold ? Theme.ink.opacity(0.04) : .white))
+                .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(.white))
                 .lifted(RoundedRectangle(cornerRadius: 8, style: .continuous), shadow: 0)
         }
     }
