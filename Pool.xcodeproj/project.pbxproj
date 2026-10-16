@@ -56,6 +56,7 @@
 		D05020784D295BFD0F1CBD5C /* LibraryLocation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 289B6DC65A795FDD1C88AFF0 /* LibraryLocation.swift */; };
 		D283DDE464463D1CEC20DED0 /* VoiceViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB266BD3D2BE7694A2B693DB /* VoiceViews.swift */; };
 		D4FB8503301475E62139E4C1 /* Save.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9361FD433BEA1A8BE0F051A4 /* Save.swift */; };
+		E2242960E44EBBC1960FC9BD /* HugeIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C85DC593C7DADC30E29B6CC /* HugeIcon.swift */; };
 		ECE21EE69479C6BE330522AA /* LibraryDisk.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CE742539527748FEF3635D6 /* LibraryDisk.swift */; };
 		F747C5DA85DCD1AF7613E3E5 /* BorderBeam.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47B174EA84487E5AAF3A40A1 /* BorderBeam.swift */; };
 		FC3E5F9A877CBC04C75104C7 /* MasonryGrid.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B77C23F764835D0E74874C6 /* MasonryGrid.swift */; };
@@ -65,6 +66,7 @@
 		017850A9AB9CC82F73DADCCE /* HotKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotKey.swift; sourceTree = "<group>"; };
 		0B6A9B14174E879CD45D79D2 /* Motion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Motion.swift; sourceTree = "<group>"; };
 		0C0C591561DF4C5EBCAAD37F /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		0C85DC593C7DADC30E29B6CC /* HugeIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HugeIcon.swift; sourceTree = "<group>"; };
 		0CF9DFF800517316B403041D /* Feedback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Feedback.swift; sourceTree = "<group>"; };
 		12102FA53D4B5EE931E661FF /* DetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailView.swift; sourceTree = "<group>"; };
 		19B8C7E44463E063A66E8B74 /* OnboardingScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingScene.swift; sourceTree = "<group>"; };
@@ -184,6 +186,7 @@
 				B8D0E2905923B3B7A910806A /* EmptyStates.swift */,
 				AE60985AD11C4753150A2B14 /* FilterBar.swift */,
 				A3F8F54F40A77BA259831001 /* FoldersPage.swift */,
+				0C85DC593C7DADC30E29B6CC /* HugeIcon.swift */,
 				EE4DAB592622F960790C53E4 /* Liquid.swift */,
 				4B77C23F764835D0E74874C6 /* MasonryGrid.swift */,
 				0B6A9B14174E879CD45D79D2 /* Motion.swift */,
@@ -370,6 +373,7 @@
 				53C108B5718D2E47F5485F84 /* FolderWatcher.swift in Sources */,
 				ADA9A6556618EDB4FD206CD4 /* FoldersPage.swift in Sources */,
 				602C62B619107B78CD612502 /* HotKey.swift in Sources */,
+				E2242960E44EBBC1960FC9BD /* HugeIcon.swift in Sources */,
 				121746983B0380B7F8B86F40 /* ImageFiles.swift in Sources */,
 				B13052B4C551CEF52EDDB4EC /* Ingestor.swift in Sources */,
 				ECE21EE69479C6BE330522AA /* LibraryDisk.swift in Sources */,

@@ -116,8 +116,7 @@ private struct ActiveChip: View {
                 }
                 Text(filter.title)
                     .font(Theme.ui(12.5, weight: .medium))
-                Image(systemName: "xmark")
-                    .font(.system(size: 9, weight: .bold))
+                HugeIcon("xmark", size: IconSize.xs)
                     .opacity(0.7)
             }
             .foregroundStyle(.white)
@@ -217,7 +216,7 @@ struct FilterPanel: View {
                                         .foregroundStyle(Theme.ink)
                                     Spacer()
                                     if selected {
-                                        Image(systemName: "checkmark").font(.system(size: 11, weight: .semibold))
+                                        HugeIcon("checkmark", size: IconSize.xs)
                                     } else {
                                         Text("\(item.count)").font(Theme.ui(12)).foregroundStyle(Theme.tertiary)
                                     }
@@ -255,7 +254,10 @@ struct FilterPanel: View {
                 Button {
                     withAnimation(Theme.settle) { model.saveSmartFolder() }
                 } label: {
-                    Label(L.Similar.save, systemImage: "sparkles")
+                    HStack(spacing: 6) {
+                        HugeIcon("sparkles", size: IconSize.sm)
+                        Text(L.Similar.save)
+                    }
                 }
                 .poolSecondary()
             }

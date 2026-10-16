@@ -196,8 +196,7 @@ private struct LinkEntry: View {
         ZStack(alignment: .topTrailing) {
             VStack(alignment: .leading, spacing: 8) {
                 HStack(spacing: 12) {
-                    Image(systemName: "link")
-                        .font(.system(size: 14, weight: .medium))
+                    HugeIcon("link", size: IconSize.md)
                         .foregroundStyle(Theme.tertiary)
                     TextField(L.Add.linkPlaceholder, text: $text)
                         .textFieldStyle(.plain)
@@ -205,8 +204,7 @@ private struct LinkEntry: View {
                         .foregroundStyle(Theme.ink)
                         .focused($focused)
                         .onSubmit(save)
-                    Image(systemName: "return")
-                        .font(.system(size: 11, weight: .semibold))
+                    HugeIcon("return", size: IconSize.xs)
                         .foregroundStyle(link == nil ? Theme.tertiary : .white)
                         .frame(width: 26, height: 26)
                         .background(Circle().fill(link == nil ? Theme.chip : Theme.ink))
@@ -367,8 +365,7 @@ struct SearchFilterButton: View {
             withAnimation(.spring(duration: 0.4, bounce: 0.15)) { model.viewOpen = false; model.filterOpen.toggle() }
         } label: {
             HStack(spacing: 5) {
-                Image(systemName: "line.3.horizontal.decrease")
-                    .font(.system(size: 12, weight: .medium))
+                HugeIcon("line.3.horizontal.decrease", size: IconSize.sm)
                 if count > 0 {
                     Text("\(count)")
                         .font(Theme.ui(10.5, weight: .semibold))
@@ -398,8 +395,7 @@ struct SearchTrigger: View {
 
     var body: some View {
         HStack(spacing: 10) {
-            Image(systemName: "magnifyingglass")
-                .font(.system(size: 12, weight: .medium))
+            HugeIcon("magnifyingglass", size: IconSize.sm)
                 .foregroundStyle(Theme.controlMuted)
             if model.query.isEmpty {
                 Text(L.Search.placeholder)
@@ -424,8 +420,7 @@ struct SearchTrigger: View {
                 Button {
                     model.query = ""
                 } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 13))
+                    HugeIcon("xmark.circle.fill", size: IconSize.sm)
                         .foregroundStyle(Theme.controlMuted)
                 }
                 .buttonStyle(.plain)
@@ -498,8 +493,7 @@ struct DropOverlay: View {
                 .strokeBorder(Theme.dropDash, style: StrokeStyle(lineWidth: 1.5, dash: [6, 6]))
                 .padding(18)
             VStack(spacing: 12) {
-                Image(systemName: "arrow.down")
-                    .font(.system(size: 20, weight: .medium))
+                HugeIcon("arrow.down", size: IconSize.lg)
                     .foregroundStyle(Theme.actionIcon)
                     .frame(width: 56, height: 56)
                     .background(Circle().fill(Theme.surface))

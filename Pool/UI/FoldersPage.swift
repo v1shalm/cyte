@@ -13,7 +13,7 @@ struct FolderCrumb: View {
                     withAnimation(Theme.settle) { model.foldersPage = true }
                 } label: {
                     HStack(spacing: 6) {
-                        Image(systemName: "chevron.left").font(.system(size: 11, weight: .semibold))
+                        HugeIcon("chevron.left", size: IconSize.xs)
                         Text(L.Folders.allFolders).font(Theme.ui(13, weight: .medium))
                     }
                     .foregroundStyle(hovering ? Theme.ink : Theme.secondary)
@@ -148,8 +148,7 @@ private struct FolderCard: View {
         if items.isEmpty {
             ZStack {
                 Theme.softFill
-                Image(systemName: "folder")
-                    .font(.system(size: 26, weight: .light))
+                HugeIcon("folder", size: IconSize.xl)
                     .foregroundStyle(Theme.tertiary)
             }
         } else if items.count == 1 {
@@ -192,8 +191,7 @@ private struct NewFolderCard: View {
             withAnimation(Theme.settle) { model.newFolder() }
         } label: {
             VStack(spacing: 10) {
-                Image(systemName: "plus")
-                    .font(.system(size: 20, weight: .light))
+                HugeIcon("plus", size: IconSize.lg)
                 Text(L.Folders.new)
                     .font(Theme.ui(13, weight: .medium))
             }

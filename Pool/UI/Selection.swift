@@ -145,8 +145,7 @@ struct SelectDot: View {
             Circle().fill(on ? Theme.ink : Color.white.opacity(hovering ? 1 : 0.92))
             Circle().strokeBorder(on ? Theme.ink : Color.black.opacity(0.18), lineWidth: 1)
             if on {
-                Image(systemName: "checkmark")
-                    .font(.system(size: 10, weight: .bold))
+                HugeIcon("checkmark", size: IconSize.xs)
                     .foregroundStyle(.white)
                     .transition(.scale(scale: 0.5).combined(with: .opacity))
             }
@@ -179,8 +178,7 @@ struct SelectionBar: View {
             }
             HStack(spacing: 6) {
                 Button { model.clearSelection() } label: {
-                    Image(systemName: "xmark")
-                        .font(.system(size: 11, weight: .bold))
+                    HugeIcon("xmark", size: IconSize.xs)
                         .foregroundStyle(.white)
                         .frame(width: 32, height: 32)
                         .background(Circle().fill(.white.opacity(0.14)))
@@ -223,7 +221,7 @@ private struct BarButton: View {
     var body: some View {
         Button(action: action) {
             HStack(spacing: 6) {
-                Image(systemName: symbol).font(.system(size: 12, weight: .medium))
+                HugeIcon(symbol, size: IconSize.sm)
                 Text(title).font(Theme.ui(13, weight: .medium))
             }
             .foregroundStyle(active ? Theme.ink : .white)
@@ -263,8 +261,7 @@ private struct PickerRow: View {
     var body: some View {
         Button(action: action) {
             HStack(spacing: 10) {
-                Image(systemName: symbol)
-                    .font(.system(size: 13))
+                HugeIcon(symbol, size: IconSize.sm)
                     .foregroundStyle(Theme.secondary)
                     .frame(width: 18)
                 Text(title)
@@ -321,7 +318,7 @@ private struct TagPicker: View {
         PickerCard {
             VStack(spacing: 6) {
                 HStack(spacing: 8) {
-                    Image(systemName: "number").font(.system(size: 12, weight: .medium)).foregroundStyle(Theme.tertiary)
+                    HugeIcon("number", size: IconSize.sm).foregroundStyle(Theme.tertiary)
                     TextField(L.Select.tagPlaceholder, text: $text)
                         .textFieldStyle(.plain)
                         .font(Theme.ui(13.5))

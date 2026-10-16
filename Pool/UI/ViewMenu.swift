@@ -12,12 +12,10 @@ struct ViewButton: View {
             }
         } label: {
             HStack(spacing: 6) {
-                Image(systemName: symbol)
-                    .font(.system(size: 10, weight: .semibold))
+                HugeIcon(symbol, size: IconSize.xs)
                 Text(title)
                     .font(Theme.ui(12, weight: .medium))
-                Image(systemName: "chevron.down")
-                    .font(.system(size: 8, weight: .bold))
+                HugeIcon("chevron.down", size: IconSize.xs)
                     .opacity(0.6)
                     .rotationEffect(.degrees(model.viewOpen ? 180 : 0))
             }
@@ -70,9 +68,9 @@ struct ViewOverlay: View {
                             .monospacedDigit()
                     }
                     HStack(spacing: 12) {
-                        Image(systemName: "square.grid.3x3").font(.system(size: 12)).foregroundStyle(Theme.tertiary)
+                        HugeIcon("square.grid.3x3", size: IconSize.sm).foregroundStyle(Theme.tertiary)
                         SoftSlider(value: Bindable(model).columnWidth, range: 150...420)
-                        Image(systemName: "square.grid.2x2").font(.system(size: 12)).foregroundStyle(Theme.tertiary)
+                        HugeIcon("square.grid.2x2", size: IconSize.sm).foregroundStyle(Theme.tertiary)
                     }
                 }
             }
@@ -100,10 +98,10 @@ private struct SortRow: View {
         let on = model.sort == order
         Button { model.sort = order } label: {
             HStack(spacing: 10) {
-                Image(systemName: symbol).font(.system(size: 12)).frame(width: 18).foregroundStyle(Theme.secondary)
+                HugeIcon(symbol, size: IconSize.sm).frame(width: 18).foregroundStyle(Theme.secondary)
                 Text(title).font(Theme.ui(13.5, weight: on ? .medium : .regular)).foregroundStyle(Theme.ink)
                 Spacer()
-                if on { Image(systemName: "checkmark").font(.system(size: 11, weight: .semibold)).foregroundStyle(Theme.ink) }
+                if on { HugeIcon("checkmark", size: IconSize.xs).foregroundStyle(Theme.ink) }
             }
             .padding(.horizontal, 10)
             .frame(height: 34)

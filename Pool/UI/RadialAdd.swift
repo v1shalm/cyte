@@ -83,8 +83,7 @@ struct RadialAdd: View {
                 withAnimation(.spring(duration: 0.7, bounce: 0.2)) { model.addMenuOpen.toggle() }
             } label: {
                 HStack(spacing: 6) {
-                    Image(systemName: "plus")
-                        .font(.system(size: open ? 24 : 16, weight: .semibold))
+                    HugeIcon("plus", size: open ? IconSize.xl : IconSize.md)
                         .rotationEffect(.degrees(open ? 45 : 0))
                     if !open {
                         Text(L.Add.button)
@@ -116,8 +115,7 @@ struct RadialAdd: View {
             withAnimation(.spring(duration: 0.7, bounce: 0)) { model.addMenuOpen = false }
             option.run()
         } label: {
-            Image(systemName: option.symbol)
-                .font(.system(size: 22, weight: .regular))
+            HugeIcon(option.symbol, size: IconSize.xl)
                 .foregroundStyle(.white)
                 .frame(width: bubble, height: bubble)
                 .contentShape(Circle())

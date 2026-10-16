@@ -126,11 +126,8 @@ struct MicButton: View {
                         .scaleEffect(1 + level * 0.8)
                         .animation(.spring(duration: 0.18, bounce: 0), value: level)
                 }
-                Image(systemName: listening ? "waveform" : "mic")
-                    .font(.system(size: 12, weight: .medium))
+                HugeIcon(listening ? "waveform" : "mic", size: IconSize.sm)
                     .foregroundStyle(listening ? Theme.ink : Theme.tertiary)
-                    .symbolEffect(.variableColor.iterative, isActive: listening)
-                    .contentTransition(.symbolEffect(.replace))
             }
             .frame(width: 24, height: 24)
             .contentShape(Circle())

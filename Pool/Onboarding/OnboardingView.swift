@@ -45,12 +45,10 @@ struct OnboardingView: View {
                         soundOn.toggle()
                         SoundEngine.shared.enabled = soundOn
                     } label: {
-                        Image(systemName: soundOn ? "speaker.wave.2.fill" : "speaker.slash.fill")
-                            .font(.system(size: 12, weight: .medium))
+                        HugeIcon(soundOn ? "speaker.wave.2.fill" : "speaker.slash.fill", size: IconSize.sm)
                             .foregroundStyle(Theme.ink)
                             .frame(width: 34, height: 34)
                             .background(Circle().fill(.white.opacity(0.7)))
-                            .contentTransition(.symbolEffect(.replace))
                     }
                     .buttonStyle(PressStyle(scale: 0.9))
                     .help(L.Onboarding.sound)
@@ -227,8 +225,7 @@ private struct BigButton: View {
                     if busy {
                         ProgressView().controlSize(.small).tint(.white)
                     } else {
-                        Image(systemName: "arrow.right")
-                            .font(.system(size: 15, weight: .semibold))
+                        HugeIcon("arrow.right", size: IconSize.md)
                             .offset(x: hovering ? 3 : 0)
                     }
                 }

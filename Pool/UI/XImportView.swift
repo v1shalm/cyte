@@ -16,12 +16,10 @@ struct XImportView: View {
     private var card: some View {
         let importer = model.xImport
         return VStack(alignment: .leading, spacing: 0) {
-            Image(systemName: symbol)
-                .font(.system(size: 17, weight: .medium))
+            HugeIcon(symbol, size: IconSize.md)
                 .foregroundStyle(.white)
                 .frame(width: 44, height: 44)
                 .background(Circle().fill(Theme.ink))
-                .contentTransition(.symbolEffect(.replace))
                 .padding(.bottom, 22)
 
             switch importer.phase {

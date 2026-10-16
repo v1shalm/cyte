@@ -62,9 +62,8 @@ private struct RailIcon: View {
     @State private var hovering = false
 
     var body: some View {
-        Image(systemName: symbol)
-            .font(.system(size: 17, weight: .regular))
-            .foregroundStyle(active ? Theme.sideInk : (hovering ? Theme.sideSecondary : Theme.sideTertiary.opacity(0.7)))
+        HugeIcon(symbol, size: IconSize.lg, fill: 1)
+            .foregroundStyle(active ? Theme.sideInk : (hovering ? Theme.sideTertiary : Theme.sideTertiary.opacity(0.55)))
             .frame(width: 44, height: 44)
             .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(active ? Theme.sideTarget : (hovering ? Theme.sideHover : .clear)))
             .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))

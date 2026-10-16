@@ -20,8 +20,7 @@ struct EmptyArt: View {
                 .frame(width: 84, height: 108)
                 .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(Theme.hairline))
                 .overlay(
-                    Image(systemName: symbol)
-                        .font(.system(size: 24, weight: .light))
+                    HugeIcon(symbol, size: IconSize.xl)
                         .foregroundStyle(Theme.tertiary)
                 )
                 .shadow(color: .black.opacity(0.04), radius: 1.5, y: 1)

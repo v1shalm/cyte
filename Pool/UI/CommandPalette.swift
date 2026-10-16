@@ -28,8 +28,7 @@ struct CommandPalette: View {
         let items = sections.flatMap(\.items)
         VStack(spacing: 0) {
             HStack(spacing: 14) {
-                Image(systemName: "magnifyingglass")
-                    .font(.system(size: 17, weight: .regular))
+                HugeIcon("magnifyingglass", size: IconSize.md)
                     .foregroundStyle(Theme.tertiary)
                 TextField(L.Palette.placeholder, text: $query)
                     .textFieldStyle(.plain)
@@ -254,8 +253,7 @@ private struct PaletteRow: View {
             }
             Spacer()
             if selected {
-                Image(systemName: "return")
-                    .font(.system(size: 11, weight: .medium))
+                HugeIcon("return", size: IconSize.xs)
                     .foregroundStyle(Theme.tertiary)
             }
         }
@@ -276,8 +274,7 @@ private struct PaletteRow: View {
                 .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                 .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).strokeBorder(Theme.hairline))
         } else {
-            Image(systemName: item.symbol)
-                .font(.system(size: 14, weight: .regular))
+            HugeIcon(item.symbol, size: IconSize.md)
                 .foregroundStyle(Theme.secondary)
                 .frame(width: 34, height: 34)
                 .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(.white))

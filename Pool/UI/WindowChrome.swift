@@ -66,8 +66,7 @@ struct SidebarToggle: View {
         Button {
             withAnimation(.spring(duration: 0.42, bounce: 0.1)) { model.sidebarShown.toggle() }
         } label: {
-            Image(systemName: "sidebar.left")
-                .font(.system(size: 13, weight: .regular))
+            HugeIcon("sidebar.left", size: IconSize.sm)
                 .foregroundStyle(onPanel ? (hovering ? Theme.sideInk : Theme.sideTertiary) : (hovering ? Theme.ink : Theme.tertiary))
                 .frame(width: 28, height: 28)
                 .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(hovering ? (onPanel ? Theme.sideHover : .white) : .clear).shadow(color: .black.opacity(hovering ? 0.07 : 0), radius: 4, y: 1))
