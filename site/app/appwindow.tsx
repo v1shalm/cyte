@@ -2,7 +2,7 @@ import Image from "next/image";
 import { Icon } from "./icons";
 import styles from "./appwindow.module.css";
 
-type Tile = { h: number; kind: "art" | "link" | "type" | "dark"; tone?: string; title?: string; host?: string };
+type Tile = { h: number; kind: "art" | "link" | "card" | "type" | "dark"; tone?: string; title?: string; host?: string };
 
 const columns: Tile[][] = [
   [
@@ -16,7 +16,7 @@ const columns: Tile[][] = [
     { h: 118, kind: "link", tone: "d", title: "Poster study", host: "studio.example" },
   ],
   [
-    { h: 134, kind: "link", tone: "e", title: "Motion notes", host: "journal.example" },
+    { h: 112, kind: "card", title: "Notes on motion and restraint", host: "journal.example" },
     { h: 150, kind: "art", tone: "f" },
     { h: 120, kind: "art", tone: "g" },
   ],
@@ -36,7 +36,7 @@ export function AppWindow() {
         <span className={styles.light} data-c="g" />
       </div>
       <div className={styles.rail}>
-        <Image src="/cyte-icon.png" alt="" width={34} height={34} className={styles.mark} />
+        <Image src="/cyte-icon.png" alt="" width={28} height={28} className={styles.mark} />
         <span className={`${styles.railIcon} ${styles.railOn}`}>
           <Icon name="grid" size={20} weight="fill" />
         </span>
@@ -59,9 +59,10 @@ export function AppWindow() {
           </span>
         </div>
         <div className={styles.row}>
+          <span className={styles.title}>Everything</span>
           <div className={styles.tabs}>
             <span className={styles.tabOn}>
-              Everything <i>412</i>
+              All <i>412</i>
             </span>
             <span>
               Images <i>268</i>
@@ -73,10 +74,10 @@ export function AppWindow() {
           </div>
           <span className={styles.controls}>
             <span>
-              <Icon name="filter" size={12} /> Filter
+              <Icon name="filter" size={14} /> Filter
             </span>
             <span>
-              <Icon name="sort" size={12} /> Newest <Icon name="chevronDown" size={10} />
+              <Icon name="sort" size={14} /> Newest <Icon name="chevronDown" size={12} />
             </span>
           </span>
         </div>
@@ -91,6 +92,12 @@ export function AppWindow() {
                   style={{ height: tile.h }}
                 >
                   {tile.kind === "type" && <span>Aa</span>}
+                  {tile.kind === "card" && (
+                    <>
+                      <em>{tile.host}</em>
+                      <b>{tile.title}</b>
+                    </>
+                  )}
                   {tile.kind === "link" && (
                     <>
                       <span className={styles.linkArt} />

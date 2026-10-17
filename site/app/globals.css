@@ -5,8 +5,6 @@
   --grey-strong: #e4e5ea;
   --grey-hover: #dfe0e6;
   --ink: #111319;
-  --blue: #004bff;
-  --paper: #f7f7f5;
   --ink-2: #6b7382;
   --ink-3: #9aa1b0;
   --hairline: rgba(31, 31, 66, 0.085);
@@ -15,8 +13,6 @@
   --serif: var(--font-serif), "Iowan Old Style", Georgia, serif;
   --sans: var(--font-sans), -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
   --ease: cubic-bezier(0.23, 1, 0.32, 1);
-  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
-  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
 }
 
 * {
