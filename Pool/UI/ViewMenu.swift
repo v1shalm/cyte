@@ -13,7 +13,6 @@ struct ViewControls: View {
 struct FilterButton: View {
     @Environment(AppModel.self) private var model
     var segment: Segment = .alone
-    @State private var hovering = false
 
     var body: some View {
         let count = model.filterCount
@@ -24,36 +23,28 @@ struct FilterButton: View {
             }
         } label: {
             HStack(spacing: 6) {
-                Icon("line.3.horizontal.decrease", size: IconSize.xs)
+                Icon("line.3.horizontal.decrease", size: IconSize.sm)
                 Text(L.Filter.title)
-                    .font(Theme.ui(12, weight: .medium))
                 if count > 0 {
                     Text("\(count)")
-                        .font(Theme.ui(10, weight: .semibold))
-                        .foregroundStyle(Theme.ink)
-                        .frame(minWidth: 16, minHeight: 16)
-                        .background(Circle().fill(.white))
+                        .font(Theme.ui(TextSize.caption, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .monospacedDigit()
+                        .frame(minWidth: 18, minHeight: 18)
+                        .background(Circle().fill(Theme.ink))
                         .transition(.scale.combined(with: .opacity))
                 }
             }
-            .foregroundStyle(.white)
-            .padding(.horizontal, 14)
-            .frame(height: 34)
-            .background(segment.shape(17).fill(hovering || model.filterOpen ? Theme.splitHover : Theme.splitFill).shadow(color: .black.opacity(Theme.controlShadow), radius: 6, y: 2))
-            .contentShape(segment.shape(17))
         }
-        .buttonStyle(PressStyle(scale: 0.96))
-        .onHover { hovering = $0 }
-        .animation(Theme.hover, value: hovering)
+        .poolSecondary(segment, active: model.filterOpen)
         .animation(Theme.settle, value: count)
-        .fixedSize()
+        .accessibilityValue(count > 0 ? "\(count)" : "")
     }
 }
 
 struct ViewButton: View {
     @Environment(AppModel.self) private var model
     var segment: Segment = .alone
-    @State private var hovering = false
 
     var body: some View {
         Button {
@@ -63,23 +54,14 @@ struct ViewButton: View {
             }
         } label: {
             HStack(spacing: 6) {
-                Icon(symbol, size: IconSize.xs)
+                Icon(symbol, size: IconSize.sm)
                 Text(title)
-                    .font(Theme.ui(12, weight: .medium))
                 Icon("chevron.down", size: IconSize.xs)
-                    .opacity(0.6)
+                    .foregroundStyle(Theme.secondary)
                     .rotationEffect(.degrees(model.viewOpen ? 180 : 0))
             }
-            .foregroundStyle(.white)
-            .padding(.horizontal, 14)
-            .frame(height: 34)
-            .background(segment.shape(17).fill(hovering || model.viewOpen ? Theme.splitHover : Theme.splitFill).shadow(color: .black.opacity(Theme.controlShadow), radius: 6, y: 2))
-            .contentShape(segment.shape(17))
         }
-        .buttonStyle(PressStyle(scale: 0.96))
-        .onHover { hovering = $0 }
-        .animation(Theme.hover, value: hovering)
-        .fixedSize()
+        .poolSecondary(segment, active: model.viewOpen)
     }
 
     private var symbol: String { model.sort == .shuffle ? "shuffle" : "arrow.up.arrow.down" }
@@ -101,36 +83,40 @@ struct ViewOverlay: View {
             Color.clear
                 .contentShape(Rectangle())
                 .onTapGesture { withAnimation(.spring(duration: 0.35, bounce: 0)) { model.viewOpen = false } }
-            VStack(alignment: .leading, spacing: 18) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(L.Viewing.sort).font(Theme.ui(11, weight: .medium)).foregroundStyle(Theme.tertiary)
-                        .padding(.bottom, 4)
+            VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: 2) {
+                    SectionLabel(L.Viewing.sort)
+                        .padding(.horizontal, 10)
+                        .padding(.top, 8)
+                        .padding(.bottom, 6)
                     SortRow(title: L.Sort.newest, symbol: "arrow.down", order: .newest)
                     SortRow(title: L.Sort.oldest, symbol: "arrow.up", order: .oldest)
                     SortRow(title: L.Sort.shuffle, symbol: "shuffle", order: .shuffle)
                 }
+                Rectangle().fill(Theme.hairline).frame(height: 1).padding(.horizontal, 10)
                 VStack(alignment: .leading, spacing: 10) {
                     HStack {
-                        Text(L.Viewing.size).font(Theme.ui(11, weight: .medium)).foregroundStyle(Theme.tertiary)
+                        SectionLabel(L.Viewing.size)
                         Spacer()
                         Text(L.Viewing.saves(model.results.count))
-                            .font(Theme.ui(11.5))
+                            .font(Theme.ui(TextSize.caption))
                             .foregroundStyle(Theme.tertiary)
                             .monospacedDigit()
                     }
                     HStack(spacing: 12) {
-                        Icon("square.grid.3x3", size: IconSize.sm).foregroundStyle(Theme.tertiary)
+                        Icon("square.grid.3x3", size: IconSize.sm).foregroundStyle(Theme.secondary)
                         SoftSlider(value: Bindable(model).columnWidth, range: 150...420)
-                        Icon("square.grid.2x2", size: IconSize.sm).foregroundStyle(Theme.tertiary)
+                            .accessibilityLabel(L.Viewing.size)
+                        Icon("square.grid.2x2", size: IconSize.sm).foregroundStyle(Theme.secondary)
                     }
                 }
+                .padding(.horizontal, 10)
+                .padding(.bottom, 8)
             }
-            .padding(18)
-            .frame(width: 280)
-            .background(RoundedRectangle(cornerRadius: 20, style: .continuous).fill(.white))
-            .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).strokeBorder(Theme.hairline))
-            .shadow(color: .black.opacity(0.1), radius: 30, y: 12)
-            .padding(.top, 118)
+            .padding(8)
+            .frame(width: 264)
+            .floatingPanel()
+            .padding(.top, Chrome.panelTop)
             .padding(.trailing, Theme.sideInset)
             .transition(.scale(scale: 0.96, anchor: .topTrailing).combined(with: .opacity))
         }
@@ -143,25 +129,19 @@ private struct SortRow: View {
     let title: String
     let symbol: String
     let order: SortOrder
-    @State private var hovering = false
 
     var body: some View {
         let on = model.sort == order
         Button { model.sort = order } label: {
             HStack(spacing: 10) {
                 Icon(symbol, size: IconSize.sm).frame(width: 18).foregroundStyle(Theme.secondary)
-                Text(title).font(Theme.ui(13.5, weight: on ? .medium : .regular)).foregroundStyle(Theme.ink)
+                Text(title)
                 Spacer()
-                if on { Icon("checkmark", size: IconSize.xs).foregroundStyle(Theme.ink) }
+                if on { Icon("checkmark", size: IconSize.sm) }
             }
-            .padding(.horizontal, 10)
-            .frame(height: 34)
-            .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(on ? Theme.softFill : (hovering ? Theme.softHover : .clear)))
-            .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
-        .onHover { hovering = $0 }
-        .animation(Theme.hover, value: hovering)
+        .buttonStyle(RowStyle(selected: on))
+        .accessibilityAddTraits(on ? .isSelected : [])
     }
 }
 
@@ -175,7 +155,7 @@ struct SoftSlider: View {
             let width = proxy.size.width
             let fraction = (value - range.lowerBound) / (range.upperBound - range.lowerBound)
             ZStack(alignment: .leading) {
-                Capsule().fill(Theme.softFillStrong).frame(height: 4)
+                Capsule().fill(Theme.softTarget).frame(height: 4)
                 Capsule().fill(Theme.ink).frame(width: max(4, width * fraction), height: 4)
                 Circle()
                     .fill(.white)

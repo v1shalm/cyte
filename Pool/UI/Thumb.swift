@@ -60,17 +60,20 @@ struct Thumb: View {
     @State private var image: NSImage?
 
     var body: some View {
-        ZStack {
-            Theme.fill
-            if let tint { tint.opacity(0.3) }
-            if let image {
-                Image(nsImage: image)
-                    .resizable()
-                    .interpolation(.medium)
-                    .aspectRatio(contentMode: contentMode)
-                    .transition(.opacity.animation(Theme.fade))
+        Theme.fill
+            .overlay {
+                if let tint { tint.opacity(0.3) }
             }
-        }
+            .overlay {
+                if let image {
+                    Image(nsImage: image)
+                        .resizable()
+                        .interpolation(.medium)
+                        .aspectRatio(contentMode: contentMode)
+                        .transition(.opacity.animation(Theme.fade))
+                }
+            }
+            .clipped()
         .task(id: Key(url: url, maxPixel: maxPixel)) {
             guard let url else { image = nil; return }
             let key = "\(url.path(percentEncoded: false))#\(maxPixel)"

@@ -49,7 +49,10 @@ struct MasonryLayout {
                 let aspect = min(2.1, max(1.3, save.aspect))
                 return (width / aspect).rounded() + LinkTile.footerHeight
             }
-            return save.pending ? 168 : 132 + LinkTile.footerHeight
+            if save.pending { return 120 }
+            let perLine = max(10, (width - 32) / (LinkTile.titleSize * 0.5))
+            let lines = min(CGFloat(LinkTile.titleLines), max(1, ceil(CGFloat(save.displayTitle.count) / perLine)))
+            return (30 + 12 + 10 + lines * 24 + 6).rounded()
         case .note:
             let text = save.text ?? ""
             let perLine = max(12, width / 7.6)

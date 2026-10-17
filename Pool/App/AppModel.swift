@@ -87,7 +87,7 @@ final class AppModel {
         didSet { UserDefaults.standard.set(sidebarShown, forKey: "pool.sidebar") }
     }
     @ObservationIgnored var tileWidth: CGFloat = 248
-    var topInset: CGFloat { Theme.topInset + (filterCount > 0 ? 52 : 0) }
+    var topInset: CGFloat { Theme.topInset + (filterCount > 0 ? Control.small + 16 : 0) }
     var tilePixels: Int { Int(ceil(tileWidth * 2 / 64)) * 64 }
     static let railWidth: CGFloat = 72
     static let saveType = Identity.saveType

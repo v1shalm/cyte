@@ -109,7 +109,7 @@ struct TileActions: View {
     var body: some View {
         let count = save.url == nil ? 2 : 3
         ZStack(alignment: .topTrailing) {
-            LiquidLayer(blur: 5, fill: .white, shadow: true) {
+            LiquidLayer(blur: 5, fill: onCard ? Theme.softFill : .white, shadow: !onCard) {
                 ZStack(alignment: .topTrailing) {
                     ForEach(0..<count, id: \.self) { index in
                         Circle()
@@ -141,6 +141,8 @@ struct TileActions: View {
         }
         .onAppear { spread = true }
     }
+
+    private var onCard: Bool { save.kind == .note || (save.kind == .link && save.thumbnail == nil) }
 
     private func motion(_ index: Int) -> Animation {
         reduceMotion ? .easeOut(duration: 0.12) : .spring(duration: 0.5, bounce: 0.34).delay(Double(index) * 0.03)
@@ -260,6 +262,8 @@ struct LinkTile: View {
     @Environment(AppModel.self) private var model
     let save: Save
     static let footerHeight: CGFloat = 62
+    static let titleSize: CGFloat = 19
+    static let titleLines = 4
 
     var body: some View {
         VStack(spacing: 0) {
@@ -268,30 +272,30 @@ struct LinkTile: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .clipped()
             } else {
-                ZStack(alignment: .topLeading) {
-                    Theme.fill
-                    (save.tint ?? Theme.ink).opacity(0.07)
-                    VStack(alignment: .leading, spacing: 0) {
-                        if let favicon = model.store.url(for: save, file: save.favicon) {
-                            Thumb(url: favicon, maxPixel: 96, contentMode: .fit)
-                                .frame(width: 30, height: 30)
-                                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-                                .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).strokeBorder(Theme.hairline))
-                        }
-                        Spacer(minLength: 8)
-                        Text(save.pending ? "" : save.displayTitle)
-                            .font(Theme.serif(19))
-                            .foregroundStyle(Theme.ink)
-                            .lineLimit(4)
-                            .multilineTextAlignment(.leading)
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack(spacing: 6) {
+                        Favicon(url: model.store.url(for: save, file: save.favicon))
+                        Text(save.host ?? "")
+                            .font(Theme.ui(TextSize.caption))
+                            .foregroundStyle(Theme.tertiary)
+                            .lineLimit(1)
                     }
-                    .padding(16)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                    Text(save.pending ? "" : save.displayTitle)
+                        .font(Theme.serif(LinkTile.titleSize))
+                        .foregroundStyle(Theme.ink)
+                        .lineSpacing(1)
+                        .lineLimit(LinkTile.titleLines)
+                        .multilineTextAlignment(.leading)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 15)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .background(Theme.surface)
                 .shimmer(save.pending)
             }
-            footer
+            if save.thumbnail != nil {
+                footer
+            }
         }
         .background(Theme.surface)
     }
@@ -299,7 +303,7 @@ struct LinkTile: View {
     private var footer: some View {
         VStack(alignment: .leading, spacing: 5) {
             Text(save.pending ? (save.host ?? "") : save.displayTitle)
-                .font(Theme.ui(12.5, weight: .medium))
+                .font(Theme.ui(12, weight: .medium))
                 .foregroundStyle(Theme.ink)
                 .lineLimit(2)
                 .multilineTextAlignment(.leading)
@@ -341,7 +345,7 @@ struct NoteTile: View {
         ZStack(alignment: .topLeading) {
             Theme.note
             Text(save.text ?? "")
-                .font(Theme.ui(13.5))
+                .font(Theme.ui(13))
                 .lineSpacing(3.5)
                 .foregroundStyle(Theme.ink)
                 .multilineTextAlignment(.leading)

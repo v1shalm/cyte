@@ -29,7 +29,7 @@ struct CommandPalette: View {
         VStack(spacing: 0) {
             HStack(spacing: 14) {
                 Icon("magnifyingglass", size: IconSize.md)
-                    .foregroundStyle(Theme.tertiary)
+                    .foregroundStyle(Theme.secondary)
                 TextField(L.Palette.placeholder, text: $query)
                     .textFieldStyle(.plain)
                     .font(Theme.ui(20))
@@ -48,10 +48,8 @@ struct CommandPalette: View {
                     ScrollView {
                         VStack(alignment: .leading, spacing: 0) {
                             ForEach(sections, id: \.title) { section in
-                                Text(section.title)
-                                    .font(Theme.ui(11, weight: .medium))
-                                    .foregroundStyle(Theme.tertiary)
-                                    .padding(.horizontal, 22)
+                                SectionLabel(section.title)
+                                    .padding(.horizontal, 14)
                                     .padding(.top, 12)
                                     .padding(.bottom, 4)
                                 ForEach(section.items) { item in
@@ -98,9 +96,9 @@ struct CommandPalette: View {
         .background(Color.white)
         .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).strokeBorder(Theme.hairline))
-        .borderBeam(strength: 0.45 + voice.level * 0.55, active: voice.isListening, cornerRadius: 22, duration: 1.8)
-        .shadow(color: .black.opacity(0.06), radius: 2, y: 1)
-        .shadow(color: .black.opacity(0.12), radius: 40, y: 20)
+        .borderBeam(strength: 0.45 + voice.level * 0.55, active: voice.isListening, cornerRadius: Radius.sheet, duration: 1.8)
+        .shadow(color: .black.opacity(0.05), radius: 2, y: 1)
+        .shadow(color: .black.opacity(0.11), radius: 28, y: 12)
         .onAppear { focused = true }
         .onChange(of: query) { _, _ in selection = 0 }
         .onChange(of: voice.transcript) { _, text in if voice.isListening { query = text } }
@@ -131,10 +129,9 @@ struct CommandPalette: View {
                 .foregroundStyle(Theme.secondary)
                 .padding(.horizontal, 6)
                 .frame(minWidth: 20, minHeight: 20)
-                .background(RoundedRectangle(cornerRadius: 5, style: .continuous).fill(Theme.chip))
-                .lifted(RoundedRectangle(cornerRadius: 5, style: .continuous), shadow: 0)
+                .background(RoundedRectangle(cornerRadius: 6, style: .continuous).fill(Theme.softFill))
             Text(label)
-                .font(Theme.ui(11.5))
+                .font(Theme.ui(TextSize.caption))
                 .foregroundStyle(Theme.tertiary)
         }
     }
@@ -261,8 +258,7 @@ private struct PaletteRow: View {
         .frame(height: 50)
         .background(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(selected ? Theme.rowSelection : .clear)
-                .lifted(RoundedRectangle(cornerRadius: 14, style: .continuous), active: selected, shadow: 0.06)
+                .fill(selected ? Theme.softFill : .clear)
         )
         .contentShape(Rectangle())
     }
@@ -277,8 +273,7 @@ private struct PaletteRow: View {
             Icon(item.symbol, size: IconSize.md)
                 .foregroundStyle(Theme.secondary)
                 .frame(width: 34, height: 34)
-                .background(RoundedRectangle(cornerRadius: 6, style: .continuous).fill(.white))
-                .lifted(RoundedRectangle(cornerRadius: 6, style: .continuous), shadow: 0)
+                .background(RoundedRectangle(cornerRadius: 6, style: .continuous).fill(Theme.softFill))
         }
     }
 }

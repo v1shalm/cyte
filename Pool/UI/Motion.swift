@@ -73,20 +73,21 @@ struct GooeyTabs<Value: Hashable>: View {
                 } label: {
                     HStack(spacing: 5) {
                         Text(item.title)
-                            .font(Theme.ui(12, weight: .medium))
+                            .font(Theme.ui(TextSize.body, weight: .medium))
                             .foregroundStyle(selection == item.value ? Theme.ink : Theme.tabIdle)
                         if let count = counts[item.value], count > 0 {
                             Text(count.formatted())
-                                .font(Theme.ui(10.5, weight: .medium))
-                                .foregroundStyle(Theme.tertiary)
+                                .font(Theme.ui(TextSize.caption, weight: .medium))
+                                .foregroundStyle(Theme.secondary)
                                 .monospacedDigit()
                         }
                     }
                     .padding(.horizontal, 12)
-                    .frame(height: 26)
+                    .frame(height: Control.regular - 6)
                     .contentShape(Capsule())
                 }
                 .buttonStyle(.plain)
+                .accessibilityAddTraits(selection == item.value ? .isSelected : [])
                 .anchorPreference(key: TabBounds.self, value: .bounds) { [index: $0] }
             }
         }
@@ -111,8 +112,7 @@ struct GooeyTabs<Value: Hashable>: View {
             }
         }
         .padding(3)
-        .background(Capsule().fill(Theme.softFillStrong))
-        .overlay(Capsule().strokeBorder(Theme.hairline))
+        .background(Capsule().fill(Theme.softFill))
     }
 }
 

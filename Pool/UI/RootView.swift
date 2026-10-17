@@ -194,38 +194,39 @@ private struct LinkEntry: View {
     var body: some View {
         ZStack(alignment: .topTrailing) {
             VStack(alignment: .leading, spacing: 8) {
-                HStack(spacing: 12) {
+                HStack(spacing: 10) {
                     Icon("link", size: IconSize.md)
-                        .foregroundStyle(Theme.tertiary)
+                        .foregroundStyle(Theme.secondary)
                     TextField(L.Add.linkPlaceholder, text: $text)
                         .textFieldStyle(.plain)
-                        .font(Theme.ui(15))
+                        .font(Theme.ui(TextSize.large))
                         .foregroundStyle(Theme.ink)
                         .focused($focused)
                         .onSubmit(save)
-                    Icon("return", size: IconSize.xs)
-                        .foregroundStyle(link == nil ? Theme.tertiary : .white)
-                        .frame(width: 26, height: 26)
-                        .background(Circle().fill(link == nil ? Theme.chip : Theme.ink))
-                        .lifted(Circle(), active: link == nil, shadow: 0)
-                        .animation(.easeOut(duration: 0.15), value: link == nil)
+                    Button(action: save) {
+                        Icon("return", size: IconSize.xs)
+                            .foregroundStyle(link == nil ? Theme.secondary : .white)
+                            .frame(width: Control.small, height: Control.small)
+                            .background(Circle().fill(link == nil ? Theme.softFill : Theme.ink))
+                            .contentShape(Circle())
+                    }
+                    .buttonStyle(PressStyle(scale: 0.9))
+                    .accessibilityLabel(L.Add.link)
+                    .animation(.easeOut(duration: 0.15), value: link == nil)
                 }
                 .padding(.leading, 16)
-                .padding(.trailing, 12)
-                .frame(width: 360, height: 50)
-                .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(.white))
-                .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(Theme.hairline))
-                .shadow(color: .black.opacity(0.05), radius: 2, y: 1)
-                .shadow(color: .black.opacity(0.1), radius: 24, y: 12)
+                .padding(.trailing, 8)
+                .frame(width: 380, height: 44)
+                .floatingPanel(radius: 22)
                 if invalid {
                     Text(L.Add.linkInvalid)
-                        .font(Theme.ui(12))
+                        .font(Theme.ui(TextSize.small))
                         .foregroundStyle(Theme.secondary)
                         .padding(.leading, 16)
                         .transition(.opacity)
                 }
             }
-            .padding(.top, Chrome.barHeight)
+            .padding(.top, Chrome.barHeight + 4)
             .padding(.trailing, Theme.sideInset)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
         }
@@ -281,62 +282,64 @@ struct TopBar: View {
     @Environment(AppModel.self) private var model
 
     var body: some View {
-        VStack(spacing: 18) {
+        VStack(alignment: .leading, spacing: 0) {
             ZStack {
-                HStack(spacing: 8) {
+                HStack(spacing: 12) {
                     if !model.sidebarShown {
-                        Spacer().frame(width: Chrome.lightsWidth - 6)
+                        Spacer().frame(width: Chrome.lightsWidth - 18)
                         SidebarToggle()
                     }
                     Spacer()
                     if model.enricher.activeID != nil {
                         ProgressView()
-                            .controlSize(.mini)
-                            .padding(.trailing, Theme.sideInset - 18 + AddMenu.closedWidth + 12)
+                            .controlSize(.small)
                             .opacity(model.addMenuOpen ? 0 : 1)
                             .transition(.opacity)
+                            .help(L.Detail.reading)
                     }
+                    Color.clear.frame(width: AddMenu.closedWidth, height: 1)
                 }
-                .padding(.horizontal, 18)
+                .padding(.leading, 18)
+                .padding(.trailing, Theme.sideInset)
 
                 SearchTrigger()
             }
-            .frame(height: 40)
+            .frame(height: Control.regular)
 
-            if !model.foldersPage {
-                ZStack {
+            HStack(spacing: 20) {
+                PageTitle()
+                if !model.foldersPage {
                     filters
-                        .opacity(model.addingFocus ? 0.35 : 1)
-                        .animation(.easeOut(duration: 0.15), value: model.addingFocus)
-                    HStack(spacing: 18) {
-                        FolderCrumb()
-                        Spacer()
-                        ViewControls()
-                            .opacity(model.addingFocus ? 0 : 1)
-                            .animation(.easeOut(duration: 0.15), value: model.addingFocus)
-                    }
-                    .padding(.horizontal, Theme.sideInset)
                 }
+                Spacer(minLength: 12)
+                if !model.foldersPage {
+                    ViewControls()
+                        .opacity(model.addingFocus ? 0 : 1)
+                }
+            }
+            .frame(height: Control.regular)
+            .padding(.horizontal, Theme.sideInset)
+            .padding(.top, Chrome.rowGap)
+            .opacity(model.addingFocus ? 0.35 : 1)
+            .animation(.easeOut(duration: 0.15), value: model.addingFocus)
 
-                if model.filterCount > 0 {
-                    FilterBar()
-                        .opacity(model.addingFocus ? 0.35 : 1)
-                        .animation(.easeOut(duration: 0.15), value: model.addingFocus)
-                        .transition(.opacity.combined(with: .offset(y: -6)))
-                }
+            if model.filterCount > 0 && !model.foldersPage {
+                FilterBar()
+                    .padding(.top, 16)
+                    .opacity(model.addingFocus ? 0.35 : 1)
+                    .animation(.easeOut(duration: 0.15), value: model.addingFocus)
+                    .transition(.opacity.combined(with: .offset(y: -6)))
             }
         }
-        .padding(.top, (Chrome.barHeight - 40) / 2)
-        .padding(.bottom, 16)
+        .padding(.top, (Chrome.barHeight - Control.regular) / 2)
         .frame(maxWidth: .infinity)
         .background {
-            Group {
-                LinearGradient(stops: [
-                    .init(color: Theme.canvas, location: 0),
-                    .init(color: Theme.canvas, location: 0.72),
-                    .init(color: Theme.canvas.opacity(0), location: 1),
-                ], startPoint: .top, endPoint: .bottom)
+            VStack(spacing: 0) {
+                Theme.canvas
+                LinearGradient(colors: [Theme.canvas, Theme.canvas.opacity(0)], startPoint: .top, endPoint: .bottom)
+                    .frame(height: Chrome.fade)
             }
+            .padding(.bottom, -Chrome.fade)
             .allowsHitTesting(false)
         }
         .frame(maxHeight: .infinity, alignment: .top)
@@ -352,6 +355,56 @@ struct TopBar: View {
             (L.Filter.links, SaveKind.link),
             (L.Filter.notes, SaveKind.note),
         ], selection: $model.kind, counts: [nil: total, .image: counts[.image] ?? 0, .link: counts[.link] ?? 0, .note: counts[.note] ?? 0])
+        .fixedSize()
+    }
+}
+
+struct PageTitle: View {
+    @Environment(AppModel.self) private var model
+    @State private var hovering = false
+
+    var body: some View {
+        HStack(spacing: 10) {
+            if let folder = currentFolder {
+                Button {
+                    withAnimation(Theme.settle) { model.foldersPage = true }
+                } label: {
+                    Icon("chevron.left", size: IconSize.sm)
+                        .foregroundStyle(Theme.ink)
+                        .frame(width: Control.small, height: Control.small)
+                        .background(Circle().fill(hovering ? Theme.softFillStrong : Theme.softFill))
+                        .contentShape(Circle())
+                }
+                .buttonStyle(PressStyle(scale: 0.92))
+                .onHover { hovering = $0 }
+                .animation(Theme.hover, value: hovering)
+                .help(L.Folders.allFolders)
+                .accessibilityLabel(L.Folders.allFolders)
+                Text(folder.name)
+                    .help(folder.name)
+            } else {
+                Text(title)
+            }
+        }
+        .font(Theme.serif(TitleSize.title))
+        .foregroundStyle(Theme.ink)
+        .lineLimit(1)
+        .truncationMode(.tail)
+        .accessibilityAddTraits(.isHeader)
+        .transition(.opacity)
+        .animation(Theme.fade, value: title)
+    }
+
+    private var currentFolder: Folder? {
+        guard !model.foldersPage, let id = model.folderID else { return nil }
+        return model.store.folder(id: id)
+    }
+
+    private var title: String {
+        if model.foldersPage { return L.Folders.allFolders }
+        if model.bookmarksOnly { return L.X.source }
+        if let folder = currentFolder { return folder.name }
+        return L.Folders.everything
     }
 }
 
@@ -360,45 +413,57 @@ struct SearchTrigger: View {
     @State private var hovering = false
 
     var body: some View {
-        HStack(spacing: 10) {
-            Icon("magnifyingglass", size: IconSize.sm)
-                .foregroundStyle(Theme.controlMuted)
-            if model.query.isEmpty {
-                Text(L.Search.placeholder)
-                    .font(Theme.ui(13))
-                    .foregroundStyle(Theme.controlMuted)
-            } else {
-                Text(model.query)
-                    .font(Theme.ui(13, weight: .medium))
-                    .foregroundStyle(Theme.controlText)
-                    .lineLimit(1)
+        Button { model.paletteShown = true } label: {
+            HStack(spacing: 10) {
+                Icon("magnifyingglass", size: IconSize.sm)
+                    .foregroundStyle(Theme.secondary)
+                if model.query.isEmpty {
+                    Text(L.Search.placeholder)
+                        .font(Theme.ui(TextSize.body))
+                        .foregroundStyle(Theme.secondary)
+                } else {
+                    Text(model.query)
+                        .font(Theme.ui(TextSize.body, weight: .medium))
+                        .foregroundStyle(Theme.ink)
+                        .lineLimit(1)
+                }
+                Spacer(minLength: 8)
+                if model.query.isEmpty {
+                    Text("⌘K")
+                        .font(Theme.ui(TextSize.caption, weight: .medium))
+                        .foregroundStyle(Theme.secondary)
+                        .padding(.horizontal, 8)
+                        .frame(height: 22)
+                        .background(Capsule().fill(Theme.surface))
+                }
             }
-            Spacer(minLength: 8)
-            if model.query.isEmpty {
-                Text("⌘K")
-                    .font(Theme.ui(11, weight: .medium))
-                    .foregroundStyle(Theme.controlMuted)
-                    .padding(.horizontal, 6)
-                    .frame(height: 20)
-                    .background(RoundedRectangle(cornerRadius: 5, style: .continuous).fill(Color.white))
-            } else {
+            .padding(.leading, 14)
+            .padding(.trailing, 6)
+            .frame(width: 460, height: Control.regular)
+            .background(Capsule().fill(hovering ? Theme.softFillStrong : Theme.softFill))
+            .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .overlay(alignment: .trailing) {
+            if !model.query.isEmpty {
                 Button {
                     model.query = ""
                 } label: {
                     Icon("xmark.circle.fill", size: IconSize.sm)
-                        .foregroundStyle(Theme.controlMuted)
+                        .foregroundStyle(Theme.secondary)
+                        .frame(width: Control.small, height: Control.small)
+                        .contentShape(Circle())
                 }
                 .buttonStyle(.plain)
+                .padding(.trailing, 6)
+                .accessibilityLabel(L.Search.clear)
             }
         }
-        .padding(.horizontal, 14)
-        .frame(width: 460, height: 40)
-        .background(Capsule().fill(hovering ? Theme.softTarget : Theme.softHover))
-        .borderBeam(size: .sm, active: model.voiceSearch.isListening, cornerRadius: 18, duration: 1.6)
-        .contentShape(Capsule())
-        .onTapGesture { model.paletteShown = true }
+        .borderBeam(size: .sm, active: model.voiceSearch.isListening, cornerRadius: Control.regular / 2, duration: 1.6)
         .onHover { hovering = $0 }
         .animation(Theme.hover, value: hovering)
+        .accessibilityLabel(model.query.isEmpty ? L.Search.placeholder : model.query)
+        .accessibilityHint("⌘K")
     }
 }
 
@@ -455,13 +520,13 @@ struct DropOverlay: View {
 
     var body: some View {
         ZStack {
-            Theme.canvas.opacity(0.78)
-            RoundedRectangle(cornerRadius: 22, style: .continuous)
+            Theme.scrim
+            RoundedRectangle(cornerRadius: Radius.sheet, style: .continuous)
                 .strokeBorder(Theme.dropDash, style: StrokeStyle(lineWidth: 1.5, dash: [6, 6]))
                 .padding(18)
             VStack(spacing: 12) {
                 Icon("arrow.down", size: IconSize.lg)
-                    .foregroundStyle(Theme.actionIcon)
+                    .foregroundStyle(Theme.ink)
                     .frame(width: 56, height: 56)
                     .background(Circle().fill(Theme.surface))
                     .overlay(Circle().strokeBorder(Theme.hairline))
@@ -541,7 +606,7 @@ struct NoteComposer: View {
 
     var body: some View {
         ZStack(alignment: .top) {
-            Color.black.opacity(0.06)
+            Theme.scrim
                 .contentShape(Rectangle())
                 .onTapGesture { requestClose() }
             VStack(alignment: .leading, spacing: 0) {
@@ -563,7 +628,7 @@ struct NoteComposer: View {
                 .padding(20)
                 HStack {
                     Text("⌘↩")
-                        .font(Theme.ui(11, weight: .medium))
+                        .font(Theme.ui(TextSize.caption, weight: .medium))
                         .foregroundStyle(Theme.tertiary)
                     Spacer()
                     HStack(spacing: 2) {
@@ -584,9 +649,7 @@ struct NoteComposer: View {
                 .overlay(alignment: .top) { Rectangle().fill(Theme.hairline).frame(height: 1) }
             }
             .frame(width: 560)
-            .background(RoundedRectangle(cornerRadius: 18, style: .continuous).fill(Theme.surface))
-            .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(Theme.hairline))
-            .shadow(color: .black.opacity(0.16), radius: 40, y: 20)
+            .floatingPanel(radius: Radius.sheet)
             .overlay(alignment: .bottom) {
                 if confirming {
                     QuestionPill(message: L.Note.discardQuestion, soft: L.Note.discardYes, solid: L.Note.discardNo, onSoft: { close() }) {

@@ -2,58 +2,13 @@ import AppKit
 import SwiftUI
 import UniformTypeIdentifiers
 
-struct FolderCrumb: View {
-    @Environment(AppModel.self) private var model
-    @State private var hovering = false
-
-    var body: some View {
-        if let id = model.folderID, let folder = model.store.folder(id: id) {
-            HStack(spacing: 10) {
-                Button {
-                    withAnimation(Theme.settle) { model.foldersPage = true }
-                } label: {
-                    HStack(spacing: 6) {
-                        Icon("chevron.left", size: IconSize.xs)
-                        Text(L.Folders.allFolders).font(Theme.ui(13, weight: .medium))
-                    }
-                    .foregroundStyle(hovering ? Theme.ink : Theme.secondary)
-                    .padding(.horizontal, 12)
-                    .frame(height: 34)
-                    .background(Capsule().fill(hovering ? Theme.softTarget : Theme.softHover))
-                    .contentShape(Capsule())
-                }
-                .buttonStyle(PressStyle(scale: 0.96))
-                .onHover { hovering = $0 }
-                .animation(Theme.hover, value: hovering)
-
-                Text(folder.name)
-                    .font(Theme.ui(14, weight: .medium))
-                    .foregroundStyle(Theme.ink)
-                    .lineLimit(1)
-                Text("\(model.store.count(in: folder))")
-                    .font(Theme.ui(13))
-                    .foregroundStyle(Theme.tertiary)
-            }
-            .transition(.opacity)
-        }
-    }
-}
-
 struct FoldersPage: View {
     @Environment(AppModel.self) private var model
 
     var body: some View {
         let folders = model.store.folders
         ScrollView {
-            VStack(alignment: .leading, spacing: 28) {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(L.Folders.allFolders)
-                        .font(Theme.serif(34))
-                        .foregroundStyle(Theme.ink)
-                    Text(folders.count == 1 ? "1 folder" : "\(folders.count) folders")
-                        .font(Theme.ui(13))
-                        .foregroundStyle(Theme.tertiary)
-                }
+            VStack(alignment: .leading, spacing: 0) {
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 230, maximum: 320), spacing: Theme.gap)], spacing: Theme.gap) {
                     ForEach(folders) { folder in
                         FolderCard(folder: folder)
@@ -62,7 +17,7 @@ struct FoldersPage: View {
                 }
             }
             .padding(.horizontal, Theme.sideInset)
-            .padding(.top, 112)
+            .padding(.top, Theme.topInset)
             .padding(.bottom, 140)
         }
         .scrollIndicators(.automatic)
@@ -72,6 +27,9 @@ struct FoldersPage: View {
 private struct FolderCard: View {
     @Environment(AppModel.self) private var model
     let folder: Folder
+    static let mosaicHeight: CGFloat = 170
+    static let infoHeight: CGFloat = 60
+    static let height: CGFloat = mosaicHeight + 16 + infoHeight
 
     @State private var hovering = false
     @State private var targeted = false
@@ -87,7 +45,7 @@ private struct FolderCard: View {
         VStack(alignment: .leading, spacing: 0) {
             Color.clear
                 .frame(maxWidth: .infinity)
-                .frame(height: 170)
+                .frame(height: Self.mosaicHeight)
                 .overlay { mosaic }
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                 .padding(8)
@@ -95,7 +53,7 @@ private struct FolderCard: View {
                 if editing {
                     TextField(L.Folders.untitled, text: $name)
                         .textFieldStyle(.plain)
-                        .font(Theme.ui(15, weight: .medium))
+                        .font(Theme.ui(14, weight: .medium))
                         .focused($nameFocused)
                         .onSubmit(commit)
                         .onExitCommand(perform: commit)
@@ -106,18 +64,19 @@ private struct FolderCard: View {
                         .onChange(of: nameFocused) { _, focused in if !focused { commit() } }
                 } else {
                     Text(folder.name)
-                        .font(Theme.ui(15, weight: .medium))
+                        .font(Theme.ui(14, weight: .medium))
                         .foregroundStyle(Theme.ink)
                         .lineLimit(1)
+                        .help(folder.name)
                 }
                 let count = model.store.count(in: folder)
-                Text(count == 1 ? "1 save" : "\(count) saves")
-                    .font(Theme.ui(12.5))
+                Text(L.Sidebar.count(count))
+                    .font(Theme.ui(TextSize.small))
                     .foregroundStyle(Theme.tertiary)
             }
             .padding(.horizontal, 14)
             .padding(.top, 6)
-            .padding(.bottom, 16)
+            .frame(height: FolderCard.infoHeight, alignment: .topLeading)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .cardShadow(radius: Theme.tileRadius + 4, hovering: hovering)
@@ -131,6 +90,8 @@ private struct FolderCard: View {
         .onHover { hovering = $0 }
         .animation(Theme.hover, value: hovering)
         .animation(.spring(duration: 0.35, bounce: 0.3), value: targeted)
+        .accessibilityAddTraits(.isButton)
+        .accessibilityAction { withAnimation(Theme.settle) { model.folderID = folder.id } }
         .onDrop(of: [UTType(exportedAs: AppModel.saveType), .fileURL, .url], isTargeted: $targeted) { providers in
             FolderDrop.receive(providers, into: folder, model: model)
             return true
@@ -197,9 +158,10 @@ private struct NewFolderCard: View {
                 Text(L.Folders.new)
                     .font(Theme.ui(13, weight: .medium))
             }
-            .foregroundStyle(hovering ? Theme.ink : Theme.secondary)
-            .frame(maxWidth: .infinity, minHeight: 246)
-            .background(RoundedRectangle(cornerRadius: Theme.tileRadius + 4, style: .continuous).fill(hovering ? Theme.softHover : Theme.softFill))
+            .foregroundStyle(Theme.ink)
+            .frame(maxWidth: .infinity)
+            .frame(height: FolderCard.height)
+            .background(RoundedRectangle(cornerRadius: Theme.tileRadius + 4, style: .continuous).fill(hovering ? Theme.softFillStrong : Theme.softFill))
             .contentShape(RoundedRectangle(cornerRadius: Theme.tileRadius + 4, style: .continuous))
         }
         .buttonStyle(PressStyle(scale: 0.98))

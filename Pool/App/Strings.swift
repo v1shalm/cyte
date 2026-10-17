@@ -35,6 +35,7 @@ enum L {
         static func emptyTitle(_ query: String) -> String { "No saves match “\(query)”" }
         static let emptyBody = "Cyte looked through titles, tags, notes and the text inside images."
         static let emptyPrimary = "Clear search"
+        static let clear = "Clear search"
         static let related = "Close in meaning"
     }
 
@@ -112,6 +113,9 @@ enum L {
         static let change = "Choose folder…"
         static let show = "Show in Finder"
         static let general = "General"
+        static let storage = "Storage"
+        static let folder = "Folder"
+        static func version(_ v: String) -> String { "Cyte \(v)" }
         static let reports = "Problem reports"
         static func reportsTitle(_ n: Int) -> String { n == 1 ? "Cyte saved 1 problem report" : "Cyte saved \(n) problem reports" }
         static let reportsBody = "Each one holds technical details about a crash or a slowdown on this Mac, and nothing from your library. Nothing leaves this Mac unless you send it."
@@ -162,7 +166,7 @@ enum L {
     }
 
     enum Filter {
-        static let all = "Everything"
+        static let all = "All"
         static let images = "Images"
         static let links = "Links"
         static let notes = "Notes"
@@ -178,6 +182,7 @@ enum L {
         static let yourTags = "Your tags"
         static let autoTags = "Found in images"
         static let clear = "Clear filters"
+        static let remove = "Removes this filter"
         static let empty = "No tags yet. Open a save and add one, or right-click it and choose Tag."
         static let tag = "Tag"
         static let newTag = "New tag"

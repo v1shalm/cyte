@@ -244,10 +244,7 @@ private struct PickerCard<Content: View>: View {
         content
             .padding(8)
             .frame(width: 260)
-            .background(RoundedRectangle(cornerRadius: 18, style: .continuous).fill(.white))
-            .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(Theme.hairline))
-            .shadow(color: .black.opacity(0.05), radius: 2, y: 1)
-            .shadow(color: .black.opacity(0.12), radius: 26, y: 12)
+            .floatingPanel()
     }
 }
 
@@ -256,7 +253,6 @@ private struct PickerRow: View {
     let symbol: String
     var trailing: String?
     let action: () -> Void
-    @State private var hovering = false
 
     var body: some View {
         Button(action: action) {
@@ -265,22 +261,14 @@ private struct PickerRow: View {
                     .foregroundStyle(Theme.secondary)
                     .frame(width: 18)
                 Text(title)
-                    .font(Theme.ui(13.5))
-                    .foregroundStyle(Theme.ink)
                     .lineLimit(1)
                 Spacer(minLength: 0)
                 if let trailing {
-                    Text(trailing).font(Theme.ui(12)).foregroundStyle(Theme.tertiary)
+                    Text(trailing).font(Theme.ui(TextSize.small)).foregroundStyle(Theme.tertiary).monospacedDigit()
                 }
             }
-            .padding(.horizontal, 10)
-            .frame(height: 36)
-            .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(hovering ? Theme.softHover : .clear))
-            .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
-        .onHover { hovering = $0 }
-        .animation(Theme.hover, value: hovering)
+        .buttonStyle(RowStyle())
     }
 }
 
@@ -302,7 +290,7 @@ private struct FolderPicker: View {
                 .frame(maxHeight: 220)
                 .scrollIndicators(.never)
                 .fixedSize(horizontal: false, vertical: true)
-                if !model.store.folders.isEmpty { Divider().padding(.vertical, 4) }
+                if !model.store.folders.isEmpty { Rectangle().fill(Theme.hairline).frame(height: 1).padding(.vertical, 4).padding(.horizontal, 10) }
                 PickerRow(title: L.Select.newFolder, symbol: "plus") { model.newFolderFromSelection() }
             }
         }
@@ -318,16 +306,16 @@ private struct TagPicker: View {
         PickerCard {
             VStack(spacing: 6) {
                 HStack(spacing: 8) {
-                    Icon("number", size: IconSize.sm).foregroundStyle(Theme.tertiary)
+                    Icon("number", size: IconSize.sm).foregroundStyle(Theme.secondary)
                     TextField(L.Select.tagPlaceholder, text: $text)
                         .textFieldStyle(.plain)
-                        .font(Theme.ui(13.5))
+                        .font(Theme.ui(13))
                         .focused($focused)
                         .onSubmit(commit)
                 }
-                .padding(.horizontal, 12)
-                .frame(height: 36)
-                .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Theme.softFill))
+                .padding(.horizontal, 10)
+                .frame(height: Control.row)
+                .background(RoundedRectangle(cornerRadius: Radius.row, style: .continuous).fill(Theme.softFill))
                 let suggestions = model.tagIndex.mine.prefix(6).filter { text.isEmpty || $0.tag.contains(text.lowercased()) }
                 ForEach(suggestions, id: \.tag) { item in
                     PickerRow(title: item.tag, symbol: "number", trailing: "\(item.count)") { model.tagSelected(item.tag) }

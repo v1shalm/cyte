@@ -14,12 +14,12 @@ struct AddPanel: View {
         VStack(alignment: .leading, spacing: 14) {
             if !compact {
                 Text(L.Add.title)
-                    .font(Theme.serif(22))
+                    .font(Theme.serif(20))
                     .foregroundStyle(Theme.ink)
             }
             HStack(spacing: 8) {
                 Icon("link", size: IconSize.sm)
-                    .foregroundStyle(Theme.tertiary)
+                    .foregroundStyle(Theme.secondary)
                 TextField(L.Add.linkPlaceholder, text: $link)
                     .textFieldStyle(.plain)
                     .font(Theme.ui(13))
@@ -37,10 +37,9 @@ struct AddPanel: View {
                 }
             }
             .padding(.leading, 14)
-            .padding(.trailing, 6)
-            .frame(height: 40)
-            .background(Capsule().fill(Theme.field))
-            .lifted(Capsule(), shadow: 0.04)
+            .padding(.trailing, 8)
+            .frame(height: Control.large)
+            .background(Capsule().fill(Theme.softFill))
             .overlay(Capsule().strokeBorder(linkFocused ? Theme.ink.opacity(0.18) : .clear))
             .animation(Theme.settle, value: link.isEmpty)
 
@@ -104,8 +103,7 @@ private struct AddAction: View {
             }
             .frame(maxWidth: .infinity)
             .frame(height: 74)
-            .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Theme.fieldTile(hovering: hovering)))
-            .lifted(RoundedRectangle(cornerRadius: 14, style: .continuous), shadow: hovering ? 0.08 : 0.04)
+            .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(hovering ? Theme.softFillStrong : Theme.softFill))
             .contentShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         }
         .buttonStyle(PressStyle(scale: 0.97))

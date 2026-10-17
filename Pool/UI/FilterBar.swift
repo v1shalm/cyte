@@ -66,66 +66,56 @@ extension AppModel {
 
 struct FilterBar: View {
     @Environment(AppModel.self) private var model
-    @State private var width: CGFloat = 0
 
     var body: some View {
         let filters = model.activeFilters
         ScrollView(.horizontal) {
-            HStack(spacing: 8) {
+            HStack(spacing: 6) {
                 ForEach(filters) { filter in
                     ActiveChip(filter: filter)
                         .transition(.scale(scale: 0.9).combined(with: .opacity))
                 }
                 if filters.count > 1 {
-                    Button {
+                    Button(L.Filter.clear) {
                         withAnimation(Theme.settle) { model.clearFilters() }
-                    } label: {
-                        Text(L.Filter.clear)
-                            .font(Theme.ui(12.5, weight: .medium))
-                            .foregroundStyle(Theme.secondary)
-                            .padding(.horizontal, 10)
-                            .frame(height: 34)
-                            .contentShape(Rectangle())
                     }
-                    .buttonStyle(PressStyle(scale: 0.96))
+                    .buttonStyle(.plain)
+                    .font(Theme.ui(TextSize.small, weight: .medium))
+                    .foregroundStyle(Theme.secondary)
+                    .padding(.horizontal, 10)
+                    .frame(height: Control.small)
+                    .contentShape(Rectangle())
                 }
             }
             .padding(.horizontal, Theme.sideInset)
-            .frame(minWidth: width, alignment: .center)
             .animation(Theme.settle, value: filters.map(\.id))
         }
         .scrollIndicators(.never)
         .scrollBounceBehavior(.basedOnSize)
-        .onGeometryChange(for: CGFloat.self, of: { $0.size.width }, action: { width = $0 })
-        .frame(height: 38)
+        .frame(height: Control.small)
     }
 }
 
 private struct ActiveChip: View {
-    @Environment(AppModel.self) private var model
     let filter: ActiveFilter
 
     var body: some View {
         Button {
             withAnimation(Theme.settle) { filter.remove() }
         } label: {
-            HStack(spacing: 7) {
+            HStack(spacing: 6) {
                 if let swatch = filter.swatch {
                     Circle().fill(swatch).frame(width: 12, height: 12)
                         .overlay(Circle().strokeBorder(.white.opacity(0.5)))
                 }
                 Text(filter.title)
-                    .font(Theme.ui(12.5, weight: .medium))
                 Icon("xmark", size: IconSize.xs)
                     .opacity(0.7)
             }
-            .foregroundStyle(.white)
-            .padding(.horizontal, 13)
-            .frame(height: 34)
-            .background(Capsule().fill(Theme.ink))
-            .contentShape(Capsule())
         }
-        .buttonStyle(PressStyle(scale: 0.96))
+        .buttonStyle(ChipStyle(active: true))
+        .accessibilityLabel(filter.title)
+        .accessibilityHint(L.Filter.remove)
     }
 }
 
@@ -140,14 +130,12 @@ struct FilterOverlay: View {
             ScrollView {
                 FilterPanel()
             }
-            .scrollIndicators(.never)
-            .frame(width: 380)
-            .frame(maxHeight: 580)
+            .scrollIndicators(.automatic)
+            .frame(width: 360)
+            .frame(maxHeight: 560)
             .fixedSize(horizontal: false, vertical: true)
-            .background(RoundedRectangle(cornerRadius: 20, style: .continuous).fill(Color.white))
-            .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).strokeBorder(Theme.hairline))
-            .shadow(color: .black.opacity(0.1), radius: 30, y: 12)
-            .padding(.top, 118)
+            .floatingPanel()
+            .padding(.top, Chrome.panelTop)
             .padding(.trailing, Theme.sideInset)
             .transition(.scale(scale: 0.96, anchor: .topTrailing).combined(with: .opacity))
         }
@@ -165,16 +153,19 @@ struct FilterPanel: View {
         let hosts = model.hostIndex
         VStack(alignment: .leading, spacing: 20) {
             section(L.Filter.added) {
-                HStack(spacing: 8) {
+                FlowLayout(spacing: 6, lineSpacing: 6) {
                     ForEach(DateRange.allCases) { range in
-                        OptionPill(title: range.title, active: model.activeRange == range) {
-                            model.activeRange = model.activeRange == range ? .any : range
+                        let on = model.activeRange == range
+                        Button(range.title) {
+                            model.activeRange = on ? .any : range
                         }
+                        .buttonStyle(ChipStyle(active: on))
+                        .accessibilityAddTraits(on ? .isSelected : [])
                     }
                 }
             }
             section(L.Filter.colour) {
-                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 3), spacing: 8) {
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 3), spacing: 6) {
                     ForEach(swatches, id: \.self) { name in
                         let selected = model.activeColor == name
                         Button {
@@ -183,22 +174,15 @@ struct FilterPanel: View {
                             HStack(spacing: 8) {
                                 Circle()
                                     .fill(Theme.color(hex: SearchQuery.colorNames[name] ?? "#888888"))
-                                    .frame(width: 16, height: 16)
-                                    .overlay(Circle().strokeBorder(Theme.hairline))
+                                    .frame(width: 14, height: 14)
+                                    .overlay(Circle().strokeBorder(selected ? Color.white.opacity(0.6) : Theme.hairline))
                                 Text(name.capitalized)
-                                    .font(Theme.ui(12, weight: selected ? .medium : .regular))
-                                    .foregroundStyle(selected ? Color.white : Theme.ink.opacity(0.78))
-                                    .lineLimit(1)
                                 Spacer(minLength: 0)
                             }
-                            .padding(.leading, 12)
-                            .padding(.trailing, 6)
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .frame(height: 32)
-                            .background(Capsule().fill(selected ? Theme.ink : Theme.softHover))
-                            .contentShape(Capsule())
                         }
-                        .buttonStyle(PressStyle(scale: 0.96))
+                        .buttonStyle(ChipStyle(active: selected))
+                        .accessibilityAddTraits(selected ? .isSelected : [])
                     }
                 }
             }
@@ -212,40 +196,39 @@ struct FilterPanel: View {
                             } label: {
                                 HStack {
                                     Text(item.host)
-                                        .font(Theme.ui(13, weight: selected ? .medium : .regular))
-                                        .foregroundStyle(Theme.ink)
+                                        .lineLimit(1)
                                     Spacer()
                                     if selected {
-                                        Icon("checkmark", size: IconSize.xs)
+                                        Icon("checkmark", size: IconSize.sm)
                                     } else {
-                                        Text("\(item.count)").font(Theme.ui(12)).foregroundStyle(Theme.tertiary)
+                                        Text("\(item.count)")
+                                            .font(Theme.ui(TextSize.small))
+                                            .foregroundStyle(Theme.tertiary)
+                                            .monospacedDigit()
                                     }
                                 }
-                                .padding(.horizontal, 12)
-                                .frame(height: 34)
-                                .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(selected ? Theme.softFillStrong : .clear))
-                                .contentShape(Rectangle())
                             }
-                            .buttonStyle(PressStyle(scale: 0.98))
+                            .buttonStyle(RowStyle(selected: selected))
+                            .accessibilityAddTraits(selected ? .isSelected : [])
                         }
                     }
-                    .padding(.horizontal, -12)
+                    .padding(.horizontal, -10)
                 }
             }
             if !index.mine.isEmpty {
                 section(L.Filter.yourTags) {
-                    FlowLayout(spacing: 8, lineSpacing: 8) {
+                    FlowLayout(spacing: 6, lineSpacing: 6) {
                         ForEach(index.mine.prefix(18), id: \.tag) { item in
-                            OptionPill(title: item.tag, active: model.activeTags.contains(item.tag)) { model.toggleTag(item.tag) }
+                            tagChip(item.tag)
                         }
                     }
                 }
             }
             if !index.found.isEmpty {
                 section(L.Filter.autoTags) {
-                    FlowLayout(spacing: 8, lineSpacing: 8) {
+                    FlowLayout(spacing: 6, lineSpacing: 6) {
                         ForEach(index.found.prefix(14), id: \.tag) { item in
-                            OptionPill(title: item.tag, active: model.activeTags.contains(item.tag)) { model.toggleTag(item.tag) }
+                            tagChip(item.tag)
                         }
                     }
                 }
@@ -263,38 +246,20 @@ struct FilterPanel: View {
             }
         }
         .padding(20)
-        .frame(width: 380)
+        .frame(width: 360)
+    }
+
+    private func tagChip(_ tag: String) -> some View {
+        let on = model.activeTags.contains(tag)
+        return Button(tag) { model.toggleTag(tag) }
+            .buttonStyle(ChipStyle(active: on))
+            .accessibilityAddTraits(on ? .isSelected : [])
     }
 
     private func section<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text(title)
-                .font(Theme.ui(11, weight: .medium))
-                .foregroundStyle(Theme.tertiary)
+            SectionLabel(title)
             content()
         }
-    }
-}
-
-private struct OptionPill: View {
-    let title: String
-    let active: Bool
-    let action: () -> Void
-    @State private var hovering = false
-
-    var body: some View {
-        Button(action: action) {
-            Text(title)
-                .font(Theme.ui(12.5, weight: .medium))
-                .foregroundStyle(active ? Color.white : Theme.ink.opacity(0.78))
-                .padding(.horizontal, 12)
-                .frame(height: 28)
-                .background(Capsule().fill(active ? Theme.ink : (hovering ? Theme.softTarget : Theme.softHover)))
-                .contentShape(Capsule())
-        }
-        .buttonStyle(PressStyle(scale: 0.96))
-        .onHover { hovering = $0 }
-        .animation(Theme.hover, value: hovering)
-        .animation(Theme.hover, value: active)
     }
 }

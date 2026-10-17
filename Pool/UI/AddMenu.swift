@@ -14,9 +14,10 @@ struct AddMenu: View {
     }
 
     @State private var clipboardLink: URL?
+    @State private var hovering = false
 
     static let closedWidth: CGFloat = 80
-    static let height: CGFloat = 34
+    static let height: CGFloat = Control.regular
     private let bubble: CGFloat = 38
     private let step: CGFloat = 46
     private let firstGap: CGFloat = 12
@@ -56,15 +57,16 @@ struct AddMenu: View {
                     .rotationEffect(.degrees(open ? 45 : 0))
                 if !open {
                     Text(L.Add.button)
-                        .font(Theme.ui(13, weight: .medium))
+                        .font(Theme.ui(TextSize.body, weight: .medium))
                         .transition(.opacity.combined(with: .scale(scale: 0.85)))
                 }
             }
             .foregroundStyle(.white)
             .frame(width: open ? Self.height : Self.closedWidth, height: Self.height)
-            .background(Capsule().fill(Theme.ink))
+            .background(Capsule().fill(hovering ? Theme.inkHover : Theme.ink))
             .contentShape(Capsule())
-            .shadow(color: .black.opacity(open ? 0.14 : 0.08), radius: open ? 10 : 6, y: open ? 5 : 3)
+            .onHover { hovering = $0 }
+            .animation(Theme.hover, value: hovering)
             .animation(reduceMotion ? .easeOut(duration: 0.12) : .spring(duration: 0.34, bounce: 0.16), value: open)
         }
         .buttonStyle(PressStyle(scale: 0.95))
@@ -129,11 +131,11 @@ private struct AddMenuRow: View {
         Button(action: action) {
             HStack(spacing: 10) {
                 Text(option.title)
-                    .font(Theme.ui(12.5, weight: .medium))
+                    .font(Theme.ui(TextSize.small, weight: .medium))
                     .foregroundStyle(Theme.ink)
                     .lineLimit(1)
                     .padding(.horizontal, 12)
-                    .frame(height: 28)
+                    .frame(height: Control.small)
                     .background(Capsule().fill(hovering ? Theme.softHover : .white))
                     .overlay(Capsule().strokeBorder(Theme.hairline))
                     .shadow(color: .black.opacity(0.06), radius: 6, y: 2)

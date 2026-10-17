@@ -12,14 +12,15 @@ struct Rail: View {
                 Image("MenuBarMark")
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 40, height: 40)
+                    .frame(width: 28, height: 28)
                     .foregroundStyle(Theme.sideInk)
-                    .frame(width: 56, height: 56)
+                    .frame(width: 44, height: 44)
                     .contentShape(Rectangle())
             }
             .buttonStyle(PressStyle(scale: 0.92))
             .help(L.Folders.everything)
-            .padding(.top, Chrome.barHeight + 2)
+            .accessibilityLabel(L.Folders.everything)
+            .padding(.top, Chrome.titleRowCenter - 22)
 
             VStack(spacing: 6) {
                 RailButton(symbol: "square.grid.2x2.fill", title: L.Folders.everything, active: model.folderID == nil && !model.bookmarksOnly && !model.foldersPage) {
@@ -37,7 +38,7 @@ struct Rail: View {
                 .onChange(of: dragOver) { _, over in if over { withAnimation(Theme.settle) { model.foldersPage = true } } }
                 .onChange(of: model.editingFolderID) { _, id in if id != nil, model.folderID == nil { model.foldersPage = true } }
             }
-            .padding(.top, 28)
+            .padding(.top, 20)
 
             Spacer(minLength: 0)
 
@@ -46,6 +47,7 @@ struct Rail: View {
             }
             .buttonStyle(PressStyle(scale: 0.92))
             .help(L.Settings.title)
+            .accessibilityLabel(L.Settings.title)
             .padding(.bottom, 16)
 
         }
@@ -63,10 +65,10 @@ private struct RailIcon: View {
 
     var body: some View {
         Icon(symbol, size: IconSize.lg, fill: 1)
-            .foregroundStyle(active ? Theme.sideInk : (hovering ? Theme.sideTertiary : Theme.sideTertiary.opacity(0.55)))
+            .foregroundStyle(active || hovering ? Theme.sideInk : Theme.tertiary)
             .frame(width: 44, height: 44)
-            .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(active ? Theme.sideTarget : (hovering ? Theme.sideHover : .clear)))
-            .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .background(RoundedRectangle(cornerRadius: Radius.row, style: .continuous).fill(active ? Theme.softFill : (hovering ? Theme.softHover : .clear)))
+            .contentShape(RoundedRectangle(cornerRadius: Radius.row, style: .continuous))
             .onHover { hovering = $0 }
             .animation(Theme.hover, value: hovering)
             .animation(Theme.hover, value: active)
@@ -87,5 +89,6 @@ private struct RailButton: View {
         .buttonStyle(PressStyle(scale: 0.92))
         .help(title)
         .accessibilityLabel(title)
+        .accessibilityAddTraits(active ? .isSelected : [])
     }
 }

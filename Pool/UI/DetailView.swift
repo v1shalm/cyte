@@ -143,7 +143,7 @@ private struct LinkHero: View {
                         .foregroundStyle(Theme.secondary)
                 }
                 Text(save.displayTitle)
-                    .font(Theme.serif(28))
+                    .font(Theme.serif(26))
                     .foregroundStyle(Theme.ink)
                     .lineSpacing(2)
                     .fixedSize(horizontal: false, vertical: true)
@@ -176,8 +176,8 @@ private struct NoteHero: View {
 
     var body: some View {
         TextEditor(text: $text)
-            .font(Theme.serif(20))
-            .lineSpacing(5)
+            .font(Theme.serif(19))
+            .lineSpacing(4)
             .scrollContentBackground(.hidden)
             .foregroundStyle(Theme.ink)
             .padding(28)
@@ -212,13 +212,12 @@ private struct Inspector: View {
                     header
                     if model.enricher.activeID == save.id || (save.enriched == 0 && !save.pending && model.enricher.modelAvailable) {
                         Text(L.Detail.reading)
-                            .font(Theme.ui(12))
+                            .font(Theme.ui(TextSize.small))
                             .foregroundStyle(Theme.secondary)
                             .padding(.horizontal, 12)
-                            .frame(maxWidth: .infinity, minHeight: 36, alignment: .leading)
-                            .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Theme.fill))
-                            .lifted(RoundedRectangle(cornerRadius: 10, style: .continuous), shadow: 0.03)
-                            .borderBeam(size: .sm, palette: .silver, cornerRadius: 10, duration: 1.8)
+                            .frame(maxWidth: .infinity, minHeight: Control.row, alignment: .leading)
+                            .background(RoundedRectangle(cornerRadius: Radius.field, style: .continuous).fill(Theme.softFill))
+                            .borderBeam(size: .sm, palette: .silver, cornerRadius: Radius.field, duration: 1.8)
                     }
                     if let summary = save.summary, !summary.isEmpty {
                         section(L.Detail.summary) {
@@ -260,7 +259,7 @@ private struct Inspector: View {
         VStack(alignment: .leading, spacing: 8) {
             TextField("", text: $title, axis: .vertical)
                 .textFieldStyle(.plain)
-                .font(Theme.serif(24))
+                .font(Theme.serif(26))
                 .foregroundStyle(Theme.ink)
                 .lineLimit(1...4)
                 .onSubmit(commitTitle)
@@ -325,11 +324,11 @@ private struct Inspector: View {
                 }
                 TextField(L.Detail.addTag, text: $newTag)
                     .textFieldStyle(.plain)
-                    .font(Theme.ui(12))
+                    .font(Theme.ui(TextSize.small))
                     .frame(width: 84)
-                    .padding(.horizontal, 10)
-                    .frame(height: 26)
-                    .background(Capsule().strokeBorder(Theme.hairline, style: StrokeStyle(lineWidth: 1, dash: [3, 3])))
+                    .padding(.horizontal, 12)
+                    .frame(height: Control.small)
+                    .background(Capsule().strokeBorder(Theme.dropDash, style: StrokeStyle(lineWidth: 1, dash: [3, 3])))
                     .focused($tagFocused)
                     .onSubmit(addTag)
             }
@@ -364,8 +363,7 @@ private struct Inspector: View {
                     .padding(.vertical, 8)
                     .frame(minHeight: 84)
             }
-            .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Theme.fill))
-            .lifted(RoundedRectangle(cornerRadius: 10, style: .continuous), shadow: 0)
+            .background(RoundedRectangle(cornerRadius: Radius.field, style: .continuous).fill(Theme.softFill))
             .onChange(of: note) { _, value in
                 guard value != save.note else { return }
                 model.store.modify(save.id) { $0.note = value }
@@ -437,9 +435,7 @@ private struct Inspector: View {
 
     private func section<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text(title)
-                .font(Theme.ui(11, weight: .medium))
-                .foregroundStyle(Theme.tertiary)
+            SectionLabel(title)
             content()
         }
     }
@@ -469,10 +465,10 @@ private struct TagChip: View {
                 .transition(.opacity)
             }
         }
-        .padding(.horizontal, 10)
-        .frame(height: 26)
-        .background(Capsule().fill(strong ? Theme.fillStrong : Theme.fill))
-        .lifted(Capsule(), shadow: strong ? 0.06 : 0.03)
+        .padding(.horizontal, 12)
+        .frame(height: Control.small)
+        .background(Capsule().fill(strong ? Theme.softFill : .clear))
+        .overlay(Capsule().strokeBorder(strong ? .clear : Theme.hairline))
         .onHover { hovering = $0 }
         .animation(Theme.hover, value: hovering)
     }
@@ -489,16 +485,19 @@ private struct ActionButton: View {
     let symbol: String
     let title: String
     let action: () -> Void
+    @State private var hovering = false
 
     var body: some View {
         Button(action: action) {
             Icon(symbol, size: IconSize.sm)
-                .foregroundStyle(Theme.actionIcon)
-                .frame(width: 34, height: 34)
-                .background(Circle().fill(Theme.action))
-                .lifted(Circle(), shadow: 0.06)
+                .foregroundStyle(Theme.ink)
+                .frame(width: Control.regular, height: Control.regular)
+                .background(Circle().fill(hovering ? Theme.softFillStrong : Theme.softFill))
+                .contentShape(Circle())
         }
         .buttonStyle(PressStyle(scale: 0.92))
+        .onHover { hovering = $0 }
+        .animation(Theme.hover, value: hovering)
         .help(title)
         .accessibilityLabel(title)
     }
@@ -517,7 +516,7 @@ private struct NavArrow: View {
             Button { model.select(offset: forward ? 1 : -1) } label: {
                 Icon(forward ? "chevron.right" : "chevron.left", size: IconSize.sm)
                     .foregroundStyle(Theme.ink)
-                    .frame(width: 38, height: 38)
+                    .frame(width: Control.large, height: Control.large)
                     .background(Circle().fill(.white))
                     .overlay(Circle().strokeBorder(Theme.hairline))
                     .shadow(color: .black.opacity(hovering ? 0.14 : 0.07), radius: hovering ? 10 : 5, y: 2)
@@ -558,7 +557,7 @@ private struct Filmstrip: View {
                 }
                 .animation(Theme.settle, value: currentID)
                 Text("\(index + 1) of \(ids.count)")
-                    .font(Theme.ui(11.5, weight: .medium))
+                    .font(Theme.ui(11, weight: .medium))
                     .foregroundStyle(Theme.tertiary)
                     .monospacedDigit()
             }

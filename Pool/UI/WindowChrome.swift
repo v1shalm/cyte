@@ -6,6 +6,11 @@ enum Chrome {
     static let lightsLeading: CGFloat = 22
     static let lightsSpacing: CGFloat = 20
     static let lightsWidth: CGFloat = lightsLeading + lightsSpacing * 2 + 14
+    static let rowGap: CGFloat = 24
+    static let fade: CGFloat = 16
+    static let headerBottom: CGFloat = (barHeight - Control.regular) / 2 + Control.regular * 2 + rowGap
+    static let titleRowCenter: CGFloat = headerBottom - Control.regular / 2
+    static let panelTop: CGFloat = headerBottom + 8
 }
 
 struct WindowChrome: NSViewRepresentable {

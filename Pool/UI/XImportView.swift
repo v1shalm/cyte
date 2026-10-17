@@ -81,12 +81,8 @@ struct XImportView: View {
         }
         .padding(28)
         .frame(width: 420, alignment: .leading)
-        .background(Color.white)
-        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).strokeBorder(Theme.hairline))
-        .borderBeam(size: .line, strength: 0.5, active: importer.isBusy, cornerRadius: 22, duration: 1.6)
-        .shadow(color: .black.opacity(0.06), radius: 2, y: 1)
-        .shadow(color: .black.opacity(0.12), radius: 40, y: 20)
+        .floatingPanel(radius: Radius.sheet)
+        .borderBeam(size: .line, strength: 0.5, active: importer.isBusy, cornerRadius: Radius.sheet, duration: 1.6)
         .animation(.timingCurve(0.23, 1, 0.32, 1, duration: 0.25), value: importer.phase)
     }
 
@@ -108,7 +104,7 @@ struct XImportView: View {
 
     private func paragraph(_ text: String) -> some View {
         Text(text)
-            .font(Theme.ui(13.5))
+            .font(Theme.ui(13))
             .lineSpacing(3)
             .foregroundStyle(Theme.secondary)
             .fixedSize(horizontal: false, vertical: true)
