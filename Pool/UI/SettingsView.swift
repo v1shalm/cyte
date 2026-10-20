@@ -3,7 +3,7 @@ import ServiceManagement
 import SwiftUI
 
 enum SettingsTab: Hashable {
-    case general, library, x, shortcuts
+    case general, library, shortcuts
 }
 
 struct SettingsView: View {
@@ -26,7 +26,6 @@ struct SettingsView: View {
                 GooeyTabs(items: [
                     (L.Settings.general, SettingsTab.general),
                     (L.Settings.library, SettingsTab.library),
-                    (L.Settings.x, SettingsTab.x),
                     (L.Settings.shortcuts, SettingsTab.shortcuts),
                 ], selection: $tab)
                 .fixedSize()
@@ -43,7 +42,6 @@ struct SettingsView: View {
                     switch tab {
                     case .general: general
                     case .library: library
-                    case .x: xBookmarks
                     case .shortcuts: shortcuts
                     }
                 }
@@ -157,23 +155,6 @@ struct SettingsView: View {
             actionBar {
                 Button(L.Settings.show) { NSWorkspace.shared.activateFileViewerSelecting([LibraryLocation.current]) }.poolSecondary(.first)
                 Button(L.Settings.change, action: chooseLibrary).poolSecondary(.last)
-            }
-        }
-    }
-
-    @ViewBuilder private var xBookmarks: some View {
-        group {
-            row(model.xImport.connected ? L.Settings.xConnected : L.Settings.xOff,
-                model.xImport.importedCount > 0 ? L.Viewing.saves(model.xImport.importedCount) : (model.xImport.connected ? nil : L.X.introBody(model.xImport.browserName))) {
-                EmptyView()
-            }
-            actionBar {
-                if model.xImport.connected {
-                    Button(L.X.disconnect) { model.xImport.disconnect() }.poolSecondary(.first)
-                    Button(L.X.syncNow) { model.xImport.open() }.poolPrimary(.last)
-                } else {
-                    Button(L.X.connect) { model.xImport.open() }.poolPrimary()
-                }
             }
         }
     }

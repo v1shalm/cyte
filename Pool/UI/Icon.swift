@@ -59,8 +59,6 @@ struct Icon: View {
         "photo": "image",
         "photo.on.rectangle": "image-stack",
         "number": "hashtag",
-        "bookmark": "bookmark",
-        "bookmark.fill": "bookmark",
         "arrow.up.right": "arrow-up-right",
         "square.grid.3x3": "grid-3x3",
         "square.grid.2x2": "grid-2x2",
@@ -90,7 +88,6 @@ struct Icon: View {
 
     private static let fillSlugs: [String: String] = [
         "folder": "folder-fill",
-        "bookmark": "bookmark-fill",
         "grid-2x2": "grid-fill",
         "settings": "settings-fill",
     ]

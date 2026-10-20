@@ -10,7 +10,7 @@ export default function Privacy() {
   return (
     <DocPage
       title="Privacy"
-      updated="16 October 2026"
+      updated="20 October 2026"
       lede="Cyte has no accounts, no analytics and no servers of its own. Your library is a folder you choose, and Cyte does its work on your Mac."
     >
       <h2>Where your saves live</h2>
@@ -39,11 +39,6 @@ export default function Privacy() {
         <li>
           <b>Saving a link.</b> Cyte opens that page to fetch its title, description and preview image, the same way a
           browser would. The site sees a request from your Mac.
-        </li>
-        <li>
-          <b>Importing X bookmarks.</b> Cyte reads the X login already in your browser, with your permission, and uses it
-          only to open your bookmarks on x.com from your Mac. It then downloads those posts&apos; images and videos from
-          X. Your login never goes anywhere except x.com.
         </li>
         <li>
           <b>Checking for updates.</b> Once a day, if you leave it on, Cyte asks this website whether a new version

@@ -23,13 +23,8 @@ struct Rail: View {
             .padding(.top, Chrome.titleRowCenter - 22)
 
             VStack(spacing: 6) {
-                RailButton(symbol: "square.grid.2x2.fill", title: L.Folders.everything, active: model.folderID == nil && !model.bookmarksOnly && !model.foldersPage) {
+                RailButton(symbol: "square.grid.2x2.fill", title: L.Folders.everything, active: model.folderID == nil && !model.foldersPage) {
                     withAnimation(Theme.settle) { goHome() }
-                }
-                RailButton(symbol: "bookmark.fill", title: L.X.source, active: model.bookmarksOnly) {
-                    withAnimation(Theme.settle) {
-                        if model.xImport.connected || model.xImport.importedCount > 0 { model.bookmarksOnly.toggle() } else { model.xImport.open() }
-                    }
                 }
                 RailButton(symbol: "folder.fill", title: L.Folders.allFolders, active: model.foldersPage || model.folderID != nil) {
                     withAnimation(Theme.settle) { model.foldersPage = true }

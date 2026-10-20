@@ -4,7 +4,7 @@ import { SiteFooter } from "./doc";
 import { Icon, type IconName } from "./icons";
 import styles from "./page.module.css";
 
-const features: { icon: IconName; title: string; body: string; demo: "motion" | "text" | "select" | "smart" | "similar" | "x" }[] = [
+const features: { icon: IconName; title: string; body: string; demo: "motion" | "text" | "select" | "smart" | "similar" }[] = [
   {
     icon: "play",
     title: "Videos and GIFs play in the grid",
@@ -34,12 +34,6 @@ const features: { icon: IconName; title: string; body: string; demo: "motion" | 
     title: "Find similar",
     body: "Right-click an image to see the saves that look like it, matched on your device.",
     demo: "similar",
-  },
-  {
-    icon: "bookmark",
-    title: "X bookmarks, kept apart",
-    body: "Import bookmarked posts with images or videos. They get their own place and stay out of Everything.",
-    demo: "x",
   },
 ];
 
@@ -131,22 +125,6 @@ function Demo({ kind }: { kind: (typeof features)[number]["demo"] }) {
           </div>
         </div>
       );
-    case "x":
-      return (
-        <div className={styles.demo}>
-          <div className={styles.railMini}>
-            <span>
-              <Icon name="grid" size={18} />
-            </span>
-            <span className={styles.railMiniOn}>
-              <Icon name="bookmark" size={18} />
-            </span>
-            <span>
-              <Icon name="folder" size={18} />
-            </span>
-          </div>
-        </div>
-      );
   }
 }
 
@@ -175,7 +153,7 @@ export default function Home() {
             <span>Find it in seconds.</span>
           </h1>
           <p className={styles.lede}>
-            Cyte keeps the images, links, notes and X bookmarks you collect in one calm grid on your Mac. It reads
+            Cyte keeps the images, links and notes you collect in one calm grid on your Mac. It reads
             every image on your device, so you can search a poster by the words printed on it.
           </p>
           <div className={styles.pair}>

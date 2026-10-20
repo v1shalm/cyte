@@ -8,7 +8,7 @@ const serif = Newsreader({ subsets: ["latin"], variable: "--font-serif", style: 
 export const metadata: Metadata = {
   title: "Cyte for Mac",
   description:
-    "Cyte keeps the images, links, notes and X bookmarks you collect in one calm grid on your Mac, and finds them by the words inside.",
+    "Cyte keeps the images, links and notes you collect in one calm grid on your Mac, and finds them by the words inside.",
 };
 
 export const viewport: Viewport = {

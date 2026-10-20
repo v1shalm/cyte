@@ -50,7 +50,6 @@ enum L {
         static let duplicate = "You already saved this link"
         static let noSimilar = "Nothing in your library looks like this yet"
         static let duplicateImage = "You already saved this image"
-        static func xVideos(_ count: Int) -> String { count == 1 ? "1 X bookmark now plays as video" : "\(count) X bookmarks now play as video" }
         static func librarySwitched(_ place: String) -> String { "Opened your library in \(place)" }
         static func libraryMoved(_ count: Int, to place: String) -> String { count == 1 ? "Moved 1 save to \(place)" : "Moved \(count) saves to \(place)" }
     }
@@ -83,8 +82,6 @@ enum L {
         static let browse = "Browse everything"
         static let filterTitle = "No saves match these filters"
         static let filterBody = "Widen the date range or remove a tag to see more."
-        static let bookmarksTitle = "No X bookmarks yet"
-        static let bookmarksBody = "Import your X bookmarks and the posts with images or videos land here."
     }
 
     enum Viewing {
@@ -140,9 +137,6 @@ enum L {
         static let soundsBody = "Soft cues when you save, delete or drop."
         static let screenshots = "Save screenshots"
         static let screenshotsBody = "New screenshots on your Mac land in Cyte as they are taken."
-        static let x = "X bookmarks"
-        static let xConnected = "Connected through your browser login"
-        static let xOff = "Not connected"
         static let shortcuts = "Shortcuts"
         static let about = "About"
     }
@@ -292,46 +286,6 @@ enum L {
         static let note = "Write a note"
         static let paste = "Paste clipboard"
         static let hint = "You can also drag anything onto the window."
-    }
-
-    enum X {
-        static let source = "X bookmarks"
-        static let connect = "Connect"
-        static let syncing = "Importing"
-        static let importAction = "Import X bookmarks"
-        static let disconnect = "Disconnect X"
-        static let syncNow = "Import new bookmarks"
-        static let introTitle = "Bring in your X bookmarks"
-        static func introBody(_ browser: String?) -> String {
-            "Cyte uses the X login you already have in \(browser ?? "your browser"). It brings in bookmarked posts that have images or videos and skips text-only posts."
-        }
-        static let introPrivacy = "macOS asks once to let Cyte read that login. Cyte uses it only to open x.com on this Mac. Choose Always Allow so later imports run on their own."
-        static let start = "Import bookmarks"
-        static let cancel = "Cancel"
-        static let loading = "Opening your bookmarks"
-        static let importing = "Importing your bookmarks"
-        static func progress(found: Int, added: Int) -> String {
-            found == 0 ? "Waiting for X to send the first page" : "\(added) with images or videos out of \(found) checked"
-        }
-        static let keepOpen = "Keep this window open until Cyte finishes."
-        static let stop = "Stop"
-        static func doneTitle(_ n: Int) -> String {
-            switch n {
-            case 0: "Your bookmarks are up to date"
-            case 1: "1 bookmark imported"
-            default: "\(n) bookmarks imported"
-            }
-        }
-        static let doneBody = "Cyte brought in posts with images or videos. Search from:x.com any time to see them."
-        static let showThem = "Show them"
-        static let done = "Done"
-        static let failedTitle = "X didn't send your bookmarks"
-        static let noLoginTitle = "Cyte can't find your X login"
-        static let noLogin = "Sign in at x.com in Dia, Chrome or Arc, then try again. Cyte borrows that login, so you never sign in here."
-        static let failedLimited = "X slows down accounts that load many bookmarks at once. Wait about 15 minutes, then try again."
-        static let failedNoPage = "Your bookmarks page didn't load in time. Try again, and sign in once more if X asks."
-        static let tryAgain = "Try again"
-        static let close = "Close"
     }
 
     static let dropOverlay = "Drop to save"

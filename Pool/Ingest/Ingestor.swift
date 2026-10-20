@@ -206,13 +206,13 @@ final class Ingestor {
     }
 
     @discardableResult
-    private func commit(_ save: Save, prepared: PreparedImage, fresh: Bool = true) -> Save {
+    private func commit(_ save: Save, prepared: PreparedImage) -> Save {
         var save = save
         save.original = prepared.original
         save.thumbnail = prepared.thumbnail
         save.aspect = prepared.aspect
         save.contentHash = prepared.hash
-        store.insert(save, fresh: fresh)
+        store.insert(save)
         enricher.enrich(save.id)
         return save
     }
@@ -252,53 +252,6 @@ final class Ingestor {
             enricher.enrich(id)
         }
         return save
-    }
-
-    func importTweet(_ tweet: XTweet, at date: Date) async -> Int {
-        let text = tweet.text.isEmpty ? nil : tweet.text
-        var made = 0
-        for index in tweet.media.indices {
-            let item = tweet.media[index]
-            let target = tweet.mediaURL(index)
-            if let existing = store.saves.first(where: { $0.source == "x" && $0.url == target }) {
-                if existing.motion == nil, let videoURL = item.videoURL, await upgrade(existing, video: videoURL, aspect: item.aspect) {
-                    made += 1
-                }
-                continue
-            }
-            var save = Save(kind: .image, title: tweet.name, url: target, text: text, source: "x")
-            save.createdAt = date.addingTimeInterval(-Double(index) / 1000)
-            save.updatedAt = save.createdAt
-            let folder = store.folder(for: save)
-            var prepared: PreparedImage?
-            if let videoURL = item.videoURL, let data = await LinkPreview.downloadMedia(videoURL) {
-                prepared = await Self.prepareVideo(data: data, into: folder)
-            }
-            if prepared == nil, let data = await LinkPreview.download(item.url) {
-                prepared = await Self.prepareImage(data: data, into: folder)
-            }
-            guard var prepared else { continue }
-            if item.aspect > 0 { prepared.aspect = item.aspect }
-            commit(save, prepared: prepared, fresh: false)
-            made += 1
-        }
-        return made
-    }
-
-    private func upgrade(_ save: Save, video: URL, aspect: Double) async -> Bool {
-        guard let data = await LinkPreview.downloadMedia(video) else { return false }
-        let folder = store.folder(for: save)
-        guard let prepared = await Self.prepareVideo(data: data, into: folder) else { return false }
-        if let old = save.original, old != prepared.original {
-            try? FileManager.default.removeItem(at: folder.appending(path: old))
-        }
-        store.modify(save.id) { save in
-            save.original = prepared.original
-            save.thumbnail = prepared.thumbnail
-            save.aspect = aspect > 0 ? aspect : prepared.aspect
-            save.contentHash = prepared.hash
-        }
-        return true
     }
 
     private func announce(_ count: Int) {

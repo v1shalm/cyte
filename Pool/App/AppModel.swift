@@ -16,17 +16,13 @@ final class AppModel {
     let enricher: Enricher
     let feedback: Feedback
     let ingestor: Ingestor
-    let xImport: XImporter
 
     var query = "" { didSet { if query != oldValue { refresh() } } }
     var kind: SaveKind? { didSet { if kind != oldValue { refresh() } } }
     var folderID: String? {
         didSet {
             guard folderID != oldValue else { return }
-            if folderID != nil {
-                if bookmarksOnly { bookmarksOnly = false }
-                if foldersPage { foldersPage = false }
-            }
+            if folderID != nil, foldersPage { foldersPage = false }
             refresh()
         }
     }
@@ -34,7 +30,6 @@ final class AppModel {
         didSet {
             guard foldersPage != oldValue, foldersPage else { return }
             if folderID != nil { folderID = nil }
-            if bookmarksOnly { bookmarksOnly = false }
             refresh()
         }
     }
@@ -74,14 +69,6 @@ final class AppModel {
     var activeColor: String? { didSet { if activeColor != oldValue { refresh() } } }
     var activeHost: String? { didSet { if activeHost != oldValue { refresh() } } }
     var activeRange: DateRange = .any { didSet { if activeRange != oldValue { refresh() } } }
-    var bookmarksOnly = false {
-        didSet {
-            guard bookmarksOnly != oldValue else { return }
-            if bookmarksOnly, folderID != nil { folderID = nil }
-            if bookmarksOnly, foldersPage { foldersPage = false }
-            refresh()
-        }
-    }
     var editingFolderID: String?
     var sidebarShown: Bool = UserDefaults.standard.object(forKey: "pool.sidebar") as? Bool ?? true {
         didSet { UserDefaults.standard.set(sidebarShown, forKey: "pool.sidebar") }
@@ -135,7 +122,6 @@ final class AppModel {
         self.feedback = feedback
         self.enricher = enricher
         self.ingestor = Ingestor(store: store, enricher: enricher, feedback: feedback)
-        self.xImport = XImporter(store: store, ingestor: ingestor)
     }
 
     func start() async {
@@ -146,10 +132,6 @@ final class AppModel {
         refresh()
         enricher.enrichMissing()
         ingestor.processInbox()
-        xImport.onQuietDone = { [weak self] count in
-            if count > 0 { self?.feedback.toast(L.Toast.xVideos(count)) }
-        }
-        Task { await xImport.upgradeVideosQuietly() }
         warmEmbeddings()
         if ScreenshotWatcher.enabled { startScreenshots() }
         hotKey = HotKey(keyCode: kVK_ANSI_P, modifiers: optionKey | cmdKey) { [weak self] in
@@ -184,11 +166,6 @@ final class AppModel {
     func refresh() {
         if let folderID, store.folder(id: folderID) == nil { self.folderID = nil }
         var base = folderID.flatMap { id in store.folder(id: id).map { store.members(of: $0) } } ?? store.saves
-        if bookmarksOnly {
-            base = base.filter { $0.source == "x" }
-        } else if folderID == nil {
-            base = base.filter { $0.source != "x" }
-        }
         if !activeTags.isEmpty {
             base = base.filter { save in
                 let own = Set((save.tags + save.labels).map { $0.lowercased() })
@@ -362,7 +339,6 @@ final class AppModel {
             selectedID = nil
             foldersPage = false
             folderID = nil
-            bookmarksOnly = false
             similarFilter = (save.displayTitle, Set(ids + [save.id]))
         }
     }
@@ -374,7 +350,6 @@ final class AppModel {
     func goHome() {
         foldersPage = false
         folderID = nil
-        bookmarksOnly = false
         kind = nil
         query = ""
         clearFilters()

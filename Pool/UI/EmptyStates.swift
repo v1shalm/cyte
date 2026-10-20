@@ -88,15 +88,6 @@ struct EmptyFilters: View {
     }
 }
 
-struct EmptyBookmarks: View {
-    @Environment(AppModel.self) private var model
-
-    var body: some View {
-        EmptyState(symbol: "bookmark", title: L.EmptyState.bookmarksTitle, message: L.EmptyState.bookmarksBody,
-                   primary: L.X.importAction) { model.xImport.open() }
-    }
-}
-
 struct EmptySearch: View {
     @Environment(AppModel.self) private var model
 

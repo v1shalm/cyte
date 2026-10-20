@@ -184,11 +184,6 @@ struct CommandPalette: View {
             model.ingestor.pasteFromClipboard()
             close()
         })
-        actions.append(PaletteItem(id: "a-x", kind: .action, title: L.X.importAction, detail: model.xImport.connected ? nil : L.X.connect, symbol: "bookmark") {
-            close()
-            if floating { model.showMainWindow() }
-            model.xImport.open()
-        })
         actions.append(PaletteItem(id: "a-folder", kind: .action, title: L.Folders.new, detail: nil, symbol: "folder.badge.plus") {
             model.newFolder()
             reveal()

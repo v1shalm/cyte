@@ -63,7 +63,6 @@ enum Theme {
 
     static let scrim = Color.white.opacity(0.82)
     static let paletteBackdrop = softCanvas.opacity(0.55)
-    static let sheetBackdrop = Color.white.opacity(0.55)
     static let dropDash = ink.opacity(0.18)
     static let detailBackdrop = softCanvas.opacity(0.97)
 

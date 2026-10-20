@@ -41,9 +41,6 @@ export function AppWindow() {
           <Icon name="grid" size={20} weight="fill" />
         </span>
         <span className={styles.railIcon}>
-          <Icon name="bookmark" size={20} weight="fill" />
-        </span>
-        <span className={styles.railIcon}>
           <Icon name="folder" size={20} weight="fill" />
         </span>
         <span className={`${styles.railIcon} ${styles.railGear}`}>

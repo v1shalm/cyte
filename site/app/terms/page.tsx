@@ -10,7 +10,7 @@ export default function Terms() {
   return (
     <DocPage
       title="Terms"
-      updated="16 October 2026"
+      updated="20 October 2026"
       lede="These terms cover your use of Cyte for Mac and this website. By installing Cyte you agree to them."
     >
       <h2>Using Cyte</h2>
@@ -31,9 +31,8 @@ export default function Terms() {
 
       <h2>Other services</h2>
       <p>
-        When you import from X or keep your library in iCloud Drive or Google Drive, you use those services under their
-        own terms. Cyte works with the accounts you already have there, and those services can change in ways that stop
-        an import from working.
+        When you keep your library in iCloud Drive or Google Drive, you use those services under their own terms. Cyte
+        works with the accounts you already have there, and a change on their side can stop your library from syncing.
       </p>
 
       <h2>Updates</h2>

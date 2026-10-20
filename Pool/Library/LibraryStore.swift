@@ -86,9 +86,9 @@ final class LibraryStore {
 
     func clearFresh(_ id: String) { freshIDs.remove(id) }
 
-    func insert(_ save: Save, fresh: Bool = true) {
+    func insert(_ save: Save) {
         saves.insert(save, at: 0)
-        if fresh { freshIDs.insert(save.id) }
+        freshIDs.insert(save.id)
         persist(save)
     }
 
@@ -136,12 +136,12 @@ final class LibraryStore {
     func folder(id: String) -> Folder? { folders.first { $0.id == id } }
 
     func members(of folder: Folder) -> [Save] {
-        if let rule = folder.rule { return saves.filter { $0.source != "x" && rule.matches($0) } }
+        if let rule = folder.rule { return saves.filter { rule.matches($0) } }
         return saves.filter { $0.folders.contains(folder.id) }
     }
 
     func count(in folder: Folder) -> Int {
-        if let rule = folder.rule { return saves.reduce(0) { $0 + ($1.source != "x" && rule.matches($1) ? 1 : 0) } }
+        if let rule = folder.rule { return saves.reduce(0) { $0 + (rule.matches($1) ? 1 : 0) } }
         return saves.reduce(0) { $0 + ($1.folders.contains(folder.id) ? 1 : 0) }
     }
 

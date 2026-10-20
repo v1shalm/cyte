@@ -3,14 +3,14 @@ import { DocPage, issues } from "../doc";
 
 export const metadata: Metadata = {
   title: "Support · Cyte",
-  description: "Answers for installing Cyte, keeping your library in sync, importing X bookmarks and reporting a problem.",
+  description: "Answers for installing Cyte, keeping your library in sync and reporting a problem.",
 };
 
 export default function Support() {
   return (
     <DocPage
       title="Support"
-      updated="16 October 2026"
+      updated="20 October 2026"
       lede="Answers to the questions people ask most. If yours is not here, open an issue on GitHub."
     >
       <h2>Installing</h2>
@@ -44,19 +44,6 @@ export default function Support() {
       <p>
         Cyte writes them with Apple Intelligence. Turn it on in System Settings → Apple Intelligence &amp; Siri. On a Mac
         that cannot run Apple Intelligence, Cyte still reads text in your images, pulls colours and finds similar saves.
-      </p>
-
-      <h2>X bookmarks</h2>
-      <h3>How does the import work?</h3>
-      <p>
-        Cyte uses the X login already in Dia, Chrome, Arc, Brave or Edge. macOS asks once whether Cyte can read it;
-        choose Always Allow so later imports run on their own. Cyte brings in bookmarked posts with images or videos and
-        skips text-only posts.
-      </p>
-      <h3>The import stopped or found nothing</h3>
-      <p>
-        Open x.com in your browser and check that you are signed in, then choose Import new bookmarks in Settings. If X
-        asks you to slow down, wait a few minutes and try again.
       </p>
 
       <h2>Reporting a problem</h2>

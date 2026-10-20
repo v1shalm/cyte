@@ -11,14 +11,6 @@ struct RootView: View {
         @Bindable var model = model
         ZStack(alignment: .top) {
             Theme.canvas
-                .background(alignment: .topLeading) {
-                    if let web = model.xImport.webView {
-                        WebHost(view: web)
-                            .frame(width: 1000, height: 800)
-                            .allowsHitTesting(false)
-                            .accessibilityHidden(true)
-                    }
-                }
                 .ignoresSafeArea()
 
             ZStack(alignment: .top) {
@@ -117,18 +109,11 @@ struct RootView: View {
                 .ignoresSafeArea()
                 .zIndex(8)
         }
-        .blur(radius: model.paletteShown || model.xImport.isShown ? 24 : 0)
+        .blur(radius: model.paletteShown ? 24 : 0)
         .background(Theme.canvas.ignoresSafeArea())
         .overlay {
             if model.paletteShown {
                 PaletteBackdrop { model.paletteShown = false }
-            } else if model.xImport.isShown {
-                ZStack {
-                    Theme.sheetBackdrop
-                        .contentShape(Rectangle())
-                    XImportView()
-                }
-                .ignoresSafeArea()
             }
         }
         .onKeyPress(.escape) {
@@ -169,9 +154,6 @@ struct RootView: View {
                 .padding(.leading, model.contentLeading)
         } else if model.results.isEmpty && model.related.isEmpty && model.folderID != nil && !model.isSearching && model.kind == nil && model.filterCount == 0 {
             EmptyFolder()
-                .padding(.leading, model.contentLeading)
-        } else if model.results.isEmpty && model.related.isEmpty && model.bookmarksOnly && !model.isSearching && model.kind == nil && model.filterCount == 0 {
-            EmptyBookmarks()
                 .padding(.leading, model.contentLeading)
         } else if model.results.isEmpty && model.related.isEmpty && model.filterCount > 0 && !model.isSearching {
             EmptyFilters()
@@ -402,7 +384,6 @@ struct PageTitle: View {
 
     private var title: String {
         if model.foldersPage { return L.Folders.allFolders }
-        if model.bookmarksOnly { return L.X.source }
         if let folder = currentFolder { return folder.name }
         return L.Folders.everything
     }

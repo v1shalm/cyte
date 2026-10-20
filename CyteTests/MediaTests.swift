@@ -45,7 +45,7 @@ struct MediaTests {
     }
 
     @Test func `recognises web links and video links`() {
-        #expect(Ingestor.webURL(in: "https://x.com/a/status/1")?.host() == "x.com")
+        #expect(Ingestor.webURL(in: "https://example.com/a/1")?.host() == "example.com")
         #expect(Ingestor.webURL(in: "not a link") == nil)
         #expect(Ingestor.webURL(in: "ftp://files.example.com") == nil)
         #expect(Ingestor.looksLikeVideo(URL(string: "https://cdn.example.com/clip.MP4")!))
