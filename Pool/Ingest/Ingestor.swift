@@ -94,6 +94,12 @@ final class Ingestor {
         Task { if let save = await ingestLink(url, title: title, source: source) { feedback.saved([save]) } }
     }
 
+    func save(link url: URL, source: String?) async -> Save? {
+        guard let save = await ingestLink(url, title: nil, source: source) else { return nil }
+        SoundEngine.shared.play(.drop)
+        return save
+    }
+
     func addNote(_ text: String) {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }

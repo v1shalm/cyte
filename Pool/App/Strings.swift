@@ -288,9 +288,11 @@ enum L {
         static let rename = "Rename"
         static let delete = "Delete folder"
         static let emptyTitle = "This folder is empty"
-        static let emptyBody = "Drag saves onto the folder in the sidebar, or choose Add to folder on any save."
-        static let showSidebar = "Show sidebar"
-        static let hideSidebar = "Hide sidebar"
+        static let emptyBody = "Drag a save onto Folders in the dock, or choose Add to folder on any save."
+        static let addHint = "Saves you add here go into this folder."
+        static let find = "Find a folder"
+        static let seeAll = "All folders"
+        static func noMatch(_ text: String) -> String { "No folder named “\(text)”" }
         static let everything = "Everything"
         static let allFolders = "Folders"
         static func added(_ name: String) -> String { "Added to \(name)" }
@@ -308,6 +310,11 @@ enum L {
         static let note = "Write a note"
         static let paste = "Paste clipboard"
         static let hint = "You can also drag anything onto the window."
+        static let here = "Add here"
+        static func into(_ name: String) -> String { "Add to \(name)" }
+        static let done = "Done"
+        static let folder = "Folder"
+        static let saving = "Saving…"
     }
 
     enum Why {

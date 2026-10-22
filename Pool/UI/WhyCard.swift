@@ -264,6 +264,7 @@ final class WhyPanel {
     private var panel: PalettePanel?
     private var hideTask: Task<Void, Never>?
     private static let size = CGSize(width: 560, height: 220)
+    static let inset: CGFloat = 28
 
     func show(_ prompt: WhyPrompt) {
         hideTask?.cancel()
@@ -324,7 +325,7 @@ private struct WhyPanelHost: View {
                     .transition(WhyCard.exit)
             }
         }
-        .padding(.bottom, ToastHost.bottomInset)
+        .padding(.bottom, WhyPanel.inset)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .animation(.spring(duration: 0.35, bounce: 0), value: prompt.ask?.id)
         .preferredColorScheme(.light)

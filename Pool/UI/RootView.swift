@@ -15,16 +15,18 @@ struct RootView: View {
 
             ZStack(alignment: .top) {
                 content
-                if model.addingFocus {
-                    Theme.canvas.opacity(0.82)
+                if model.addMenuOpen || model.paletteShown || model.folderListOpen {
+                    Theme.paletteBackdrop
                         .contentShape(Rectangle())
                         .onTapGesture {
-                            withAnimation(.easeOut(duration: 0.2)) {
+                            withAnimation(Theme.exit) {
                                 model.addMenuOpen = false
-                                model.linkEntryShown = false
+                                model.paletteShown = false
+                                model.folderListOpen = false
                             }
                         }
-                        .transition(.opacity)
+                        .transition(.opacity.animation(Theme.exit))
+                        .zIndex(2)
                 }
                 if model.filterOpen {
                     FilterOverlay()
@@ -34,43 +36,19 @@ struct RootView: View {
                     ViewOverlay()
                         .zIndex(1.5)
                 }
+                TopBar()
                 if model.selecting {
                     SelectionBar()
-                        .padding(.leading, model.contentLeading)
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
                         .transition(.opacity.combined(with: .offset(y: 24)))
                         .zIndex(2.2)
-                }
-                TopBar()
-                    .padding(.leading, model.contentLeading)
-                AddMenu()
-                    .padding(.top, (Chrome.barHeight - AddMenu.height) / 2)
-                    .padding(.trailing, Theme.sideInset)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-                    .opacity(model.selectedID != nil ? 0 : 1)
-                    .allowsHitTesting(model.selectedID == nil)
-                if model.linkEntryShown {
-                    LinkEntry()
-                        .transition(.asymmetric(
-                            insertion: .scale(scale: 0.96, anchor: .topTrailing).combined(with: .opacity),
-                            removal: .opacity
-                        ))
+                } else if model.selectedID == nil {
+                    DockHost()
+                        .transition(.opacity.combined(with: .offset(y: 24)))
+                        .zIndex(2.1)
                 }
             }
-            .animation(.timingCurve(0.23, 1, 0.32, 1, duration: 0.2), value: model.linkEntryShown)
             .ignoresSafeArea()
-
-            if model.sidebarShown {
-                Rail()
-                    .frame(width: AppModel.railWidth)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-                .ignoresSafeArea()
-                .transition(.asymmetric(
-                    insertion: .offset(x: -24).combined(with: .opacity),
-                    removal: .offset(x: -24).combined(with: .opacity)
-                ))
-                .zIndex(1)
-            }
 
             if let id = model.selectedID, let save = model.store.save(id: id) {
                 DetailView(save: save, namespace: namespace)
@@ -109,13 +87,7 @@ struct RootView: View {
                 .ignoresSafeArea()
                 .zIndex(8)
         }
-        .blur(radius: model.paletteShown ? 24 : 0)
         .background(Theme.canvas.ignoresSafeArea())
-        .overlay {
-            if model.paletteShown {
-                PaletteBackdrop { model.paletteShown = false }
-            }
-        }
         .onKeyPress(.escape) {
             if model.trashConfirm != nil {
                 model.trashConfirm = nil
@@ -134,8 +106,16 @@ struct RootView: View {
                 model.viewOpen = false
                 return .handled
             }
+            if model.paletteShown {
+                model.paletteShown = false
+                return .handled
+            }
+            if model.folderListOpen {
+                withAnimation(Theme.exit) { model.folderListOpen = false }
+                return .handled
+            }
             guard model.addMenuOpen else { return .ignored }
-            model.addMenuOpen = false
+            withAnimation(Theme.exit) { model.addMenuOpen = false }
             return .handled
         }
         .preferredColorScheme(.light)
@@ -153,118 +133,19 @@ struct RootView: View {
             Color.clear
         } else if model.trashPage {
             TrashPage()
-                .padding(.leading, model.contentLeading)
         } else if model.foldersPage {
             FoldersPage()
-                .padding(.leading, model.contentLeading)
         } else if model.store.saves.isEmpty {
             EmptyLibrary()
-                .padding(.leading, model.contentLeading)
         } else if model.results.isEmpty && model.related.isEmpty && model.folderID != nil && !model.isSearching && model.kind == nil && model.filterCount == 0 {
             EmptyFolder()
-                .padding(.leading, model.contentLeading)
         } else if model.results.isEmpty && model.related.isEmpty && model.filterCount > 0 && !model.isSearching {
             EmptyFilters()
-                .padding(.leading, model.contentLeading)
         } else if model.results.isEmpty && model.related.isEmpty {
             EmptySearch()
-                .padding(.leading, model.contentLeading)
         } else {
             MasonryGrid(namespace: namespace)
         }
-    }
-}
-
-private struct LinkEntry: View {
-    @Environment(AppModel.self) private var model
-    @State private var text = ""
-    @State private var invalid = false
-    @FocusState private var focused: Bool
-
-    var body: some View {
-        ZStack(alignment: .topTrailing) {
-            VStack(alignment: .leading, spacing: 8) {
-                HStack(spacing: 10) {
-                    Icon("link", size: IconSize.md)
-                        .foregroundStyle(Theme.secondary)
-                    TextField(L.Add.linkPlaceholder, text: $text)
-                        .textFieldStyle(.plain)
-                        .font(Theme.ui(TextSize.large))
-                        .foregroundStyle(Theme.ink)
-                        .focused($focused)
-                        .onSubmit(save)
-                    Button(action: save) {
-                        Icon("return", size: IconSize.xs)
-                            .foregroundStyle(link == nil ? Theme.secondary : .white)
-                            .frame(width: Control.small, height: Control.small)
-                            .background(Circle().fill(link == nil ? Theme.softFill : Theme.ink))
-                            .contentShape(Circle())
-                    }
-                    .buttonStyle(PressStyle())
-                    .accessibilityLabel(L.Add.link)
-                    .animation(.easeOut(duration: 0.15), value: link == nil)
-                }
-                .padding(.leading, 16)
-                .padding(.trailing, 8)
-                .frame(width: 380, height: 44)
-                .floatingPanel(radius: 22)
-                if invalid {
-                    Text(L.Add.linkInvalid)
-                        .font(Theme.ui(TextSize.small))
-                        .foregroundStyle(Theme.secondary)
-                        .padding(.leading, 16)
-                        .transition(.opacity)
-                }
-            }
-            .padding(.top, Chrome.barHeight + 4)
-            .padding(.trailing, Theme.sideInset)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-        }
-        .task {
-            try? await Task.sleep(for: .milliseconds(60))
-            focused = true
-        }
-        .onAppear {
-            if let clip = NSPasteboard.general.string(forType: .string), Self.parse(clip) != nil { text = clip }
-        }
-        .onChange(of: text) { _, _ in invalid = false }
-        .onExitCommand { model.linkEntryShown = false }
-    }
-
-    private var link: URL? { Self.parse(text) }
-
-    private func save() {
-        guard let url = link else {
-            withAnimation(.easeOut(duration: 0.15)) { invalid = true }
-            return
-        }
-        model.ingestor.ingest(link: url, source: "add")
-        model.linkEntryShown = false
-    }
-
-    static func parse(_ raw: String) -> URL? {
-        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
-        if let url = Ingestor.webURL(in: trimmed) { return url }
-        guard !trimmed.contains("://"), trimmed.contains("."), !trimmed.hasPrefix(".") else { return nil }
-        return Ingestor.webURL(in: "https://" + trimmed)
-    }
-}
-
-private struct PaletteBackdrop: View {
-    let close: () -> Void
-
-    var body: some View {
-        GeometryReader { proxy in
-            ZStack(alignment: .top) {
-                Theme.paletteBackdrop
-                    .contentShape(Rectangle())
-                    .onTapGesture(perform: close)
-                CommandPalette(close: close)
-                    .padding(.top, max(56, (proxy.size.height - CommandPalette.maxHeight) / 2))
-            }
-            .frame(width: proxy.size.width, height: proxy.size.height, alignment: .top)
-        }
-        .ignoresSafeArea()
     }
 }
 
@@ -273,63 +154,48 @@ struct TopBar: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            ZStack {
-                HStack(spacing: 12) {
-                    if !model.sidebarShown {
-                        Spacer().frame(width: Chrome.lightsWidth - 18)
-                        SidebarToggle()
-                    }
-                    Spacer()
-                    if model.enricher.activeID != nil {
-                        ProgressView()
-                            .controlSize(.small)
-                            .opacity(model.addMenuOpen ? 0 : 1)
-                            .transition(.opacity)
-                            .help(L.Detail.reading)
-                    }
-                    Color.clear.frame(width: AddMenu.closedWidth, height: 1)
-                }
-                .padding(.leading, 18)
-                .padding(.trailing, Theme.sideInset)
-
-                SearchTrigger()
-            }
-            .frame(height: Control.regular)
-
             HStack(spacing: 20) {
                 PageTitle()
                 if !onPage {
                     filters
                 }
                 Spacer(minLength: 12)
+                if model.enricher.activeID != nil {
+                    ProgressView()
+                        .controlSize(.small)
+                        .transition(.opacity)
+                        .help(L.Detail.reading)
+                }
                 if !onPage {
                     ViewControls()
-                        .opacity(model.addingFocus ? 0 : 1)
                 } else if model.trashPage, !model.store.trash.isEmpty {
                     Button(L.Trash.emptyTrash) {
                         withAnimation(Theme.settle) { model.trashConfirm = .all }
                     }
                     .poolSecondary()
-                    .opacity(model.addingFocus ? 0 : 1)
                     .transition(.opacity)
                 }
             }
             .frame(height: Control.regular)
             .padding(.horizontal, Theme.sideInset)
-            .padding(.top, Chrome.rowGap)
-            .opacity(model.addingFocus ? 0.35 : 1)
-            .animation(.easeOut(duration: 0.15), value: model.addingFocus)
+
+            if model.openFolder != nil {
+                Text(L.Folders.addHint)
+                    .font(Theme.ui(TextSize.small))
+                    .foregroundStyle(Theme.tertiary)
+                    .frame(height: Chrome.hintHeight, alignment: .bottom)
+                    .padding(.leading, Theme.sideInset + Control.small + 10)
+                    .transition(.opacity)
+            }
 
             if model.filterCount > 0 && !onPage {
                 FilterBar()
                     .padding(.top, 16)
-                    .opacity(model.addingFocus ? 0.35 : 1)
-                    .animation(.easeOut(duration: 0.15), value: model.addingFocus)
                     .transition(.opacity.combined(with: .offset(y: -6)))
             }
         }
-        .padding(.top, (Chrome.barHeight - Control.regular) / 2)
-        .frame(maxWidth: .infinity)
+        .padding(.top, Chrome.barHeight)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .background {
             VStack(spacing: 0) {
                 Theme.canvas
@@ -404,65 +270,6 @@ struct PageTitle: View {
         if model.foldersPage { return L.Folders.allFolders }
         if let folder = currentFolder { return folder.name }
         return L.Folders.everything
-    }
-}
-
-struct SearchTrigger: View {
-    @Environment(AppModel.self) private var model
-    @State private var hovering = false
-
-    var body: some View {
-        Button { model.paletteShown = true } label: {
-            HStack(spacing: 10) {
-                Icon("magnifyingglass", size: IconSize.sm)
-                    .foregroundStyle(Theme.secondary)
-                if model.query.isEmpty {
-                    Text(L.Search.placeholder)
-                        .font(Theme.ui(TextSize.body))
-                        .foregroundStyle(Theme.secondary)
-                } else {
-                    Text(model.query)
-                        .font(Theme.ui(TextSize.body, weight: .medium))
-                        .foregroundStyle(Theme.ink)
-                        .lineLimit(1)
-                }
-                Spacer(minLength: 8)
-                if model.query.isEmpty {
-                    Text("⌘K")
-                        .font(Theme.ui(TextSize.caption, weight: .medium))
-                        .foregroundStyle(Theme.secondary)
-                        .padding(.horizontal, 8)
-                        .frame(height: 22)
-                        .background(Capsule().fill(Theme.surface))
-                }
-            }
-            .padding(.leading, 14)
-            .padding(.trailing, 6)
-            .frame(width: 460, height: Control.regular)
-            .background(Capsule().fill(hovering ? Theme.softFillStrong : Theme.softFill))
-            .contentShape(Capsule())
-        }
-        .buttonStyle(.plain)
-        .overlay(alignment: .trailing) {
-            if !model.query.isEmpty {
-                Button {
-                    model.query = ""
-                } label: {
-                    Icon("xmark.circle.fill", size: IconSize.sm)
-                        .foregroundStyle(Theme.secondary)
-                        .frame(width: Control.small, height: Control.small)
-                        .contentShape(Circle())
-                }
-                .buttonStyle(.plain)
-                .padding(.trailing, 6)
-                .accessibilityLabel(L.Search.clear)
-            }
-        }
-        .borderBeam(size: .sm, active: model.voiceSearch.isListening, cornerRadius: Control.regular / 2, duration: 1.6)
-        .onHover { hovering = $0 }
-        .animation(Theme.hover, value: hovering)
-        .accessibilityLabel(model.query.isEmpty ? L.Search.placeholder : model.query)
-        .accessibilityHint("⌘K")
     }
 }
 
@@ -544,7 +351,7 @@ struct DropOverlay: View {
 
 struct ToastHost: View {
     @Environment(AppModel.self) private var model
-    static let bottomInset: CGFloat = 28
+    static let bottomInset: CGFloat = Dock.clearance
 
     var body: some View {
         VStack(spacing: 10) {

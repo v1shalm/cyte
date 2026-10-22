@@ -93,13 +93,9 @@ final class AppModel {
     var activeHost: String? { didSet { if activeHost != oldValue { refresh() } } }
     var activeRange: DateRange = .any { didSet { if activeRange != oldValue { refresh() } } }
     var editingFolderID: String?
-    var sidebarShown: Bool = UserDefaults.standard.object(forKey: "pool.sidebar") as? Bool ?? true {
-        didSet { UserDefaults.standard.set(sidebarShown, forKey: "pool.sidebar") }
-    }
     @ObservationIgnored var tileWidth: CGFloat = 248
-    var topInset: CGFloat { Theme.topInset + (filterCount > 0 ? Control.small + 16 : 0) }
+    var topInset: CGFloat { Theme.topInset + (filterCount > 0 ? Control.small + 16 : 0) + (openFolder != nil ? Chrome.hintHeight : 0) }
     var tilePixels: Int { Int(ceil(tileWidth * 2 / 64)) * 64 }
-    static let railWidth: CGFloat = 72
     static let saveType = Identity.saveType
     private(set) var results: [Save] = []
     private(set) var related: [Save] = []
@@ -117,8 +113,8 @@ final class AppModel {
     var composingNote = false
     var paletteShown = false
     var addMenuOpen = false
-    var linkEntryShown = false
-    var addingFocus: Bool { addMenuOpen || linkEntryShown }
+    var folderListOpen = false
+    var addingFocus: Bool { addMenuOpen }
     var voiceNoteShown = false
     let voiceSearch = VoiceInput()
     var sort: SortOrder = .newest { didSet { if sort != oldValue { if sort == .shuffle { shuffleSeed = .random(in: 1...999_999) }; refresh() } } }
@@ -365,7 +361,6 @@ final class AppModel {
     func newFolder(adding ids: [String] = []) {
         let folder = store.createFolder(named: L.Folders.untitled)
         if !ids.isEmpty { store.add(ids, to: folder) }
-        sidebarShown = true
         editingFolderID = folder.id
     }
 
@@ -423,14 +418,13 @@ final class AppModel {
         }
     }
 
-    var addingFolder: Folder? {
-        guard !foldersPage, !trashPage, WhyPrompt.libraryWindowIsFront,
-              let id = folderID, let folder = store.folder(id: id), folder.rule == nil else { return nil }
+    var openFolder: Folder? {
+        guard !foldersPage, !trashPage, let id = folderID, let folder = store.folder(id: id), folder.rule == nil else { return nil }
         return folder
     }
 
-    var contentLeading: CGFloat {
-        sidebarShown ? Self.railWidth : 0
+    var addingFolder: Folder? {
+        WhyPrompt.libraryWindowIsFront ? openFolder : nil
     }
 
     func goHome() {

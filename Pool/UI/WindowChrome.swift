@@ -5,12 +5,10 @@ enum Chrome {
     static let barHeight: CGFloat = 52
     static let lightsLeading: CGFloat = 22
     static let lightsSpacing: CGFloat = 20
-    static let lightsWidth: CGFloat = lightsLeading + lightsSpacing * 2 + 14
-    static let rowGap: CGFloat = 24
     static let fade: CGFloat = 16
-    static let headerBottom: CGFloat = (barHeight - Control.regular) / 2 + Control.regular * 2 + rowGap
-    static let titleRowCenter: CGFloat = headerBottom - Control.regular / 2
+    static let headerBottom: CGFloat = barHeight + Control.regular
     static let panelTop: CGFloat = headerBottom + 8
+    static let hintHeight: CGFloat = 22
 }
 
 struct WindowChrome: NSViewRepresentable {
@@ -59,27 +57,5 @@ final class ChromeView: NSView {
 
     isolated deinit {
         observers.forEach { NotificationCenter.default.removeObserver($0) }
-    }
-}
-
-struct SidebarToggle: View {
-    @Environment(AppModel.self) private var model
-    var onPanel = false
-    @State private var hovering = false
-
-    var body: some View {
-        Button {
-            withAnimation(Theme.open) { model.sidebarShown.toggle() }
-        } label: {
-            Icon("sidebar.left", size: IconSize.sm)
-                .foregroundStyle(onPanel ? (hovering ? Theme.sideInk : Theme.sideTertiary) : (hovering ? Theme.ink : Theme.tertiary))
-                .frame(width: 28, height: 28)
-                .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(hovering ? (onPanel ? Theme.sideHover : .white) : .clear).shadow(color: .black.opacity(hovering ? 0.07 : 0), radius: 4, y: 1))
-                .contentShape(Rectangle())
-        }
-        .buttonStyle(PressStyle())
-        .onHover { hovering = $0 }
-        .animation(Theme.hover, value: hovering)
-        .accessibilityLabel(model.sidebarShown ? L.Folders.hideSidebar : L.Folders.showSidebar)
     }
 }

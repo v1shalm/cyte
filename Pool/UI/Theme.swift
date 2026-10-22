@@ -70,7 +70,7 @@ enum Theme {
     static let tileRadius: CGFloat = 14
     static let gap: CGFloat = 20
     static let sideInset: CGFloat = 40
-    static let topInset: CGFloat = 128
+    static let topInset: CGFloat = 112
 
     static let open = Animation.spring(duration: 0.42, bounce: 0)
     static let reflow = Animation.spring(duration: 0.45, bounce: 0)

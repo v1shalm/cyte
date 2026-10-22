@@ -62,8 +62,6 @@ struct PoolCommands: Commands {
                 .keyboardShortcut("f")
         }
         CommandGroup(after: .toolbar) {
-            Button(model.sidebarShown ? L.Folders.hideSidebar : L.Folders.showSidebar) { model.sidebarShown.toggle() }
-                .keyboardShortcut("s", modifiers: [.command, .control])
             Button(L.Folders.new) { model.newFolder() }
                 .keyboardShortcut("n", modifiers: [.command, .shift])
             Divider()

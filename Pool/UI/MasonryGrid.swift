@@ -8,9 +8,9 @@ struct MasonryLayout {
     var columnWidth: CGFloat = 0
     var relatedHeader: CGFloat?
 
-    static func make(saves: [Save], related: [Save], width: CGFloat, target: CGFloat, leading: CGFloat = 0, top: CGFloat = Theme.topInset) -> MasonryLayout {
+    static func make(saves: [Save], related: [Save], width: CGFloat, target: CGFloat, top: CGFloat = Theme.topInset) -> MasonryLayout {
         var layout = MasonryLayout()
-        let usable = max(0, width - leading - Theme.sideInset * 2)
+        let usable = max(0, width - Theme.sideInset * 2)
         guard usable > 0 else { return layout }
         let columns = max(2, Int((usable + Theme.gap) / (target + Theme.gap)))
         let columnWidth = floor((usable - Theme.gap * CGFloat(columns - 1)) / CGFloat(columns))
@@ -21,7 +21,7 @@ struct MasonryLayout {
             for save in list {
                 let column = heights.indices.min { heights[$0] < heights[$1] } ?? 0
                 let height = tileHeight(save, width: columnWidth)
-                let x = leading + Theme.sideInset + CGFloat(column) * (columnWidth + Theme.gap)
+                let x = Theme.sideInset + CGFloat(column) * (columnWidth + Theme.gap)
                 layout.frames[save.id] = CGRect(x: x, y: heights[column], width: columnWidth, height: height)
                 layout.order.append(save.id)
                 heights[column] += height + Theme.gap
@@ -35,7 +35,7 @@ struct MasonryLayout {
             heights = [CGFloat](repeating: belowMain + 44, count: columns)
             place(related)
         }
-        layout.height = (heights.max() ?? 0) + 80
+        layout.height = (heights.max() ?? 0) + Dock.clearance
         return layout
     }
 
@@ -77,11 +77,10 @@ final class ScrollProbe {
     var viewport: CGFloat = 0
     private var lookup: [String: Save] = [:]
 
-    func resolve(saves: [Save], related: [Save], width: CGFloat, target: CGFloat, leading: CGFloat, top: CGFloat) -> (MasonryLayout, [String: Save]) {
+    func resolve(saves: [Save], related: [Save], width: CGFloat, target: CGFloat, top: CGFloat) -> (MasonryLayout, [String: Save]) {
         var hasher = Hasher()
         hasher.combine(width)
         hasher.combine(target)
-        hasher.combine(leading)
         hasher.combine(top)
         for save in saves { Self.combine(save, into: &hasher) }
         hasher.combine(-1)
@@ -89,7 +88,7 @@ final class ScrollProbe {
         let next = hasher.finalize()
         if next != key {
             key = next
-            layout = MasonryLayout.make(saves: saves, related: related, width: width, target: target, leading: leading, top: top)
+            layout = MasonryLayout.make(saves: saves, related: related, width: width, target: target, top: top)
             lookup = Dictionary(saves.map { ($0.id, $0) } + related.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
         } else {
             for save in saves + related where lookup[save.id] != save { lookup[save.id] = save }
@@ -143,7 +142,7 @@ struct MasonryGrid: View {
     }
 
     var body: some View {
-        let (layout, lookup) = probe.resolve(saves: model.results, related: model.related, width: width, target: model.columnWidth, leading: model.contentLeading, top: model.topInset)
+        let (layout, lookup) = probe.resolve(saves: model.results, related: model.related, width: width, target: model.columnWidth, top: model.topInset)
         let _ = { if layout.columnWidth > 0 { model.tileWidth = layout.columnWidth } }()
         let window = CGRect(x: -10_000, y: CGFloat(bucket) * Self.step - 900, width: 100_000, height: max(viewport, 1600) + 1800 + Self.step)
         let visibleIDs = layout.order.filter { layout.frames[$0]?.intersects(window) ?? false }
@@ -162,8 +161,8 @@ struct MasonryGrid: View {
                             .foregroundStyle(Theme.secondary)
                         Rectangle().fill(Theme.hairline).frame(height: 1)
                     }
-                    .frame(width: max(0, width - model.contentLeading - Theme.sideInset * 2))
-                    .position(x: model.contentLeading + (width - model.contentLeading) / 2, y: header + 16)
+                    .frame(width: max(0, width - Theme.sideInset * 2))
+                    .position(x: width / 2, y: header + 16)
                 }
 
                 ForEach(visibleIDs, id: \.self) { id in
@@ -195,11 +194,11 @@ struct MasonryGrid: View {
             model.scrollToTile = { [probe] id in
                 guard let frame = probe.layout.frames[id] else { return }
                 let top = probe.minY + model.topInset - 24
-                let bottom = probe.minY + probe.viewport - 120
+                let bottom = probe.minY + probe.viewport - Dock.clearance - 24
                 if frame.minY < top {
                     scroll.wrappedValue.scrollTo(y: max(0, frame.minY - model.topInset + 24))
                 } else if frame.maxY > bottom {
-                    scroll.wrappedValue.scrollTo(y: frame.maxY - probe.viewport + 120)
+                    scroll.wrappedValue.scrollTo(y: frame.maxY - probe.viewport + Dock.clearance + 24)
                 }
             }
         }
@@ -233,7 +232,7 @@ struct MasonryGrid: View {
     }
 
     private var reflowKey: String {
-        "\(model.kind?.rawValue ?? "all")-\(model.filterCount)-\(model.folderID ?? "")-\(model.sidebarShown)-\(model.store.saves.count)-\(model.store.saves.first?.id ?? "")"
+        "\(model.kind?.rawValue ?? "all")-\(model.filterCount)-\(model.folderID ?? "")-\(model.store.saves.count)-\(model.store.saves.first?.id ?? "")"
     }
 }
 
