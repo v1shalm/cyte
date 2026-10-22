@@ -51,7 +51,7 @@ struct VoiceNoteOverlay: View {
 
             VStack(spacing: 30) {
                 VoiceOrb(level: voice.level, active: voice.isListening, size: 150)
-                    .scaleEffect(shown ? 1 : 0.6)
+                    .scaleEffect(shown ? 1 : 0.9)
                     .opacity(shown ? 1 : 0)
 
                 Group {
@@ -86,7 +86,7 @@ struct VoiceNoteOverlay: View {
             .padding(40)
         }
         .task {
-            withAnimation(.spring(duration: 0.6, bounce: 0.3)) { shown = true }
+            withAnimation(Theme.pop) { shown = true }
             await voice.start()
         }
         .onDisappear { voice.cancel() }
@@ -132,7 +132,7 @@ struct MicButton: View {
             .frame(width: 24, height: 24)
             .contentShape(Circle())
         }
-        .buttonStyle(PressStyle(scale: 0.88))
+        .buttonStyle(PressStyle())
         .help(listening ? L.Voice.stop : L.Voice.search)
     }
 }

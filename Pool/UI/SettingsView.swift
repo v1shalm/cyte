@@ -342,7 +342,7 @@ struct SoftToggle: View {
     @Binding var isOn: Bool
 
     var body: some View {
-        Button { withAnimation(.spring(duration: 0.28, bounce: 0.2)) { isOn.toggle() } } label: {
+        Button { withAnimation(Theme.enter) { isOn.toggle() } } label: {
             ZStack(alignment: isOn ? .trailing : .leading) {
                 Capsule().fill(isOn ? Theme.ink : Theme.softTarget).frame(width: 42, height: 26)
                 Circle().fill(.white).frame(width: 20, height: 20).padding(3)

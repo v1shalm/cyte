@@ -32,11 +32,11 @@ extension AppModel {
     }
 
     func selectAll() {
-        withAnimation(Theme.settle) { selection = Set(orderedIDs) }
+        selection = Set(orderedIDs)
     }
 
-    func clearSelection() {
-        withAnimation(Theme.settle) {
+    func clearSelection(animated: Bool = true) {
+        withAnimation(animated ? Theme.settle : nil) {
             selection = []
             barPopover = nil
         }
@@ -132,7 +132,7 @@ extension AppModel {
 
     func openFocused() {
         guard let id = focusedID, store.save(id: id) != nil else { return }
-        withAnimation(Theme.open) { selectedID = id }
+        selectedID = id
     }
 }
 
@@ -147,7 +147,7 @@ struct SelectDot: View {
             if on {
                 Icon("checkmark", size: IconSize.xs)
                     .foregroundStyle(.white)
-                    .transition(.scale(scale: 0.5).combined(with: .opacity))
+                    .transition(.scale(scale: 0.9).combined(with: .opacity))
             }
         }
         .frame(width: 22, height: 22)
@@ -184,7 +184,7 @@ struct SelectionBar: View {
                         .background(Circle().fill(.white.opacity(0.14)))
                         .contentShape(Circle())
                 }
-                .buttonStyle(PressStyle(scale: 0.9))
+                .buttonStyle(PressStyle())
                 .help(L.Select.clear)
                 Text(L.Select.count(count))
                     .font(Theme.ui(13, weight: .medium))
@@ -201,7 +201,7 @@ struct SelectionBar: View {
             .background(Capsule().fill(Theme.pill))
             .shadow(color: .black.opacity(0.18), radius: 18, y: 8)
         }
-        .animation(reduceMotion ? Theme.fade : .spring(duration: 0.4, bounce: 0.18), value: model.barPopover)
+        .animation(reduceMotion ? Theme.fade : Theme.enter, value: model.barPopover)
         .padding(.bottom, 34)
     }
 
@@ -368,8 +368,8 @@ struct KeyboardNav: NSViewRepresentable {
             let key = event.charactersIgnoringModifiers?.lowercased() ?? ""
             if flags == .command, key == "a" { model.selectAll(); return true }
             if event.keyCode == 53 {
-                if model.barPopover != nil { withAnimation(Theme.settle) { model.barPopover = nil }; return true }
-                if model.selecting { model.clearSelection(); return true }
+                if model.barPopover != nil { model.barPopover = nil; return true }
+                if model.selecting { model.clearSelection(animated: false); return true }
                 if model.focusedID != nil { model.focusedID = nil; return true }
                 return false
             }

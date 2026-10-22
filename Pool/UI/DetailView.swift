@@ -299,7 +299,7 @@ private struct Inspector: View {
                         .frame(width: 28, height: 28)
                         .overlay(Circle().strokeBorder(Theme.hairline))
                 }
-                .buttonStyle(PressStyle(scale: 0.9))
+                .buttonStyle(PressStyle())
                 .help(hex)
             }
         }
@@ -495,7 +495,7 @@ private struct ActionButton: View {
                 .background(Circle().fill(hovering ? Theme.softFillStrong : Theme.softFill))
                 .contentShape(Circle())
         }
-        .buttonStyle(PressStyle(scale: 0.92))
+        .buttonStyle(PressStyle())
         .onHover { hovering = $0 }
         .animation(Theme.hover, value: hovering)
         .help(title)
@@ -522,7 +522,7 @@ private struct NavArrow: View {
                     .shadow(color: .black.opacity(hovering ? 0.14 : 0.07), radius: hovering ? 10 : 5, y: 2)
                     .contentShape(Circle())
             }
-            .buttonStyle(PressStyle(scale: 0.92))
+            .buttonStyle(PressStyle())
             .onHover { hovering = $0 }
             .animation(Theme.hover, value: hovering)
             .accessibilityLabel(forward ? "Next save" : "Previous save")
@@ -551,7 +551,7 @@ private struct Filmstrip: View {
                                     .opacity(current ? 1 : 0.62)
                                     .scaleEffect(current ? 1.06 : 1)
                             }
-                            .buttonStyle(PressStyle(scale: 0.94))
+                            .buttonStyle(PressStyle())
                         }
                     }
                 }

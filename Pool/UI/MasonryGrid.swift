@@ -197,9 +197,9 @@ struct MasonryGrid: View {
                 let top = probe.minY + model.topInset - 24
                 let bottom = probe.minY + probe.viewport - 120
                 if frame.minY < top {
-                    withAnimation(Theme.open) { scroll.wrappedValue.scrollTo(y: max(0, frame.minY - model.topInset + 24)) }
+                    scroll.wrappedValue.scrollTo(y: max(0, frame.minY - model.topInset + 24))
                 } else if frame.maxY > bottom {
-                    withAnimation(Theme.open) { scroll.wrappedValue.scrollTo(y: frame.maxY - probe.viewport + 120) }
+                    scroll.wrappedValue.scrollTo(y: frame.maxY - probe.viewport + 120)
                 }
             }
         }

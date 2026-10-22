@@ -17,7 +17,7 @@ struct FilterButton: View {
     var body: some View {
         let count = model.filterCount
         Button {
-            withAnimation(.spring(duration: 0.4, bounce: 0.15)) {
+            withAnimation(Theme.enter) {
                 model.viewOpen = false
                 model.filterOpen.toggle()
             }
@@ -32,7 +32,7 @@ struct FilterButton: View {
                         .monospacedDigit()
                         .frame(minWidth: 18, minHeight: 18)
                         .background(Circle().fill(Theme.ink))
-                        .transition(.scale.combined(with: .opacity))
+                        .transition(.scale(scale: 0.9).combined(with: .opacity))
                 }
             }
         }
@@ -48,7 +48,7 @@ struct ViewButton: View {
 
     var body: some View {
         Button {
-            withAnimation(.spring(duration: 0.4, bounce: 0.15)) {
+            withAnimation(Theme.enter) {
                 model.filterOpen = false
                 model.viewOpen.toggle()
             }
@@ -82,7 +82,7 @@ struct ViewOverlay: View {
         ZStack(alignment: .topTrailing) {
             Color.clear
                 .contentShape(Rectangle())
-                .onTapGesture { withAnimation(.spring(duration: 0.35, bounce: 0)) { model.viewOpen = false } }
+                .onTapGesture { withAnimation(Theme.exit) { model.viewOpen = false } }
             VStack(alignment: .leading, spacing: 12) {
                 VStack(alignment: .leading, spacing: 2) {
                     SectionLabel(L.Viewing.sort)

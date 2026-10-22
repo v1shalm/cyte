@@ -59,9 +59,9 @@ struct QuestionPill: View {
         .padding(8)
         .background(Capsule().fill(Theme.pill))
         .shadow(color: .black.opacity(0.18), radius: 18, y: 8)
-        .scaleEffect(shown || reduceMotion ? 1 : 0.82)
+        .scaleEffect(shown || reduceMotion ? 1 : 0.9)
         .opacity(shown ? 1 : 0)
-        .blur(radius: shown || reduceMotion ? 0 : 6)
-        .onAppear { withAnimation(reduceMotion ? Theme.fade : .spring(duration: 0.5, bounce: 0.3)) { shown = true } }
+        .blur(radius: shown || reduceMotion ? 0 : 4)
+        .onAppear { withAnimation(reduceMotion ? Theme.fade : Theme.pop) { shown = true } }
     }
 }

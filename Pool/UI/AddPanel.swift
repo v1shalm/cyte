@@ -32,8 +32,8 @@ struct AddPanel: View {
                             .frame(width: 24, height: 24)
                             .background(Circle().fill(Theme.ink))
                     }
-                    .buttonStyle(PressStyle(scale: 0.9))
-                    .transition(.scale(scale: 0.6).combined(with: .opacity))
+                    .buttonStyle(PressStyle())
+                    .transition(.scale(scale: 0.9).combined(with: .opacity))
                 }
             }
             .padding(.leading, 14)
@@ -106,7 +106,7 @@ private struct AddAction: View {
             .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(hovering ? Theme.softFillStrong : Theme.softFill))
             .contentShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         }
-        .buttonStyle(PressStyle(scale: 0.97))
+        .buttonStyle(PressStyle())
         .onHover { hovering = $0 }
         .animation(Theme.hover, value: hovering)
     }

@@ -75,10 +75,13 @@ enum Theme {
     static let open = Animation.spring(duration: 0.42, bounce: 0)
     static let reflow = Animation.spring(duration: 0.45, bounce: 0)
     static let settle = Animation.spring(duration: 0.3, bounce: 0)
-    static let press = Animation.easeOut(duration: 0.12)
-    static let hover = Animation.easeOut(duration: 0.18)
+    static let press = Animation.timingCurve(0.23, 1, 0.32, 1, duration: 0.14)
+    static let hover = Animation.timingCurve(0.25, 0.1, 0.25, 1, duration: 0.15)
     static let fade = Animation.easeOut(duration: 0.2)
     static let pop = Animation.spring(duration: 0.35, bounce: 0.15)
+    static let enter = Animation.timingCurve(0.23, 1, 0.32, 1, duration: 0.2)
+    static let exit = Animation.timingCurve(0.23, 1, 0.32, 1, duration: 0.14)
+    static let pressScale: CGFloat = 0.96
 
     static func serif(_ size: CGFloat, light: Bool = false) -> Font {
         let cut = size < 24 ? "TimelessSerif-Text" : "TimelessSerif-"
@@ -150,7 +153,7 @@ extension View {
 }
 
 struct PressStyle: ButtonStyle {
-    var scale: CGFloat = 0.97
+    var scale: CGFloat = Theme.pressScale
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
@@ -195,7 +198,7 @@ private struct ButtonFace: View {
             .frame(height: Control.regular)
             .background(shape.fill(fill))
             .opacity(enabled ? 1 : 0.4)
-            .scaleEffect(configuration.isPressed ? 0.97 : 1)
+            .scaleEffect(configuration.isPressed ? Theme.pressScale : 1)
             .contentShape(shape)
             .onHover { hovering = $0 }
             .animation(Theme.press, value: configuration.isPressed)
@@ -233,7 +236,7 @@ private struct ChipFace: View {
             .frame(height: Control.small)
             .background(Capsule().fill(active ? Theme.ink : (hovering && enabled ? Theme.softFillStrong : Theme.softFill)))
             .opacity(enabled ? 1 : 0.4)
-            .scaleEffect(configuration.isPressed ? 0.96 : 1)
+            .scaleEffect(configuration.isPressed ? Theme.pressScale : 1)
             .contentShape(Capsule())
             .onHover { hovering = $0 }
             .animation(Theme.press, value: configuration.isPressed)

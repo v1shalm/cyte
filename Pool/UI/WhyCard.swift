@@ -163,7 +163,7 @@ struct WhyCard: View {
                 .background(Circle().fill(.white.opacity(listening ? 0.22 : 0.1)))
                 .contentShape(Circle())
         }
-        .buttonStyle(PressStyle(scale: 0.92))
+        .buttonStyle(PressStyle())
         .animation(Theme.hover, value: listening)
         .help(listening ? L.Why.stopListening : L.Why.speak)
         .accessibilityLabel(listening ? L.Why.stopListening : L.Why.speak)
@@ -178,7 +178,7 @@ struct WhyCard: View {
                 .background(Circle().fill(ready ? .white : .white.opacity(0.1)))
                 .contentShape(Circle())
         }
-        .buttonStyle(PressStyle(scale: 0.92))
+        .buttonStyle(PressStyle())
         .animation(Theme.hover, value: ready)
         .help(ready ? L.Why.keep : L.Why.skip)
         .accessibilityLabel(ready ? L.Why.keep : L.Why.skip)
@@ -231,7 +231,7 @@ private struct WhyThumbs: View {
                     .rotationEffect(.degrees(shown.count == 1 ? 0 : Double(lift) * -7))
                     .offset(x: CGFloat(lift) * -3, y: CGFloat(lift) * -1)
                     .shadow(color: .black.opacity(0.25), radius: 4, y: 2)
-                    .transition(.scale(scale: 0.8).combined(with: .opacity))
+                    .transition(.scale(scale: 0.9).combined(with: .opacity))
             }
         }
         .frame(width: 48, height: 48)

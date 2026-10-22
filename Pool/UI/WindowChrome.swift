@@ -69,7 +69,7 @@ struct SidebarToggle: View {
 
     var body: some View {
         Button {
-            withAnimation(.spring(duration: 0.42, bounce: 0.1)) { model.sidebarShown.toggle() }
+            withAnimation(Theme.open) { model.sidebarShown.toggle() }
         } label: {
             Icon("sidebar.left", size: IconSize.sm)
                 .foregroundStyle(onPanel ? (hovering ? Theme.sideInk : Theme.sideTertiary) : (hovering ? Theme.ink : Theme.tertiary))
@@ -77,7 +77,7 @@ struct SidebarToggle: View {
                 .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(hovering ? (onPanel ? Theme.sideHover : .white) : .clear).shadow(color: .black.opacity(hovering ? 0.07 : 0), radius: 4, y: 1))
                 .contentShape(Rectangle())
         }
-        .buttonStyle(PressStyle(scale: 0.9))
+        .buttonStyle(PressStyle())
         .onHover { hovering = $0 }
         .animation(Theme.hover, value: hovering)
         .accessibilityLabel(model.sidebarShown ? L.Folders.hideSidebar : L.Folders.showSidebar)

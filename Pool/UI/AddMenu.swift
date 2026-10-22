@@ -29,11 +29,11 @@ struct AddMenu: View {
         ZStack(alignment: .topTrailing) {
             ForEach(Array(options.enumerated()), id: \.element.id) { index, option in
                 AddMenuRow(option: option, bubble: bubble) {
-                    withAnimation(.easeOut(duration: 0.16)) { model.addMenuOpen = false }
+                    withAnimation(Theme.exit) { model.addMenuOpen = false }
                     option.run()
                 }
                 .offset(x: (bubble - Self.height) / 2, y: open ? rowY(index) : 0)
-                .scaleEffect(open || reduceMotion ? 1 : 0.6, anchor: .topTrailing)
+                .scaleEffect(open || reduceMotion ? 1 : 0.9, anchor: .topTrailing)
                 .opacity(open ? 1 : 0)
                 .animation(rowMotion(index, count: options.count), value: open)
                 .allowsHitTesting(open)
@@ -58,7 +58,7 @@ struct AddMenu: View {
                 if !open {
                     Text(L.Add.button)
                         .font(Theme.ui(TextSize.body, weight: .medium))
-                        .transition(.opacity.combined(with: .scale(scale: 0.85)))
+                        .transition(.opacity.combined(with: .scale(scale: 0.9)))
                 }
             }
             .foregroundStyle(.white)
@@ -69,7 +69,7 @@ struct AddMenu: View {
             .animation(Theme.hover, value: hovering)
             .animation(reduceMotion ? .easeOut(duration: 0.12) : .spring(duration: 0.34, bounce: 0.16), value: open)
         }
-        .buttonStyle(PressStyle(scale: 0.95))
+        .buttonStyle(PressStyle())
         .accessibilityLabel(open ? L.Add.close : L.Add.button)
     }
 
@@ -79,8 +79,8 @@ struct AddMenu: View {
 
     private func rowMotion(_ index: Int, count: Int) -> Animation {
         if reduceMotion { return .easeOut(duration: 0.15) }
-        if open { return .spring(duration: 0.42, bounce: 0.18).delay(Double(index) * 0.035) }
-        return .easeIn(duration: 0.14).delay(Double(count - 1 - index) * 0.02)
+        if open { return .spring(duration: 0.3, bounce: 0.12).delay(Double(index) * 0.03) }
+        return Theme.exit.delay(Double(count - 1 - index) * 0.015)
     }
 
     private func makeOptions() -> [Option] {

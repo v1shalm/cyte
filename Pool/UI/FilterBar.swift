@@ -128,7 +128,7 @@ struct FilterOverlay: View {
         ZStack(alignment: .topTrailing) {
             Color.clear
                 .contentShape(Rectangle())
-                .onTapGesture { withAnimation(.spring(duration: 0.35, bounce: 0)) { model.filterOpen = false } }
+                .onTapGesture { withAnimation(Theme.exit) { model.filterOpen = false } }
             ScrollView {
                 FilterPanel()
             }

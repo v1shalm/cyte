@@ -83,7 +83,7 @@ private struct EraseButton: View {
                 .shadow(color: .black.opacity(0.08), radius: 6, y: 3)
                 .contentShape(Circle())
         }
-        .buttonStyle(PressStyle(scale: 0.9))
+        .buttonStyle(PressStyle())
         .help(L.Trash.deleteNow)
         .accessibilityLabel(L.Trash.deleteNow)
     }

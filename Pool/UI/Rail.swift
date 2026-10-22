@@ -39,7 +39,7 @@ struct Rail: View {
                 SettingsLink {
                     RailIcon(symbol: "gearshape.fill", active: false)
                 }
-                .buttonStyle(PressStyle(scale: 0.92))
+                .buttonStyle(PressStyle())
                 .help(L.Settings.title)
                 .accessibilityLabel(L.Settings.title)
             }
@@ -81,7 +81,7 @@ private struct RailButton: View {
         Button(action: action) {
             RailIcon(symbol: symbol, activeSymbol: activeSymbol, active: active)
         }
-        .buttonStyle(PressStyle(scale: 0.92))
+        .buttonStyle(PressStyle())
         .help(title)
         .accessibilityLabel(title)
         .accessibilityAddTraits(active ? .isSelected : [])

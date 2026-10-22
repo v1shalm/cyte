@@ -359,7 +359,7 @@ struct VideoControls: View {
                     .frame(width: 30, height: 30)
                     .contentShape(Circle())
             }
-            .buttonStyle(PressStyle(scale: 0.9))
+            .buttonStyle(PressStyle())
             .help(playback.paused ? L.Video.play : L.Video.pause)
             .accessibilityLabel(playback.paused ? L.Video.play : L.Video.pause)
 
@@ -377,7 +377,7 @@ struct VideoControls: View {
                     .frame(width: 30, height: 30)
                     .contentShape(Circle())
             }
-            .buttonStyle(PressStyle(scale: 0.9))
+            .buttonStyle(PressStyle())
             .help(playback.muted ? L.Video.unmute : L.Video.mute)
             .accessibilityLabel(playback.muted ? L.Video.unmute : L.Video.mute)
         }

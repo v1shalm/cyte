@@ -118,23 +118,24 @@ struct RootView: View {
         }
         .onKeyPress(.escape) {
             if model.trashConfirm != nil {
-                withAnimation(Theme.settle) { model.trashConfirm = nil }
+                model.trashConfirm = nil
                 return .handled
             }
             if model.barPopover != nil {
-                withAnimation(Theme.settle) { model.barPopover = nil }
+                model.barPopover = nil
                 return .handled
             }
             if model.selecting {
-                model.clearSelection()
+                model.clearSelection(animated: false)
                 return .handled
             }
             if model.filterOpen || model.viewOpen {
-                withAnimation(.spring(duration: 0.35, bounce: 0)) { model.filterOpen = false; model.viewOpen = false }
+                model.filterOpen = false
+                model.viewOpen = false
                 return .handled
             }
             guard model.addMenuOpen else { return .ignored }
-            withAnimation(.easeOut(duration: 0.2)) { model.addMenuOpen = false }
+            model.addMenuOpen = false
             return .handled
         }
         .preferredColorScheme(.light)
@@ -199,7 +200,7 @@ private struct LinkEntry: View {
                             .background(Circle().fill(link == nil ? Theme.softFill : Theme.ink))
                             .contentShape(Circle())
                     }
-                    .buttonStyle(PressStyle(scale: 0.9))
+                    .buttonStyle(PressStyle())
                     .accessibilityLabel(L.Add.link)
                     .animation(.easeOut(duration: 0.15), value: link == nil)
                 }
@@ -373,7 +374,7 @@ struct PageTitle: View {
                         .background(Circle().fill(hovering ? Theme.softFillStrong : Theme.softFill))
                         .contentShape(Circle())
                 }
-                .buttonStyle(PressStyle(scale: 0.92))
+                .buttonStyle(PressStyle())
                 .onHover { hovering = $0 }
                 .animation(Theme.hover, value: hovering)
                 .help(L.Folders.allFolders)
@@ -555,7 +556,7 @@ struct ToastHost: View {
                     .padding(.bottom, Self.bottomInset)
                     .transition(.asymmetric(
                         insertion: .identity,
-                        removal: .scale(scale: 0.9, anchor: .bottom).combined(with: .opacity)
+                        removal: .opacity.combined(with: .offset(y: 6)).animation(Theme.exit)
                     ))
             }
             if let ask = model.why.ask, !ask.floating {

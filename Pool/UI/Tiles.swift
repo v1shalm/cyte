@@ -48,7 +48,7 @@ struct Tile: View {
                 SelectDot(on: picked)
                     .padding(10)
                     .onTapGesture { model.toggle(save.id) }
-                    .transition(.opacity.combined(with: .scale(scale: 0.8)))
+                    .transition(.opacity.combined(with: .scale(scale: 0.9)))
             }
         }
         .overlay(alignment: .bottom) {
@@ -158,7 +158,7 @@ struct TileActions: View {
     private var onCard: Bool { save.kind == .note || (save.kind == .link && save.thumbnail == nil) }
 
     private func motion(_ index: Int) -> Animation {
-        reduceMotion ? .easeOut(duration: 0.12) : .spring(duration: 0.5, bounce: 0.34).delay(Double(index) * 0.03)
+        reduceMotion ? Theme.fade : Theme.enter.delay(Double(index) * 0.03)
     }
 }
 
@@ -169,7 +169,7 @@ private struct TileAction: View {
 
     var body: some View {
         Button(action: action) { TileActionFace(symbol: symbol) }
-            .buttonStyle(PressStyle(scale: 0.88))
+            .buttonStyle(PressStyle())
             .help(label)
             .accessibilityLabel(label)
     }

@@ -99,11 +99,11 @@ struct GooeyTabs<Value: Hashable>: View {
                         Capsule()
                             .frame(width: rect.width, height: rect.height)
                             .offset(x: rect.minX, y: rect.minY)
-                            .animation(reduceMotion ? nil : .spring(duration: 0.32, bounce: 0.18), value: selected)
+                            .animation(reduceMotion ? nil : .spring(duration: 0.26, bounce: 0.1), value: selected)
                         Capsule()
                             .frame(width: rect.width, height: rect.height)
                             .offset(x: rect.minX, y: rect.minY)
-                            .animation(reduceMotion ? nil : .spring(duration: 0.6, bounce: 0.14), value: selected)
+                            .animation(reduceMotion ? nil : .spring(duration: 0.42, bounce: 0.1), value: selected)
                     }
                     .frame(width: proxy.size.width, height: proxy.size.height, alignment: .topLeading)
                 }
