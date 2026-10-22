@@ -149,7 +149,7 @@ final class WhyPrompt {
         if wasFloating { WhyPanel.shared.hide() }
     }
 
-    private static var libraryWindowIsFront: Bool {
+    static var libraryWindowIsFront: Bool {
         guard NSApp.isActive, let window = NSApp.keyWindow ?? NSApp.mainWindow else { return false }
         return window.isVisible && window.canBecomeMain && !(window is NSPanel)
     }

@@ -152,6 +152,7 @@ final class AppModel {
     func start() async {
         guard !started else { return }
         started = true
+        ingestor.destination = { [weak self] in self?.addingFolder }
         store.onInboxChange = { [weak self] in self?.ingestor.processInbox() }
         await store.open()
         refresh()
@@ -420,6 +421,12 @@ final class AppModel {
             folderID = nil
             similarFilter = (save.displayTitle, Set(ids + [save.id]))
         }
+    }
+
+    var addingFolder: Folder? {
+        guard !foldersPage, !trashPage, WhyPrompt.libraryWindowIsFront,
+              let id = folderID, let folder = store.folder(id: id), folder.rule == nil else { return nil }
+        return folder
     }
 
     var contentLeading: CGFloat {

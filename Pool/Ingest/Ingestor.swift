@@ -10,11 +10,32 @@ final class Ingestor {
     private let feedback: Feedback
     private let log = Logger(subsystem: Identity.subsystem, category: "ingest")
     private var inboxBusy = false
+    var destination: () -> Folder? = { nil }
 
     init(store: LibraryStore, enricher: Enricher, feedback: Feedback) {
         self.store = store
         self.enricher = enricher
         self.feedback = feedback
+    }
+
+    private static let backgroundSources: Set<String> = ["iphone", "screenshot"]
+
+    private func target(for source: String?) -> Folder? {
+        guard !Self.backgroundSources.contains(source ?? "") else { return nil }
+        return destination()
+    }
+
+    private func insert(_ save: Save) {
+        var save = save
+        if let folder = target(for: save.source), !save.folders.contains(folder.id) { save.folders.append(folder.id) }
+        store.insert(save)
+    }
+
+    private func fileExisting(_ existing: Save, source: String?) -> Bool {
+        guard let folder = target(for: source) else { return false }
+        if !existing.folders.contains(folder.id) { store.add([existing.id], to: folder) }
+        feedback.toast(L.Folders.added(folder.name))
+        return true
     }
 
 
@@ -82,7 +103,7 @@ final class Ingestor {
         }
         var save = Save(kind: .note, text: trimmed, source: "note")
         save.title = ""
-        store.insert(save)
+        insert(save)
         feedback.saved()
         enricher.enrich(save.id)
     }
@@ -155,7 +176,7 @@ final class Ingestor {
             return await ingestLink(url, title: nil, source: source)
         }
         let save = Save(kind: .note, text: trimmed, source: source ?? "note")
-        store.insert(save)
+        insert(save)
         enricher.enrich(save.id)
         return save
     }
@@ -165,14 +186,14 @@ final class Ingestor {
             let save = Save(kind: .image, title: url.deletingPathExtension().lastPathComponent, source: source ?? "file")
             let folder = store.folder(for: save)
             guard let prepared = await Self.prepareVideo(copying: url, into: folder) else { return nil }
-            if reportDuplicate(prepared, folder: folder) { return nil }
+            if reportDuplicate(prepared, folder: folder, source: source) { return nil }
             return commit(save, prepared: prepared)
         }
         if ImageFiles.isImage(url) {
             let save = Save(kind: .image, title: url.deletingPathExtension().lastPathComponent, source: source ?? "file")
             let folder = store.folder(for: save)
             guard let prepared = await Self.prepareImage(copying: url, into: folder) else { return nil }
-            if reportDuplicate(prepared, folder: folder) { return nil }
+            if reportDuplicate(prepared, folder: folder, source: source) { return nil }
             return commit(save, prepared: prepared)
         }
         if ["webloc", "url"].contains(url.pathExtension.lowercased()),
@@ -186,7 +207,7 @@ final class Ingestor {
         let save = Save(kind: .image, url: url, source: source ?? url?.host())
         let folder = store.folder(for: save)
         guard let prepared = await Self.prepareImage(data: data, into: folder) else { return nil }
-        if reportDuplicate(prepared, folder: folder) { return nil }
+        if reportDuplicate(prepared, folder: folder, source: source) { return nil }
         return commit(save, prepared: prepared)
     }
 
@@ -194,13 +215,14 @@ final class Ingestor {
         let save = Save(kind: .image, url: url, source: source ?? url?.host())
         let folder = store.folder(for: save)
         guard let prepared = await Self.prepareVideo(data: data, into: folder) else { return nil }
-        if reportDuplicate(prepared, folder: folder) { return nil }
+        if reportDuplicate(prepared, folder: folder, source: source) { return nil }
         return commit(save, prepared: prepared)
     }
 
-    private func reportDuplicate(_ prepared: PreparedImage, folder: URL) -> Bool {
+    private func reportDuplicate(_ prepared: PreparedImage, folder: URL, source: String?) -> Bool {
         guard let existing = store.saves.first(where: { $0.contentHash == prepared.hash }) else { return false }
         try? FileManager.default.removeItem(at: folder)
+        if fileExisting(existing, source: source) { return true }
         feedback.toast(L.Toast.duplicateImage)
         feedback.focus(existing.id)
         return true
@@ -213,13 +235,14 @@ final class Ingestor {
         save.thumbnail = prepared.thumbnail
         save.aspect = prepared.aspect
         save.contentHash = prepared.hash
-        store.insert(save)
+        insert(save)
         enricher.enrich(save.id)
         return save
     }
 
     private func ingestLink(_ url: URL, title: String?, source: String?) async -> Save? {
         if let existing = store.saves.first(where: { $0.url == url && $0.kind == .link }) {
+            if fileExisting(existing, source: source) { return nil }
             feedback.toast(L.Toast.duplicate)
             feedback.focus(existing.id)
             return nil
@@ -233,7 +256,7 @@ final class Ingestor {
 
         var save = Save(kind: .link, title: title ?? "", url: url, source: source)
         save.pending = true
-        store.insert(save)
+        insert(save)
         let id = save.id
         let folder = store.folder(for: save)
 

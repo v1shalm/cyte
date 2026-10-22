@@ -41,3 +41,32 @@ struct SearchRankingTests {
         #expect(!rule.matches(link))
     }
 }
+
+@MainActor
+struct FolderDestinationTests {
+    private func makeIngestor() async throws -> (Ingestor, LibraryStore, Folder, URL) {
+        let base = FileManager.default.temporaryDirectory.appending(path: "cyte-tests-\(UUID().uuidString)", directoryHint: .isDirectory)
+        let paths = LibraryPaths(root: base.appending(path: "Cyte", directoryHint: .isDirectory))
+        let index = LibraryIndex(directory: base.appending(path: "Index", directoryHint: .isDirectory))
+        let store = LibraryStore(root: paths.root, index: index)
+        await store.open()
+        let folder = store.createFolder(named: "Deck")
+        let ingestor = Ingestor(store: store, enricher: Enricher(store: store), feedback: Feedback(why: WhyPrompt(store: store)))
+        return (ingestor, store, folder, base)
+    }
+
+    @Test func `a note added inside a folder joins that folder`() async throws {
+        let (ingestor, store, folder, base) = try await makeIngestor()
+        defer { try? FileManager.default.removeItem(at: base) }
+        ingestor.destination = { folder }
+        ingestor.addNote("Pricing idea for the deck")
+        #expect(store.saves.first?.folders == [folder.id])
+    }
+
+    @Test func `a note added outside a folder stays unfiled`() async throws {
+        let (ingestor, store, _, base) = try await makeIngestor()
+        defer { try? FileManager.default.removeItem(at: base) }
+        ingestor.addNote("Loose thought")
+        #expect(store.saves.first?.folders.isEmpty == true)
+    }
+}

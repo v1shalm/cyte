@@ -132,6 +132,15 @@ struct MasonryGrid: View {
 
     static let band: CGFloat = 60
     static let maxPlaying = 10
+    static let maxBeams = 3
+    static let maxStagger = 6
+
+    private func arrival(_ rank: Int) -> AnyTransition {
+        guard !reduceMotion else { return .opacity.animation(Theme.fade) }
+        let delay = 0.06 + Double(min(rank, Self.maxStagger)) * 0.04
+        return .modifier(active: Arrival(landed: false), identity: Arrival(landed: true))
+            .animation(Theme.settle.delay(delay))
+    }
 
     var body: some View {
         let (layout, lookup) = probe.resolve(saves: model.results, related: model.related, width: width, target: model.columnWidth, leading: model.contentLeading, top: model.topInset)
@@ -139,6 +148,8 @@ struct MasonryGrid: View {
         let window = CGRect(x: -10_000, y: CGFloat(bucket) * Self.step - 900, width: 100_000, height: max(viewport, 1600) + 1800 + Self.step)
         let visibleIDs = layout.order.filter { layout.frames[$0]?.intersects(window) ?? false }
         let playing = playingIDs(visibleIDs, layout: layout, lookup: lookup)
+        let fresh = model.store.freshIDs
+        let arrivals = Dictionary(uniqueKeysWithValues: layout.order.filter(fresh.contains).enumerated().map { ($0.element, $0.offset) })
 
         ScrollView {
             ZStack(alignment: .topLeading) {
@@ -157,11 +168,12 @@ struct MasonryGrid: View {
 
                 ForEach(visibleIDs, id: \.self) { id in
                     if let save = lookup[id], let frame = layout.frames[id] {
-                        Tile(save: save, namespace: namespace, fresh: model.store.freshIDs.contains(id), playing: playing.contains(id))
+                        let rank = arrivals[id]
+                        Tile(save: save, namespace: namespace, fresh: rank != nil, beams: (rank ?? 0) < Self.maxBeams, playing: playing.contains(id))
                             .frame(width: frame.width, height: frame.height)
                             .position(x: frame.midX, y: frame.midY)
                             .transition(.asymmetric(
-                                insertion: reduceMotion ? .opacity : .scale(scale: 0.94).combined(with: .opacity),
+                                insertion: rank.map(arrival) ?? (reduceMotion ? .opacity : .scale(scale: 0.94).combined(with: .opacity)),
                                 removal: .opacity.combined(with: .scale(scale: 0.97))
                             ))
                     }
@@ -222,5 +234,16 @@ struct MasonryGrid: View {
 
     private var reflowKey: String {
         "\(model.kind?.rawValue ?? "all")-\(model.filterCount)-\(model.folderID ?? "")-\(model.sidebarShown)-\(model.store.saves.count)-\(model.store.saves.first?.id ?? "")"
+    }
+}
+
+private struct Arrival: ViewModifier {
+    let landed: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .opacity(landed ? 1 : 0)
+            .scaleEffect(landed ? 1 : 0.96)
+            .offset(y: landed ? 0 : -12)
     }
 }

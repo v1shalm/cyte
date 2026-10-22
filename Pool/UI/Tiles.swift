@@ -8,13 +8,15 @@ struct Tile: View {
     let save: Save
     let namespace: Namespace.ID
     let fresh: Bool
+    var beams = true
     var playing = false
 
     @State private var hovering = false
+    @State private var beamOn = false
     @State private var beamDone = false
 
     private var working: Bool { save.pending || model.enricher.activeID == save.id }
-    private var beaming: Bool { fresh && !beamDone }
+    private var beaming: Bool { fresh && beams && beamOn && !beamDone }
 
     var body: some View {
         let selected = model.selectedID == save.id
@@ -65,10 +67,12 @@ struct Tile: View {
                     .transition(.opacity.combined(with: .scale(scale: 0.94, anchor: .topTrailing)))
             }
         }
-        .borderBeam(active: beaming, cornerRadius: Theme.tileRadius, duration: 1.5, laps: 1.15)
+        .arrivalBeam(active: beaming, cornerRadius: Theme.tileRadius, onLight: save.kind == .note || (save.kind == .link && save.thumbnail == nil))
         .task(id: fresh) {
             guard fresh else { return }
-            try? await Task.sleep(for: .seconds(1.9))
+            try? await Task.sleep(for: .milliseconds(320))
+            beamOn = true
+            try? await Task.sleep(for: .milliseconds(1300))
             beamDone = true
             if !working { model.store.clearFresh(save.id) }
         }
