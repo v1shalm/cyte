@@ -117,6 +117,10 @@ struct RootView: View {
             }
         }
         .onKeyPress(.escape) {
+            if model.trashConfirm != nil {
+                withAnimation(Theme.settle) { model.trashConfirm = nil }
+                return .handled
+            }
             if model.barPopover != nil {
                 withAnimation(Theme.settle) { model.barPopover = nil }
                 return .handled
@@ -146,6 +150,9 @@ struct RootView: View {
     @ViewBuilder private var content: some View {
         if !model.store.isLoaded {
             Color.clear
+        } else if model.trashPage {
+            TrashPage()
+                .padding(.leading, model.contentLeading)
         } else if model.foldersPage {
             FoldersPage()
                 .padding(.leading, model.contentLeading)
@@ -290,13 +297,20 @@ struct TopBar: View {
 
             HStack(spacing: 20) {
                 PageTitle()
-                if !model.foldersPage {
+                if !onPage {
                     filters
                 }
                 Spacer(minLength: 12)
-                if !model.foldersPage {
+                if !onPage {
                     ViewControls()
                         .opacity(model.addingFocus ? 0 : 1)
+                } else if model.trashPage, !model.store.trash.isEmpty {
+                    Button(L.Trash.emptyTrash) {
+                        withAnimation(Theme.settle) { model.trashConfirm = .all }
+                    }
+                    .poolSecondary()
+                    .opacity(model.addingFocus ? 0 : 1)
+                    .transition(.opacity)
                 }
             }
             .frame(height: Control.regular)
@@ -305,7 +319,7 @@ struct TopBar: View {
             .opacity(model.addingFocus ? 0.35 : 1)
             .animation(.easeOut(duration: 0.15), value: model.addingFocus)
 
-            if model.filterCount > 0 && !model.foldersPage {
+            if model.filterCount > 0 && !onPage {
                 FilterBar()
                     .padding(.top, 16)
                     .opacity(model.addingFocus ? 0.35 : 1)
@@ -326,6 +340,8 @@ struct TopBar: View {
         }
         .frame(maxHeight: .infinity, alignment: .top)
     }
+
+    private var onPage: Bool { model.foldersPage || model.trashPage }
 
     private var filters: some View {
         @Bindable var model = model
@@ -378,11 +394,12 @@ struct PageTitle: View {
     }
 
     private var currentFolder: Folder? {
-        guard !model.foldersPage, let id = model.folderID else { return nil }
+        guard !model.foldersPage, !model.trashPage, let id = model.folderID else { return nil }
         return model.store.folder(id: id)
     }
 
     private var title: String {
+        if model.trashPage { return L.Trash.title }
         if model.foldersPage { return L.Folders.allFolders }
         if let folder = currentFolder { return folder.name }
         return L.Folders.everything
@@ -529,10 +546,11 @@ struct ToastHost: View {
     static let bottomInset: CGFloat = 28
 
     var body: some View {
-        VStack {
+        VStack(spacing: 10) {
             Spacer()
             if let toast = model.feedback.toast {
                 ToastView(toast: toast)
+                    .onHover { model.feedback.holdToast($0) }
                     .id(toast.id)
                     .padding(.bottom, Self.bottomInset)
                     .transition(.asymmetric(
@@ -540,9 +558,16 @@ struct ToastHost: View {
                         removal: .scale(scale: 0.9, anchor: .bottom).combined(with: .opacity)
                     ))
             }
+            if let ask = model.why.ask, !ask.floating {
+                WhyCard(prompt: model.why)
+                    .id(ask.id)
+                    .padding(.bottom, Self.bottomInset)
+                    .transition(WhyCard.exit)
+            }
         }
         .frame(maxWidth: .infinity)
         .animation(.spring(duration: 0.35, bounce: 0), value: model.feedback.toast?.id)
+        .animation(.spring(duration: 0.35, bounce: 0), value: model.why.ask?.id)
     }
 }
 
@@ -553,28 +578,39 @@ struct ToastView: View {
     @State private var bloomed = false
 
     var body: some View {
+        let actionable = toast.actionTitle != nil && toast.action != nil
         HStack(spacing: 16) {
             Text(toast.message)
-                .font(Theme.ui(14))
+                .font(Theme.ui(TextSize.large))
                 .foregroundStyle(.white)
-                .padding(.leading, toast.actionTitle == nil ? 10 : 10)
+                .monospacedDigit()
             if let title = toast.actionTitle, let action = toast.action {
-                Button(title, action: action).buttonStyle(PillSolidStyle())
+                Button(title, action: action)
+                    .buttonStyle(PillSolidStyle())
+                    .keyboardShortcut(title == L.Toast.undo ? KeyboardShortcut("z", modifiers: .command) : nil)
             }
         }
         .fixedSize()
-        .padding(8)
-        .padding(.horizontal, toast.actionTitle == nil ? 6 : 0)
+        .padding(.leading, 20)
+        .padding(.trailing, actionable ? 8 : 20)
         .onGeometryChange(for: CGFloat.self, of: { $0.size.width }) { width = $0 }
         .opacity(bloomed ? 1 : 0)
-        .blur(radius: bloomed || reduceMotion ? 0 : 6)
-        .frame(width: bloomed ? width : 44, height: 48)
+        .blur(radius: bloomed || reduceMotion ? 0 : 4)
+        .frame(width: bloomed ? width : 48, height: 48)
         .background(Capsule().fill(Theme.pill))
+        .overlay(Capsule().strokeBorder(.white.opacity(0.08)))
+        .overlay(
+            Capsule()
+                .strokeBorder(LinearGradient(colors: [.white.opacity(0.12), .clear], startPoint: .top, endPoint: .center), lineWidth: 1)
+                .allowsHitTesting(false)
+        )
         .clipShape(Capsule())
-        .shadow(color: .black.opacity(0.18), radius: 18, y: 8)
-        .scaleEffect(bloomed || reduceMotion ? 1 : 0.5)
+        .shadow(color: .black.opacity(0.12), radius: 1, y: 1)
+        .shadow(color: .black.opacity(0.2), radius: 14, y: 8)
+        .scaleEffect(bloomed || reduceMotion ? 1 : 0.9)
         .onAppear {
-            withAnimation(reduceMotion ? Theme.fade : .spring(duration: 0.55, bounce: 0.28)) { bloomed = true }
+            withAnimation(reduceMotion ? Theme.fade : Theme.pop) { bloomed = true }
+            AccessibilityNotification.Announcement(toast.message).post()
         }
     }
 }

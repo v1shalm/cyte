@@ -210,6 +210,7 @@ private struct Inspector: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 26) {
                     header
+                    noteField
                     if model.enricher.activeID == save.id || (save.enriched == 0 && !save.pending && model.enricher.modelAvailable) {
                         Text(L.Detail.reading)
                             .font(Theme.ui(TextSize.small))
@@ -230,7 +231,6 @@ private struct Inspector: View {
                     }
                     if !save.palette.isEmpty { palette }
                     tags
-                    noteField
                     if let text = save.ocrText, !text.isEmpty { ocr(text) }
                     if !similar.isEmpty { similarGrid }
                 }
@@ -350,14 +350,14 @@ private struct Inspector: View {
             ZStack(alignment: .topLeading) {
                 if note.isEmpty {
                     Text(L.Detail.notePlaceholder)
-                        .font(Theme.ui(13))
+                        .font(Theme.ui(14))
                         .foregroundStyle(Theme.tertiary)
                         .padding(.horizontal, 12)
                         .padding(.vertical, 10)
                         .allowsHitTesting(false)
                 }
                 TextEditor(text: $note)
-                    .font(Theme.ui(13))
+                    .font(Theme.ui(14))
                     .scrollContentBackground(.hidden)
                     .padding(.horizontal, 7)
                     .padding(.vertical, 8)

@@ -36,6 +36,8 @@ final class LibraryStore {
         }
         let paths = paths
         entries = [:]
+        trash = []
+        trashLoaded = false
         if let cached = await index.read(root: paths.root) {
             entries = cached
             saves = cached.values.map(\.save).sorted { $0.createdAt > $1.createdAt }
@@ -109,12 +111,41 @@ final class LibraryStore {
 
     struct Trashed { let save: Save; let location: URL; let index: Int }
 
+    nonisolated struct TrashItem: Identifiable, Hashable, Sendable {
+        let save: Save
+        let location: URL
+        let deletedAt: Date
+        var id: String { save.id }
+
+        func file(_ name: String?) -> URL? {
+            name.map { location.appending(path: $0, directoryHint: .notDirectory) }
+        }
+
+        func daysLeft(now: Date = Date()) -> Int {
+            let elapsed = Int(now.timeIntervalSince(deletedAt) / 86_400)
+            return max(1, LibraryDisk.trashDays - elapsed)
+        }
+    }
+
+    private(set) var trash: [TrashItem] = []
+    private(set) var trashLoaded = false
+
+    func loadTrash() async {
+        let paths = paths
+        let items = await LibraryDisk.loadTrash(paths: paths)
+        guard paths.root == self.paths.root else { return }
+        trash = items
+        trashLoaded = true
+    }
+
     func delete(_ save: Save) async -> Trashed? {
         guard let index = saves.firstIndex(where: { $0.id == save.id }) else { return nil }
         saves.remove(at: index)
         markWritten(save.id)
         do {
             let location = try await LibraryDisk.trash(save, paths: paths)
+            trash.removeAll { $0.id == save.id }
+            trash.insert(TrashItem(save: save, location: location, deletedAt: Date()), at: 0)
             return Trashed(save: save, location: location, index: index)
         } catch {
             log.error("Trash failed: \(error.localizedDescription, privacy: .public)")
@@ -128,9 +159,31 @@ final class LibraryStore {
         do {
             try await LibraryDisk.restore(trashed.save, from: trashed.location, paths: paths)
             saves.insert(trashed.save, at: min(trashed.index, saves.count))
+            trash.removeAll { $0.id == trashed.save.id }
         } catch {
             log.error("Restore failed: \(error.localizedDescription, privacy: .public)")
         }
+    }
+
+    func restore(_ item: TrashItem) async -> Bool {
+        markWritten(item.save.id)
+        do {
+            try await LibraryDisk.restore(item.save, from: item.location, paths: paths)
+        } catch {
+            log.error("Restore failed: \(error.localizedDescription, privacy: .public)")
+            return false
+        }
+        trash.removeAll { $0.id == item.id }
+        let at = saves.firstIndex { $0.createdAt < item.save.createdAt } ?? saves.count
+        saves.insert(item.save, at: at)
+        return true
+    }
+
+    func erase(_ items: [TrashItem]) async -> Int {
+        let erased = await LibraryDisk.erase(items.map(\.location))
+        let gone = Set(erased.map(\.standardizedFileURL))
+        trash.removeAll { gone.contains($0.location.standardizedFileURL) }
+        return erased.count
     }
 
     func folder(id: String) -> Folder? { folders.first { $0.id == id } }

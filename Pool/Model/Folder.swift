@@ -11,13 +11,13 @@ nonisolated struct SmartRule: Codable, Hashable, Sendable {
 
     func matches(_ save: Save) -> Bool {
         if let kind, save.kind != kind { return false }
-        if let host, (save.host ?? save.source ?? "") != host { return false }
+        if let host, !(save.host ?? save.source ?? "").contains(host) { return false }
         if let days, save.createdAt < Date().addingTimeInterval(-Double(days) * 86_400) { return false }
         if !tags.isEmpty {
             let own = Set((save.tags + save.labels).map { $0.lowercased() })
             if !tags.allSatisfy({ own.contains($0) }) { return false }
         }
-        if let color, let hex = SearchQuery.colorNames[color], let rgb = Palette.rgb(hex), !SearchEngine.colorMatch(save, rgb) { return false }
+        if let color, let rgb = Palette.rgb(SearchQuery.colorNames[color] ?? color), !SearchEngine.colorMatch(save, rgb) { return false }
         return true
     }
 }

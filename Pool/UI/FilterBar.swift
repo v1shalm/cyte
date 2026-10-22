@@ -43,8 +43,10 @@ extension AppModel {
         if activeRange != .any {
             list.append(ActiveFilter(id: "range", title: activeRange.title) { self.activeRange = .any })
         }
-        if let color = activeColor, let hex = SearchQuery.colorNames[color] {
-            list.append(ActiveFilter(id: "color", title: color.capitalized, swatch: Theme.color(hex: hex)) { self.activeColor = nil })
+        if let color = activeColor {
+            let named = SearchQuery.colorNames[color]
+            list.append(ActiveFilter(id: "color", title: named == nil ? color.uppercased() : color.capitalized,
+                                     swatch: Theme.color(hex: named ?? color)) { self.activeColor = nil })
         }
         if let host = activeHost {
             list.append(ActiveFilter(id: "host", title: host) { self.activeHost = nil })

@@ -78,6 +78,7 @@ enum Theme {
     static let press = Animation.easeOut(duration: 0.12)
     static let hover = Animation.easeOut(duration: 0.18)
     static let fade = Animation.easeOut(duration: 0.2)
+    static let pop = Animation.spring(duration: 0.35, bounce: 0.15)
 
     static func serif(_ size: CGFloat, light: Bool = false) -> Font {
         let cut = size < 24 ? "TimelessSerif-Text" : "TimelessSerif-"

@@ -84,6 +84,27 @@ nonisolated enum LibraryDisk {
     }
 
     @concurrent
+    static func loadTrash(paths: LibraryPaths) async -> [LibraryStore.TrashItem] {
+        let fm = FileManager.default
+        let folders = (try? fm.contentsOfDirectory(at: paths.trash, includingPropertiesForKeys: [.contentModificationDateKey],
+                                                   options: [.skipsHiddenFiles])) ?? []
+        let decoder = makeDecoder()
+        var items: [LibraryStore.TrashItem] = []
+        for folder in folders {
+            let file = folder.appending(path: "save.json", directoryHint: .notDirectory)
+            guard let data = try? Data(contentsOf: file), let save = try? decoder.decode(Save.self, from: data) else { continue }
+            let deletedAt = (try? folder.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? save.updatedAt
+            items.append(LibraryStore.TrashItem(save: save, location: folder, deletedAt: deletedAt))
+        }
+        return items.sorted { $0.deletedAt > $1.deletedAt }
+    }
+
+    @concurrent
+    static func erase(_ locations: [URL]) async -> [URL] {
+        locations.filter { (try? FileManager.default.removeItem(at: $0)) != nil }
+    }
+
+    @concurrent
     static func write(_ folder: Folder, paths: LibraryPaths) async throws {
         try FileManager.default.createDirectory(at: paths.folders, withIntermediateDirectories: true)
         let data = try encoder.encode(folder)

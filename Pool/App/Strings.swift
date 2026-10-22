@@ -43,7 +43,7 @@ enum L {
         static let saved = "Saved"
         static func savedMany(_ count: Int) -> String { "Saved \(count) items" }
         static let screenshot = "Screenshot saved"
-        static let deleted = "Moved to trash"
+        static let deleted = "Moved to Trash"
         static let undo = "Undo"
         static let nothingToPaste = "Your clipboard has no image, link or text"
         static let copied = "Copied"
@@ -71,7 +71,7 @@ enum L {
         static let newFolder = "New folder"
         static let tagPlaceholder = "Add a tag"
         static let noFolders = "No folders yet"
-        static func deletedMany(_ n: Int) -> String { "\(n) saves moved to trash" }
+        static func deletedMany(_ n: Int) -> String { "\(n) saves moved to Trash" }
         static func tagged(_ tag: String, _ n: Int) -> String { n == 1 ? "Tagged #\(tag)" : "Tagged \(n) saves #\(tag)" }
     }
 
@@ -82,6 +82,26 @@ enum L {
         static let browse = "Browse everything"
         static let filterTitle = "No saves match these filters"
         static let filterBody = "Widen the date range or remove a tag to see more."
+    }
+
+    enum Trash {
+        static let title = "Trash"
+        static let emptyTitle = "Trash is empty"
+        static let emptyBody = "Saves you delete wait here for 30 days, then Cyte removes them for good."
+        static let restore = "Restore"
+        static let deleteNow = "Delete now"
+        static let emptyTrash = "Empty trash"
+        static func daysLeft(_ n: Int) -> String { n == 1 ? "1 day left" : "\(n) days left" }
+        static func confirmOne(_ title: String) -> String {
+            let short = title.count > 28 ? title.prefix(27) + "…" : Substring(title)
+            return "Delete “\(short)” for good?"
+        }
+        static func confirmAll(_ n: Int) -> String { n == 1 ? "Delete 1 save for good?" : "Delete \(n) saves for good?" }
+        static func confirmYes(_ n: Int) -> String { n == 1 ? "Delete save" : "Delete \(n) saves" }
+        static let keep = "Keep in Trash"
+        static let restored = "Restored to Everything"
+        static let restoreFailed = "Cyte couldn't restore this save. Its files are still in Trash."
+        static func erased(_ n: Int) -> String { n == 1 ? "Deleted 1 save for good" : "Deleted \(n) saves for good" }
     }
 
     enum Viewing {
@@ -135,6 +155,8 @@ enum L {
         static let loginBody = "Cyte starts in the menu bar so saving is always one shortcut away."
         static let sounds = "Sounds"
         static let soundsBody = "Soft cues when you save, delete or drop."
+        static let askWhy = "Ask why you saved it"
+        static let askWhyBody = "After each save, Cyte asks for a line about why. Your answer shows on the tile and in the save's details."
         static let screenshots = "Save screenshots"
         static let screenshotsBody = "New screenshots on your Mac land in Cyte as they are taken."
         static let shortcuts = "Shortcuts"
@@ -144,8 +166,8 @@ enum L {
     enum Detail {
         static let tags = "Tags"
         static let addTag = "Add tag"
-        static let note = "Note"
-        static let notePlaceholder = "Write a note"
+        static let note = "Why you saved it"
+        static let notePlaceholder = "Add why you saved this"
         static let summary = "Summary"
         static let similar = "Similar saves"
         static let text = "Text in image"
@@ -286,6 +308,17 @@ enum L {
         static let note = "Write a note"
         static let paste = "Paste clipboard"
         static let hint = "You can also drag anything onto the window."
+    }
+
+    enum Why {
+        static func question(_ count: Int) -> String { count > 1 ? "Why are you saving these \(count)?" : "Why are you saving this?" }
+        static func savedFrom(_ message: String, _ host: String) -> String { "\(message) from \(host)" }
+        static let listening = "Listening"
+        static let speak = "Say why"
+        static let stopListening = "Stop listening"
+        static let keep = "Keep this reason"
+        static let skip = "Skip"
+        static let noted = "Noted"
     }
 
     static let dropOverlay = "Drop to save"

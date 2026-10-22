@@ -8,6 +8,7 @@ struct PaletteItem: Identifiable {
     let title: String
     let detail: String?
     let symbol: String
+    var why: String? = nil
     let run: () -> Void
 }
 
@@ -20,6 +21,7 @@ struct CommandPalette: View {
 
     @State private var query = ""
     @State private var selection = 0
+    @State private var related: [Save] = []
     @State private var voice = VoiceInput()
     @FocusState private var focused: Bool
 
@@ -100,7 +102,11 @@ struct CommandPalette: View {
         .shadow(color: .black.opacity(0.05), radius: 2, y: 1)
         .shadow(color: .black.opacity(0.11), radius: 28, y: 12)
         .onAppear { focused = true }
-        .onChange(of: query) { _, _ in selection = 0 }
+        .onChange(of: query) { _, _ in
+            selection = 0
+            related = []
+        }
+        .task(id: query) { await loadRelated() }
         .onChange(of: voice.transcript) { _, text in if voice.isListening { query = text } }
         .onKeyPress(.downArrow) {
             selection = min(selection + 1, max(items.count - 1, 0))
@@ -143,13 +149,12 @@ struct CommandPalette: View {
         var sections: [Section] = []
         let saves = trimmed.isEmpty ? Array(model.store.saves.prefix(6)) : Array(model.searchSaves(trimmed).prefix(8))
         if !saves.isEmpty {
-            sections.append(Section(title: trimmed.isEmpty ? L.Palette.recent : L.Palette.saves, items: saves.map { save in
-                PaletteItem(id: "s-\(save.id)", kind: .save(save), title: save.displayTitle,
-                            detail: save.host ?? save.tags.prefix(3).joined(separator: " · "),
-                            symbol: save.kind == .link ? "link" : (save.kind == .note ? "text.alignleft" : "photo")) {
-                    open(save)
-                }
-            }))
+            sections.append(Section(title: trimmed.isEmpty ? L.Palette.recent : L.Palette.saves, items: saves.map(item)))
+        }
+        let shown = Set(saves.map(\.id))
+        let meaning = trimmed.isEmpty ? [] : related.filter { !shown.contains($0.id) }
+        if !meaning.isEmpty {
+            sections.append(Section(title: L.Search.related, items: meaning.map(item)))
         }
         let folders = model.store.folders.filter { trimmed.isEmpty || $0.name.localizedCaseInsensitiveContains(trimmed) }
         if !folders.isEmpty {
@@ -190,6 +195,31 @@ struct CommandPalette: View {
         })
         sections.append(Section(title: L.Palette.actions, items: actions))
         return sections
+    }
+
+    private func item(_ save: Save) -> PaletteItem {
+        let why = save.note.split(whereSeparator: \.isNewline).first.map { $0.trimmingCharacters(in: .whitespaces) }
+        return PaletteItem(id: "s-\(save.id)", kind: .save(save), title: save.displayTitle,
+                           detail: save.host ?? save.tags.prefix(3).joined(separator: " · "),
+                           symbol: save.kind == .link ? "link" : (save.kind == .note ? "text.alignleft" : "photo"),
+                           why: why?.isEmpty == false ? why : nil) {
+            open(save)
+        }
+    }
+
+    private func loadRelated() async {
+        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        try? await Task.sleep(for: .milliseconds(180))
+        guard !Task.isCancelled else { return }
+        let found = Array(await model.relatedSaves(trimmed).prefix(5))
+        guard !Task.isCancelled, !found.isEmpty else { return }
+        let before = makeSections().flatMap(\.items)
+        let kept = before.indices.contains(selection) ? before[selection].id : nil
+        related = found
+        if let kept, let index = makeSections().flatMap(\.items).firstIndex(where: { $0.id == kept }) {
+            selection = index
+        }
     }
 
     private func run(_ items: [PaletteItem]) {
@@ -236,7 +266,12 @@ private struct PaletteRow: View {
                     .font(Theme.ui(14, weight: .medium))
                     .foregroundStyle(Theme.ink)
                     .lineLimit(1)
-                if let detail = item.detail, !detail.isEmpty {
+                if let why = item.why {
+                    Text(why)
+                        .font(Theme.serif(TextSize.body))
+                        .foregroundStyle(Theme.secondary)
+                        .lineLimit(1)
+                } else if let detail = item.detail, !detail.isEmpty {
                     Text(detail)
                         .font(Theme.ui(12))
                         .foregroundStyle(Theme.tertiary)

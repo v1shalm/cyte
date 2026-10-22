@@ -8,22 +8,17 @@ struct Rail: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Button { goHome() } label: {
-                Image("MenuBarMark")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 28, height: 28)
-                    .foregroundStyle(Theme.sideInk)
-                    .frame(width: 44, height: 44)
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(PressStyle(scale: 0.92))
-            .help(L.Folders.everything)
-            .accessibilityLabel(L.Folders.everything)
-            .padding(.top, Chrome.titleRowCenter - 22)
+            Image("MenuBarMark")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 28, height: 28)
+                .foregroundStyle(Theme.sideInk)
+                .frame(width: 44, height: 44)
+                .accessibilityHidden(true)
+                .padding(.top, Chrome.titleRowCenter - 22)
 
             VStack(spacing: 6) {
-                RailButton(symbol: "square.grid.2x2.fill", title: L.Folders.everything, active: model.folderID == nil && !model.foldersPage) {
+                RailButton(symbol: "square.grid.2x2.fill", title: L.Folders.everything, active: model.folderID == nil && !model.foldersPage && !model.trashPage) {
                     withAnimation(Theme.settle) { goHome() }
                 }
                 RailButton(symbol: "folder.fill", title: L.Folders.allFolders, active: model.foldersPage || model.folderID != nil) {
@@ -37,12 +32,17 @@ struct Rail: View {
 
             Spacer(minLength: 0)
 
-            SettingsLink {
-                RailIcon(symbol: "gearshape.fill", active: false)
+            VStack(spacing: 6) {
+                RailButton(symbol: "trash", title: L.Trash.title, active: model.trashPage) {
+                    withAnimation(Theme.settle) { model.trashPage = true }
+                }
+                SettingsLink {
+                    RailIcon(symbol: "gearshape.fill", active: false)
+                }
+                .buttonStyle(PressStyle(scale: 0.92))
+                .help(L.Settings.title)
+                .accessibilityLabel(L.Settings.title)
             }
-            .buttonStyle(PressStyle(scale: 0.92))
-            .help(L.Settings.title)
-            .accessibilityLabel(L.Settings.title)
             .padding(.bottom, 16)
 
         }

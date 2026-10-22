@@ -20,23 +20,24 @@ final class Ingestor {
 
     func ingest(providers: [NSItemProvider]) {
         Task {
-            var count = 0
+            var saves: [Save] = []
             for provider in providers {
-                if await ingest(provider: provider) { count += 1 }
+                if let save = await ingest(provider: provider) { saves.append(save) }
             }
-            announce(count)
+            feedback.saved(saves)
         }
     }
 
-    func ingest(fileURLs: [URL], source: String? = nil, quiet: Bool = false, into folderID: String? = nil) {
+    func ingest(fileURLs: [URL], source: String? = nil, quiet: Bool = false, into folderID: String? = nil,
+                message: String? = nil, takesFocus: Bool = true) {
         Task {
-            var count = 0
+            var saves: [Save] = []
             for url in fileURLs {
                 guard let save = await ingestFile(url, source: source) else { continue }
-                count += 1
+                saves.append(save)
                 if let folderID { store.modify(save.id) { if !$0.folders.contains(folderID) { $0.folders.append(folderID) } } }
             }
-            if !quiet { announce(count) }
+            if !quiet { feedback.saved(saves, message: message, takesFocus: takesFocus) }
         }
     }
 
@@ -50,18 +51,18 @@ final class Ingestor {
         }
         let gifType = NSPasteboard.PasteboardType(UTType.gif.identifier)
         if let data = board.data(forType: gifType) {
-            Task { if await ingestImage(data: data, source: "clipboard") != nil { announce(1) } }
+            Task { if let save = await ingestImage(data: data, source: "clipboard") { feedback.saved([save]) } }
             return true
         }
         for type in [NSPasteboard.PasteboardType.png, .tiff, NSPasteboard.PasteboardType("public.jpeg")] {
             if let data = board.data(forType: type) {
-                Task { if await ingestImage(data: data, source: "clipboard") != nil { announce(1) } }
+                Task { if let save = await ingestImage(data: data, source: "clipboard") { feedback.saved([save]) } }
                 return true
             }
         }
         if let string = board.string(forType: .string)?.trimmingCharacters(in: .whitespacesAndNewlines),
            !string.isEmpty {
-            Task { if await ingest(text: string, source: "clipboard") { announce(1) } }
+            Task { if let save = await ingest(text: string, source: "clipboard") { feedback.saved([save]) } }
             return true
         }
         feedback.toast(L.Toast.nothingToPaste)
@@ -69,7 +70,7 @@ final class Ingestor {
     }
 
     func ingest(link url: URL, title: String? = nil, source: String? = nil) {
-        Task { if await ingestLink(url, title: title, source: source) != nil { announce(1) } }
+        Task { if let save = await ingestLink(url, title: title, source: source) { feedback.saved([save]) } }
     }
 
     func addNote(_ text: String) {
@@ -105,58 +106,58 @@ final class Ingestor {
                 let ok: Bool
                 switch file.pathExtension.lowercased() {
                 case "txt", "url", "webloc", "text":
-                    ok = await ingest(text: Self.readLinkFile(file) ?? "", source: "iphone")
+                    ok = await ingest(text: Self.readLinkFile(file) ?? "", source: "iphone") != nil
                 default:
                     ok = ImageFiles.isMedia(file) ? await ingestFile(file, source: "iphone") != nil : false
                 }
                 if ok { count += 1 }
                 try? fm.removeItem(at: file)
             }
-            announce(count)
+            if count > 0 { feedback.saved(count: count) }
         }
     }
 
 
-    private func ingest(provider: NSItemProvider) async -> Bool {
+    private func ingest(provider: NSItemProvider) async -> Save? {
         if provider.hasItemConformingToTypeIdentifier(UTType.fileURL.identifier),
            let data = await provider.data(for: .fileURL),
            let url = URL(dataRepresentation: data, relativeTo: nil) {
-            return await ingestFile(url, source: nil) != nil
+            return await ingestFile(url, source: nil)
         }
         if provider.hasItemConformingToTypeIdentifier(UTType.movie.identifier),
            let data = await provider.data(for: .movie) {
-            return await ingestVideo(data: data, source: nil) != nil
+            return await ingestVideo(data: data, source: nil)
         }
         if provider.hasItemConformingToTypeIdentifier(UTType.gif.identifier),
            let data = await provider.data(for: .gif) {
-            return await ingestImage(data: data, source: nil) != nil
+            return await ingestImage(data: data, source: nil)
         }
         if provider.hasItemConformingToTypeIdentifier(UTType.url.identifier),
            let data = await provider.data(for: .url),
            let url = URL(dataRepresentation: data, relativeTo: nil) {
-            return await ingestLink(url, title: provider.suggestedName, source: nil) != nil
+            return await ingestLink(url, title: provider.suggestedName, source: nil)
         }
         if provider.hasItemConformingToTypeIdentifier(UTType.image.identifier),
            let data = await provider.data(for: .image) {
-            return await ingestImage(data: data, source: nil) != nil
+            return await ingestImage(data: data, source: nil)
         }
         if provider.hasItemConformingToTypeIdentifier(UTType.plainText.identifier),
            let data = await provider.data(for: .plainText) {
             return await ingest(text: String(decoding: data, as: UTF8.self), source: nil)
         }
-        return false
+        return nil
     }
 
-    private func ingest(text: String, source: String?) async -> Bool {
+    private func ingest(text: String, source: String?) async -> Save? {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return false }
+        guard !trimmed.isEmpty else { return nil }
         if let url = Self.webURL(in: trimmed) {
-            return await ingestLink(url, title: nil, source: source) != nil
+            return await ingestLink(url, title: nil, source: source)
         }
         let save = Save(kind: .note, text: trimmed, source: source ?? "note")
         store.insert(save)
         enricher.enrich(save.id)
-        return true
+        return save
     }
 
     private func ingestFile(_ url: URL, source: String?) async -> Save? {
@@ -254,10 +255,6 @@ final class Ingestor {
         return save
     }
 
-    private func announce(_ count: Int) {
-        guard count > 0 else { return }
-        feedback.saved(count: count)
-    }
 
 
     nonisolated struct PreparedImage: Sendable {

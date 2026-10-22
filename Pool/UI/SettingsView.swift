@@ -11,6 +11,7 @@ struct SettingsView: View {
     @State private var tab: SettingsTab = .general
     @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
     @State private var sounds = SoundEngine.shared.enabled
+    @State private var askWhy = WhyPrompt.enabled
     @State private var screenshots = ScreenshotWatcher.enabled
     @State private var autoUpdates = Updater.shared.checksAutomatically
     @State private var libraryPath = LibraryLocation.current.path(percentEncoded: false)
@@ -76,6 +77,12 @@ struct SettingsView: View {
                 SoftToggle(isOn: $sounds)
                     .accessibilityLabel(L.Settings.sounds)
                     .onChange(of: sounds) { _, on in SoundEngine.shared.enabled = on }
+            }
+            separator
+            row(L.Settings.askWhy, L.Settings.askWhyBody) {
+                SoftToggle(isOn: $askWhy)
+                    .accessibilityLabel(L.Settings.askWhy)
+                    .onChange(of: askWhy) { _, on in WhyPrompt.enabled = on }
             }
             separator
             row(L.Settings.screenshots, L.Settings.screenshotsBody) {

@@ -16,13 +16,23 @@ final class AppModel {
     let enricher: Enricher
     let feedback: Feedback
     let ingestor: Ingestor
+    let why: WhyPrompt
 
-    var query = "" { didSet { if query != oldValue { refresh() } } }
+    var query = "" {
+        didSet {
+            guard query != oldValue else { return }
+            absorbFilterTokens()
+            refresh()
+        }
+    }
     var kind: SaveKind? { didSet { if kind != oldValue { refresh() } } }
     var folderID: String? {
         didSet {
             guard folderID != oldValue else { return }
-            if folderID != nil, foldersPage { foldersPage = false }
+            if folderID != nil {
+                if foldersPage { foldersPage = false }
+                trashPage = false
+            }
             refresh()
         }
     }
@@ -30,9 +40,22 @@ final class AppModel {
         didSet {
             guard foldersPage != oldValue, foldersPage else { return }
             if folderID != nil { folderID = nil }
+            trashPage = false
             refresh()
         }
     }
+    var trashPage = false {
+        didSet {
+            guard trashPage != oldValue else { return }
+            trashConfirm = nil
+            guard trashPage else { return }
+            foldersPage = false
+            folderID = nil
+            clearSelection()
+            Task { await store.loadTrash() }
+        }
+    }
+    var trashConfirm: TrashConfirm?
     var activeTags: Set<String> = [] {
         didSet { if activeTags != oldValue { refresh() } }
     }
@@ -116,7 +139,9 @@ final class AppModel {
 
     private init() {
         let store = LibraryStore()
-        let feedback = Feedback()
+        let why = WhyPrompt(store: store)
+        let feedback = Feedback(why: why)
+        self.why = why
         let enricher = Enricher(store: store)
         self.store = store
         self.feedback = feedback
@@ -172,11 +197,11 @@ final class AppModel {
                 return activeTags.allSatisfy { own.contains($0) }
             }
         }
-        if let activeColor, let hex = SearchQuery.colorNames[activeColor], let rgb = Palette.rgb(hex) {
+        if let activeColor, let rgb = Palette.rgb(SearchQuery.colorNames[activeColor] ?? activeColor) {
             base = base.filter { SearchEngine.colorMatch($0, rgb) }
         }
         if let activeHost {
-            base = base.filter { ($0.host ?? $0.source ?? "") == activeHost }
+            base = base.filter { ($0.host ?? $0.source ?? "").contains(activeHost) }
         }
         if let since = activeRange.since {
             base = base.filter { $0.createdAt >= since }
@@ -209,7 +234,7 @@ final class AppModel {
     private func ordered(_ saves: [Save]) -> [Save] {
         switch sort {
         case .newest: return saves
-        case .oldest: return saves.reversed()
+        case .oldest: return isSearching ? saves.sorted { $0.createdAt < $1.createdAt } : saves.reversed()
         case .shuffle:
             let seed = shuffleSeed
             return saves.sorted { lhs, rhs in
@@ -223,6 +248,60 @@ final class AppModel {
     func searchSaves(_ query: String) -> [Save] {
         let result = search.run(query, kind: nil, in: store.saves)
         return result.matches
+    }
+
+    func relatedSaves(_ query: String) async -> [Save] {
+        guard let pending = search.run(query, kind: nil, in: store.saves).pending else { return [] }
+        return await search.index.related(pending)
+    }
+
+    private func absorbFilterTokens() {
+        var words: [String] = []
+        var absorbed = false
+        for token in query.split(whereSeparator: \.isWhitespace).map(String.init) {
+            let lower = token.lowercased()
+            let value = String(lower.split(separator: ":", maxSplits: 1).last ?? "")
+            if lower.hasPrefix("#"), lower.count == 7, Palette.rgb(lower) != nil {
+                activeColor = lower
+            } else if lower.hasPrefix("#"), lower.count > 1 {
+                activeTags.insert(String(lower.dropFirst()))
+            } else if lower.hasPrefix("from:") || lower.hasPrefix("site:"), !value.isEmpty {
+                activeHost = value
+            } else if lower.hasPrefix("color:") || lower.hasPrefix("colour:"), Palette.rgb(SearchQuery.colorNames[value] ?? value) != nil {
+                activeColor = value
+            } else if lower.hasPrefix("type:") || lower.hasPrefix("is:"), let found = SaveKind(rawValue: value.hasSuffix("s") ? String(value.dropLast()) : value) {
+                kind = found
+            } else {
+                words.append(token)
+                continue
+            }
+            absorbed = true
+        }
+        if absorbed { query = words.joined(separator: " ") }
+    }
+
+    func restore(_ item: LibraryStore.TrashItem) {
+        Task {
+            if await store.restore(item) {
+                refresh()
+                feedback.toast(L.Trash.restored)
+            } else {
+                feedback.toast(L.Trash.restoreFailed)
+            }
+        }
+    }
+
+    func confirmErase() {
+        guard let confirm = trashConfirm else { return }
+        let items = confirm.items(in: store.trash)
+        trashConfirm = nil
+        Task {
+            let erased = await store.erase(items)
+            if erased > 0 {
+                SoundEngine.shared.play(.delete)
+                feedback.toast(L.Trash.erased(erased))
+            }
+        }
     }
 
     func saveID(forFile url: URL) -> String? {
@@ -348,6 +427,7 @@ final class AppModel {
     }
 
     func goHome() {
+        trashPage = false
         foldersPage = false
         folderID = nil
         kind = nil
@@ -368,8 +448,7 @@ final class AppModel {
         if screenshots == nil {
             screenshots = ScreenshotWatcher { [weak self] url in
                 guard let self else { return }
-                self.ingestor.ingest(fileURLs: [url], source: "screenshot", quiet: true)
-                self.feedback.saved(message: L.Toast.screenshot)
+                self.ingestor.ingest(fileURLs: [url], source: "screenshot", message: L.Toast.screenshot, takesFocus: false)
             }
         }
         screenshots?.start()

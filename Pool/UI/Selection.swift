@@ -363,7 +363,7 @@ struct KeyboardNav: NSViewRepresentable {
             guard let window = NSApp.keyWindow, window.canBecomeMain, !(window is NSPanel) else { return false }
             if window.firstResponder is NSText { return false }
             guard !model.paletteShown, !model.composingNote, !model.linkEntryShown,
-                  model.selectedID == nil, !model.foldersPage, !model.filterOpen else { return false }
+                  model.selectedID == nil, !model.foldersPage, !model.trashPage, !model.filterOpen else { return false }
             let flags = event.modifierFlags.intersection([.command, .shift, .option, .control])
             let key = event.charactersIgnoringModifiers?.lowercased() ?? ""
             if flags == .command, key == "a" { model.selectAll(); return true }

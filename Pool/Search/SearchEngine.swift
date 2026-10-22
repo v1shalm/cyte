@@ -85,7 +85,7 @@ actor EmbeddingIndex {
 
     private func vector(for save: Save, embedding: NLEmbedding) -> [Double]? {
         if let cached = cache[save.id], cached.stamp == save.updatedAt { return cached.vector }
-        let text = ([save.title, save.summary ?? ""] + save.tags + save.labels)
+        let text = ([save.note, save.title, save.summary ?? ""] + save.tags + save.labels)
             .filter { !$0.isEmpty }.joined(separator: ". ")
         guard !text.isEmpty, let vector = embedding.vector(for: String(text.prefix(500))) else { return nil }
         cache[save.id] = (save.updatedAt, vector)
@@ -126,14 +126,39 @@ final class SearchEngine {
             }
             if query.words.allSatisfy(hay.contains) { matches.append(save) }
         }
+        if !query.words.isEmpty {
+            matches = Self.ranked(matches, words: query.words)
+        }
 
         var pending: PendingRelated?
-        if !query.words.isEmpty, !colorOnly, matches.count < 12 {
+        if !query.words.isEmpty, !colorOnly {
             let matchedIDs = Set(matches.map(\.id))
             let candidates = saves.filter { !matchedIDs.contains($0.id) && Self.passesFilters($0, query) }
             pending = PendingRelated(sentence: query.words.joined(separator: " "), candidates: candidates)
         }
         return SearchResult(matches: matches, pending: pending)
+    }
+
+    nonisolated static func ranked(_ saves: [Save], words: [String]) -> [Save] {
+        saves.enumerated()
+            .map { (offset: $0.offset, save: $0.element, score: score($0.element, words: words)) }
+            .sorted { $0.score != $1.score ? $0.score > $1.score : $0.offset < $1.offset }
+            .map(\.save)
+    }
+
+    nonisolated static func score(_ save: Save, words: [String]) -> Int {
+        let fields: [(text: String, weight: Int)] = [
+            (save.note, 6),
+            (save.title, 5),
+            ((save.tags + save.labels).joined(separator: " "), 4),
+            (save.host ?? "", 3),
+            ((save.text ?? "") + " " + (save.summary ?? ""), 2),
+            ((save.ocrText ?? "") + " " + (save.source ?? ""), 1),
+        ]
+        let folded = fields.map { (text: $0.text.lowercased().folding(options: [.diacriticInsensitive], locale: nil), weight: $0.weight) }
+        return words.reduce(0) { total, word in
+            total + (folded.first { $0.text.contains(word) }?.weight ?? 0)
+        }
     }
 
     nonisolated private static func passesFilters(_ save: Save, _ query: SearchQuery) -> Bool {

@@ -49,6 +49,15 @@ struct Tile: View {
                     .transition(.opacity.combined(with: .scale(scale: 0.8)))
             }
         }
+        .overlay(alignment: .bottom) {
+            if hovering && !selected && save.kind == .link && save.thumbnail != nil && !save.note.isEmpty {
+                WhyCaption(text: save.note)
+                    .padding(8)
+                    .padding(.bottom, LinkTile.footerHeight)
+                    .transition(.opacity.combined(with: .offset(y: 4)))
+                    .allowsHitTesting(false)
+            }
+        }
         .overlay(alignment: .topTrailing) {
             if hovering && !selected && !model.selecting {
                 TileActions(save: save)
@@ -242,19 +251,44 @@ struct ImageTile: View {
         SaveMedia(save: save, maxPixel: model.tilePixels, playing: playing, cornerRadius: Theme.tileRadius)
             .overlay(alignment: .bottomLeading) {
                 ZStack(alignment: .bottomLeading) {
-                    LinearGradient(colors: [.black.opacity(0), .black.opacity(0.42)], startPoint: .top, endPoint: .bottom)
-                        .frame(height: 72)
-                    Text(save.displayTitle)
-                        .font(Theme.ui(12, weight: .medium))
-                        .foregroundStyle(.white)
-                        .lineLimit(1)
-                        .padding(.horizontal, 12)
-                        .padding(.bottom, 10)
+                    LinearGradient(colors: [.black.opacity(0), .black.opacity(save.note.isEmpty ? 0.42 : 0.6)], startPoint: .top, endPoint: .bottom)
+                        .frame(height: save.note.isEmpty ? 72 : 110)
+                    VStack(alignment: .leading, spacing: 4) {
+                        if !save.note.isEmpty {
+                            Text(save.note)
+                                .font(Theme.serif(15))
+                                .foregroundStyle(.white)
+                                .lineLimit(2)
+                                .multilineTextAlignment(.leading)
+                        }
+                        Text(save.displayTitle)
+                            .font(Theme.ui(save.note.isEmpty ? 12 : 11, weight: .medium))
+                            .foregroundStyle(.white.opacity(save.note.isEmpty ? 1 : 0.7))
+                            .lineLimit(1)
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.bottom, 10)
                 }
                 .opacity(hovering ? 1 : 0)
                 .animation(Theme.hover, value: hovering)
                 .allowsHitTesting(false)
             }
+    }
+}
+
+struct WhyCaption: View {
+    let text: String
+
+    var body: some View {
+        Text(text)
+            .font(Theme.serif(14))
+            .foregroundStyle(.white)
+            .lineLimit(2)
+            .multilineTextAlignment(.leading)
+            .padding(.horizontal, 11)
+            .padding(.vertical, 8)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(RoundedRectangle(cornerRadius: Theme.tileRadius - 8, style: .continuous).fill(Theme.pill.opacity(0.94)))
     }
 }
 
@@ -264,6 +298,7 @@ struct LinkTile: View {
     static let footerHeight: CGFloat = 62
     static let titleSize: CGFloat = 19
     static let titleLines = 4
+    static let whyLines = 2
 
     var body: some View {
         VStack(spacing: 0) {
@@ -286,6 +321,14 @@ struct LinkTile: View {
                         .lineSpacing(1)
                         .lineLimit(LinkTile.titleLines)
                         .multilineTextAlignment(.leading)
+                    if !save.note.isEmpty {
+                        Text(save.note)
+                            .font(Theme.serif(TextSize.large))
+                            .foregroundStyle(Theme.secondary)
+                            .lineSpacing(2)
+                            .lineLimit(LinkTile.whyLines)
+                            .multilineTextAlignment(.leading)
+                    }
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 15)

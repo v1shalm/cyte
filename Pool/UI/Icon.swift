@@ -90,6 +90,7 @@ struct Icon: View {
         "folder": "folder-fill",
         "grid-2x2": "grid-fill",
         "settings": "settings-fill",
+        "trash": "trash-fill",
     ]
 
     static func asset(_ name: String) -> String { "ph-" + (slugs[name] ?? name) }

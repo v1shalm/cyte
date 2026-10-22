@@ -52,7 +52,13 @@ struct MasonryLayout {
             if save.pending { return 120 }
             let perLine = max(10, (width - 32) / (LinkTile.titleSize * 0.5))
             let lines = min(CGFloat(LinkTile.titleLines), max(1, ceil(CGFloat(save.displayTitle.count) / perLine)))
-            return (30 + 12 + 10 + lines * 24 + 6).rounded()
+            var height = 30 + 12 + 10 + lines * 24 + 6
+            if !save.note.isEmpty {
+                let whyPerLine = max(12, (width - 32) / (TextSize.large * 0.5))
+                let whyLines = min(CGFloat(LinkTile.whyLines), max(1, ceil(CGFloat(save.note.count) / whyPerLine)))
+                height += 10 + whyLines * 20
+            }
+            return height.rounded()
         case .note:
             let text = save.text ?? ""
             let perLine = max(12, width / 7.6)
@@ -106,6 +112,7 @@ final class ScrollProbe {
         hasher.combine(save.pending)
         hasher.combine(save.thumbnail != nil)
         hasher.combine(save.text?.count ?? 0)
+        hasher.combine(save.note.count)
     }
 }
 
